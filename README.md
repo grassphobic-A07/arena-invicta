@@ -37,9 +37,76 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
 
 iv. Sumber initial dataset kategori utama produk
 
-v. Role atau peran pengguna beserta deskripsinya (karena bisa saja lebih dari satu jenis pengguna yang mengakses aplikasi)
+v. Role atau peran pengguna beserta deskripsinya (karena bisa saja lebih dari satu jenis pengguna yang mengakses aplikasi)\
+Tentu, ini adalah bagian yang sangat penting dalam merancang sebuah aplikasi. Memiliki peran pengguna (user roles) yang jelas akan menentukan keamanan, alur kerja, dan pengalaman pengguna di Arena Invicta.
+
+Berikut adalah struktur peran pengguna yang bisa diterapkan, dari yang paling dasar hingga yang paling tinggi:
+
+---
+
+### **Peran Pengguna (User Roles) di Arena Invicta**
+
+#### 1. **Pengunjung (Visitor)**
+
+* **Deskripsi:**
+    Ini adalah pengguna anonim yang mengakses website tanpa login. Mereka adalah konsumen konten pasif. Tujuannya adalah untuk mendapatkan informasi secara cepat.
+
+* **Hak Akses & Kemampuan:**
+    * Membaca semua artikel berita yang sudah dipublikasikan di modul `news`.
+    * Melihat halaman klasemen dan jadwal pertandingan di modul `leagues`.
+    * Melihat halaman profil publik milik pengguna lain.
+    * **Tidak bisa** menulis komentar, mengikuti kuis, atau memiliki halaman profil sendiri.
+
+#### 2. **Anggota Arena (Registered User)**
+
+* **Deskripsi:**
+    Ini adalah peran standar untuk setiap pengguna yang telah mendaftar dan login. Mereka adalah inti dari komunitas Arena Invicta. Tujuannya adalah untuk berinteraksi dan berpartisipasi aktif.
+
+* **Hak Akses & Kemampuan:**
+    * Memiliki semua hak akses seorang **Pengunjung**.
+    * **Membuat dan mengelola profil** mereka sendiri di modul `profiles` (mengubah bio, foto profil, tim favorit).
+    * **Mengikuti kuis** di modul `quiz` dan mendapatkan skor yang tersimpan di profil mereka.
+    * **Menulis, mengedit, dan menghapus komentar** mereka sendiri di modul `discussions`.
+    * Mendapatkan pengalaman yang lebih personal (misalnya, notifikasi atau rekomendasi di masa depan).
+
+#### 3. **Penulis (Writer)**
+
+* **Deskripsi:**
+    Ini adalah peran untuk tim konten internal kalian. Mereka adalah para "Jurnalis Arena" yang bertugas membuat konten berkualitas. Mereka memiliki akses ke bagian *backend* (Django Admin) namun terbatas.
+
+* **Hak Akses & Kemampuan:**
+    * Memiliki semua hak akses seorang **Anggota Arena**.
+    * Akses ke Django Admin untuk modul `news` dan `quiz`.
+    * **Membuat (Create)** artikel berita baru dan menyimpannya sebagai *draft*.
+    * **Mengubah (Update)** artikel berita yang mereka tulis sendiri (selama belum dipublikasikan).
+    * **Membuat dan mengelola** set pertanyaan untuk kuis.
+    * **Tidak bisa** mempublikasikan artikel secara langsung ke publik. Artikel harus direview terlebih dahulu oleh Editor.
+
+#### 4. **Editor**
+
+* **Deskripsi:**
+    Peran ini bertanggung jawab atas kualitas dan manajemen seluruh konten di website. Mereka adalah "Penjaga Gerbang Arena" yang memastikan semua konten layak tayang dan terorganisir dengan baik.
+
+* **Hak Akses & Kemampuan:**
+    * Memiliki semua hak akses seorang **Penulis**.
+    * **Mempublikasikan (Publish)** artikel yang ditulis oleh para Penulis.
+    * **Mengedit dan menghapus** artikel mana pun dari Penulis mana pun.
+    * **Mengelola data master** seperti kategori berita (`news`) dan data klasemen/jadwal (`leagues`).
+    * **Moderasi konten:** Dapat menghapus komentar pengguna yang tidak pantas di modul `discussions`.
+
+#### 5. **Administrator (Superuser)**
+
+* **Deskripsi:**
+    Ini adalah peran tertinggi, biasanya dipegang oleh pemilik produk atau pengembang utama. "Dewa Arena" ini memiliki kontrol penuh atas seluruh aspek teknis dan non-teknis website.
+
+* **Hak Akses & Kemampuan:**
+    * Akses tanpa batas ke seluruh fitur dan data di website.
+    * **Manajemen pengguna:** Dapat membuat, mengubah, dan menghapus akun pengguna mana pun, serta mengubah peran mereka (misalnya, mengangkat seorang Anggota menjadi Penulis).
+    * Kontrol penuh atas seluruh Django Admin, termasuk modul-modul yang tidak bisa diakses peran lain.
+    * Bertanggung jawab atas pemeliharaan dan kesehatan sistem secara keseluruhan.
 
 vi. Tautan deployment PWS dan link design\
 Link PWS: \
 https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/ \
-Link Figma: https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561
+Link Figma: \
+https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561
