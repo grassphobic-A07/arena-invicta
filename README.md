@@ -26,7 +26,14 @@ Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tig
     - **Ruang Diskusi Berkualitas**: Fitur komentar dan profil pengguna memungkinkan terjadinya diskusi yang cerdas dan bermakna dengan orang-orang yang memiliki minat dan level pengetahuan yang sama.
     - **Membangun Reputasi**: Pengguna dapat membangun reputasi sebagai fans yang berpengetahuan luas melalui pencapaian kuis dan komentar analitis mereka di profil.
 
-iii. Daftar modul yang akan diimplementasikan
+iii. Daftar modul yang akan diimplementasikan\
+Modul yang akan diimplementasikan pada Arena Invicta yaitu:
+1. **Accounts + Profiles (Admin, Creator, Reader)** - Neal Guarddin
+2. **News** - Rafasya Muhammad Subhan 
+3. **Quiz** - Hannan Afif Darmawan
+4. **Discussions (Bisa sebagai comment juga)** - Adam Rayyan Aryasatya
+5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzakki 
+
 
 iv. Sumber initial dataset kategori utama produk
 
@@ -34,4 +41,5 @@ v. Role atau peran pengguna beserta deskripsinya (karena bisa saja lebih dari sa
 
 vi. Tautan deployment PWS dan link design\
 Link PWS: \
+https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/ \
 Link Figma: https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561
