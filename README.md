@@ -8,7 +8,7 @@ i. Nama-nama Anggota Kelompok:
 
 ii. Deskripsi aplikasi (cerita aplikasi yang diajukan serta kebermanfaatannya)
 ### Arena Invicta
-**Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.
+**Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.\
 
 Kebermanfaatan Arena Invicta
 Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tiga area utama:
@@ -28,16 +28,50 @@ Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tig
 
 iii. Daftar modul yang akan diimplementasikan\
 Modul yang akan diimplementasikan pada Arena Invicta yaitu:
-1. **Accounts + Profiles (Admin, Creator, Reader)** - Neal Guarddin
-Mengatur autentikasi pengguna, pembuatan akun, login/logout, serta halaman profil (bio, avatar, tim favorit). CRUD-nya ada di registrasi (create), tampilan profil (read), edit profil (update), dan hapus/nonaktif akun (delete).
-2. **News** - Rafasya Muhammad Subhan 
-Menyediakan artikel berita sepak bola dengan sistem draft, review, dan publish. CRUD meliputi pembuatan artikel (create), pembacaan daftar dan detail berita (read), pengeditan isi/artikel (update), dan penghapusan atau unpublish oleh editor (delete).
-3. **Quiz** - Hannan Afif Darmawan
-Fitur kuis interaktif tentang sepak bola. Writer/editor membuat kuis dan pertanyaan, pengguna mengikuti kuis dan memperoleh skor. CRUD-nya: buat kuis dan soal (create), tampilkan daftar dan leaderboard (read), ubah pertanyaan atau status publish (update), dan hapus kuis/soal (delete).
-4. **Discussions (Bisa sebagai comment juga)** - Adam Rayyan Aryasatya
-Forum atau kolom komentar untuk berdiskusi dan menanggapi konten. CRUD mencakup pembuatan thread/komentar (create), melihat thread dan balasan (read), mengedit komentar sendiri (update), dan menghapus atau moderasi oleh editor (delete).
-5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki 
-Menampilkan data liga, tim, jadwal pertandingan, hasil, dan lain-lain. CRUD digunakan untuk menambah liga/tim/jadwal (create), menampilkan informasi liga dan pertandingan (read), memperbarui skor dan standing (update), dan menghapus data tim/pertandingan (delete).
+1. **Accounts & Profiles (Admin, Creator, Reader)** - Neal Guarddin\
+    Fitur ini mengatur autentikasi pengguna dan profil pengguna, termasuk pembuatan akun, login/logout, dan halaman profil.
+
+    **CRUD:**
+    - **Create:** Registrasi akun baru.
+    - **Read:** Menampilkan halaman profil pengguna (bio, avatar, tim favorit).
+    - **Update:** Mengedit profil.
+    - **Delete:** Menghapus atau menonaktifkan akun.
+
+2. **News** - Rafasya Muhammad Subhan\
+    Fitur ini menyediakan artikel sepak bola dengan sistem draft, review, dan publish.
+
+    **CRUD:**
+    - **Create:** Membuat artikel baru.
+    - **Read:** Membaca daftar artikel dan detail berita.
+    - **Update:** Mengedit isi/artikel.
+    - **Delete:** Menghapus atau men-unpublish artikel oleh editor.
+
+3. **Quiz** - Hannan Afif Darmawan\
+    Fitur kuis interaktif tentang sepak bola. Writer/editor dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
+
+    **CRUD:**
+    - **Create:** Membuat kuis dan pertanyaan.
+    - **Read:** Menampilkan daftar kuis dan leaderboard.
+    - **Update:** Mengubah pertanyaan atau status publish.
+    - **Delete:** Menghapus kuis atau pertanyaan.
+
+4. **Discussions (atau Comment)** - Adam Rayyan Aryasatya\
+    Fitur Forum atau kolom komentar untuk berdiskusi dan menanggapi konten.
+
+    **CRUD:**
+    - **Create:** Membuat thread atau komentar.
+    - **Read:** Melihat thread dan balasan.
+    - **Update:** Mengedit komentar sendiri.
+    - **Delete:** Menghapus komentar atau moderasi oleh editor.
+
+5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki\
+    Fitur ini menampilkan data liga, tim, jadwal pertandingan, hasil, dan informasi terkait lainnya.
+
+    **CRUD:**
+    - **Create:** Menambahkan liga, tim, atau jadwal pertandingan.
+    - **Read:** Menampilkan informasi liga dan pertandingan.
+    - **Update:** Memperbarui skor dan klasemen/standing.
+    - **Delete:** Menghapus data tim atau pertandingan.
 
 iv. Sumber initial dataset kategori utama produk
 
