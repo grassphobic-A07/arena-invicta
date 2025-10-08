@@ -1,0 +1,7 @@
+<h1>Hapus Diskusi</h1>
+<p>Apakah Anda yakin ingin menghapus diskusi "{{ object.title }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Ya, hapus</button>
+</form>
+<a href="{% url 'discussions:thread-detail' object.pk %}">Batal</a>
