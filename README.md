@@ -6,9 +6,9 @@ i. Nama-nama Anggota Kelompok:
 4. Neal Guarddin (2406348282)
 5. Rafasya Muhammad Subhan (2406409542)
 
-ii. Deskripsi aplikasi (cerita aplikasi yang diajukan serta kebermanfaatannya)
+ii. Deskripsi Aplikasi (Cerita & Manfaat Aplikasi)
 ### Arena Invicta
-**Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.\
+**Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.
 
 Kebermanfaatan Arena Invicta
 Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tiga area utama:
@@ -26,7 +26,7 @@ Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tig
     - **Ruang Diskusi Berkualitas**: Fitur komentar dan profil pengguna memungkinkan terjadinya diskusi yang cerdas dan bermakna dengan orang-orang yang memiliki minat dan level pengetahuan yang sama.
     - **Membangun Reputasi**: Pengguna dapat membangun reputasi sebagai fans yang berpengetahuan luas melalui pencapaian kuis dan komentar analitis mereka di profil.
 
-iii. Daftar modul yang akan diimplementasikan\
+iii. Daftar Modul\
 Modul yang akan diimplementasikan pada Arena Invicta yaitu:
 1. **Accounts & Profiles (Admin, Creator, Reader)** - Neal Guarddin\
     Fitur ini mengatur autentikasi pengguna dan profil pengguna, termasuk pembuatan akun, login/logout, dan halaman profil.
@@ -73,7 +73,11 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     - **Update:** Memperbarui skor dan klasemen/standing.
     - **Delete:** Menghapus data tim atau pertandingan.
 
-iv. Sumber initial dataset kategori utama produk
+iv. Sumber Initial Dataset Kategori Utama Produk 
+
+- [News - Articles (Kaggle)](https://www.kaggle.com/datasets/hammadjavaid/football-news-articles/data)  
+- [League - Matches Dataset (Hugging Face)](https://huggingface.co/datasets/WideMan/football_matches)
+
 
 v. Role atau peran pengguna beserta deskripsinya (karena bisa saja lebih dari satu jenis pengguna yang mengakses aplikasi)\
 Tentu, ini adalah bagian yang sangat penting dalam merancang sebuah aplikasi. Memiliki peran pengguna (user roles) yang jelas akan menentukan keamanan, alur kerja, dan pengalaman pengguna di Arena Invicta.
@@ -143,8 +147,8 @@ Berikut adalah struktur peran pengguna yang bisa diterapkan, dari yang paling da
     * Kontrol penuh atas seluruh Django Admin, termasuk modul-modul yang tidak bisa diakses peran lain.
     * Bertanggung jawab atas pemeliharaan dan kesehatan sistem secara keseluruhan.
 
-vi. Tautan deployment PWS dan link design\
-Link PWS: \
-https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/ \
-Link Figma: \
-https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561
+vi. Tautan Deployment PWS dan Link Design
+
+- [PWS](https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/)
+- [Figma](https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561)
+
