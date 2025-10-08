@@ -6,7 +6,7 @@ i. Nama-nama Anggota Kelompok:
 4. Neal Guarddin (2406348282)
 5. Rafasya Muhammad Subhan (2406409542)
 
-ii. Deskripsi aplikasi (cerita aplikasi yang diajukan serta kebermanfaatannya)
+ii. Deskripsi Aplikasi (Cerita & Manfaat Aplikasi)
 ### Arena Invicta
 **Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.
 
@@ -26,20 +26,58 @@ Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tig
     - **Ruang Diskusi Berkualitas**: Fitur komentar dan profil pengguna memungkinkan terjadinya diskusi yang cerdas dan bermakna dengan orang-orang yang memiliki minat dan level pengetahuan yang sama.
     - **Membangun Reputasi**: Pengguna dapat membangun reputasi sebagai fans yang berpengetahuan luas melalui pencapaian kuis dan komentar analitis mereka di profil.
 
-iii. Daftar modul yang akan diimplementasikan\
+iii. Daftar Modul\
 Modul yang akan diimplementasikan pada Arena Invicta yaitu:
-1. **Accounts + Profiles (Admin, Creator, Reader)** - Neal Guarddin
-Mengatur autentikasi pengguna, pembuatan akun, login/logout, serta halaman profil (bio, avatar, tim favorit). CRUD-nya ada di registrasi (create), tampilan profil (read), edit profil (update), dan hapus/nonaktif akun (delete).
-2. **News** - Rafasya Muhammad Subhan 
-Menyediakan artikel berita sepak bola dengan sistem draft, review, dan publish. CRUD meliputi pembuatan artikel (create), pembacaan daftar dan detail berita (read), pengeditan isi/artikel (update), dan penghapusan atau unpublish oleh editor (delete).
-3. **Quiz** - Hannan Afif Darmawan
-Fitur kuis interaktif tentang sepak bola. Writer/editor membuat kuis dan pertanyaan, pengguna mengikuti kuis dan memperoleh skor. CRUD-nya: buat kuis dan soal (create), tampilkan daftar dan leaderboard (read), ubah pertanyaan atau status publish (update), dan hapus kuis/soal (delete).
-4. **Discussions (Bisa sebagai comment juga)** - Adam Rayyan Aryasatya
-Forum atau kolom komentar untuk berdiskusi dan menanggapi konten. CRUD mencakup pembuatan thread/komentar (create), melihat thread dan balasan (read), mengedit komentar sendiri (update), dan menghapus atau moderasi oleh editor (delete).
-5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki 
-Menampilkan data liga, tim, jadwal pertandingan, hasil, dan lain-lain. CRUD digunakan untuk menambah liga/tim/jadwal (create), menampilkan informasi liga dan pertandingan (read), memperbarui skor dan standing (update), dan menghapus data tim/pertandingan (delete).
+1. **Accounts & Profiles (Admin, Creator, Reader)** - Neal Guarddin\
+    Fitur ini mengatur autentikasi pengguna dan profil pengguna, termasuk pembuatan akun, login/logout, dan halaman profil.
 
-iv. Sumber initial dataset kategori utama produk
+    **CRUD:**
+    - **Create:** Registrasi akun baru.
+    - **Read:** Menampilkan halaman profil pengguna (bio, avatar, tim favorit).
+    - **Update:** Mengedit profil.
+    - **Delete:** Menghapus atau menonaktifkan akun.
+
+2. **News** - Rafasya Muhammad Subhan\
+    Fitur ini menyediakan artikel sepak bola dengan sistem draft, review, dan publish.
+
+    **CRUD:**
+    - **Create:** Membuat artikel baru.
+    - **Read:** Membaca daftar artikel dan detail berita.
+    - **Update:** Mengedit isi/artikel.
+    - **Delete:** Menghapus atau men-unpublish artikel oleh editor.
+
+3. **Quiz** - Hannan Afif Darmawan\
+    Fitur kuis interaktif tentang sepak bola. Writer/editor dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
+
+    **CRUD:**
+    - **Create:** Membuat kuis dan pertanyaan.
+    - **Read:** Menampilkan daftar kuis dan leaderboard.
+    - **Update:** Mengubah pertanyaan atau status publish.
+    - **Delete:** Menghapus kuis atau pertanyaan.
+
+4. **Discussions (atau Comment)** - Adam Rayyan Aryasatya\
+    Fitur Forum atau kolom komentar untuk berdiskusi dan menanggapi konten.
+
+    **CRUD:**
+    - **Create:** Membuat thread atau komentar.
+    - **Read:** Melihat thread dan balasan.
+    - **Update:** Mengedit komentar sendiri.
+    - **Delete:** Menghapus komentar atau moderasi oleh editor.
+
+5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki\
+    Fitur ini menampilkan data liga, tim, jadwal pertandingan, hasil, dan informasi terkait lainnya.
+
+    **CRUD:**
+    - **Create:** Menambahkan liga, tim, atau jadwal pertandingan.
+    - **Read:** Menampilkan informasi liga dan pertandingan.
+    - **Update:** Memperbarui skor dan klasemen/standing.
+    - **Delete:** Menghapus data tim atau pertandingan.
+
+iv. Sumber Initial Dataset Kategori Utama Produk 
+
+- [News - Articles (Kaggle)](https://www.kaggle.com/datasets/hammadjavaid/football-news-articles/data)  
+- [League - Matches Dataset (Hugging Face)](https://huggingface.co/datasets/WideMan/football_matches)
+
 
 v. Role atau peran pengguna beserta deskripsinya (karena bisa saja lebih dari satu jenis pengguna yang mengakses aplikasi)\
 Tentu, ini adalah bagian yang sangat penting dalam merancang sebuah aplikasi. Memiliki peran pengguna (user roles) yang jelas akan menentukan keamanan, alur kerja, dan pengalaman pengguna di Arena Invicta.
@@ -109,8 +147,8 @@ Berikut adalah struktur peran pengguna yang bisa diterapkan, dari yang paling da
     * Kontrol penuh atas seluruh Django Admin, termasuk modul-modul yang tidak bisa diakses peran lain.
     * Bertanggung jawab atas pemeliharaan dan kesehatan sistem secara keseluruhan.
 
-vi. Tautan deployment PWS dan link design\
-Link PWS: \
-https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/ \
-Link Figma: \
-https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561
+vi. Tautan Deployment PWS dan Link Design
+
+- [PWS](https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/)
+- [Figma](https://www.figma.com/files/team/1554375848835483944/project/461026907/Grassphobic-Team?fuid=1498580805392729561)
+
