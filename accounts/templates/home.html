@@ -1,0 +1,9 @@
+
+<!-- Ini untuk nanti ke halaman beranda kalo berhasil -->
+{% extends 'base.html' %}
+{% block title %}Beranda{% endblock %}
+{% block content %}
+<h1>Berhasil login 🎉</h1>
+<p>Last login: {{ last_login }}</p>
+<p><a href="{% url 'accounts:logout' %}">Logout</a></p>
+{% endblock %}
