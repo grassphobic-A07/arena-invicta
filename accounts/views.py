@@ -11,7 +11,7 @@ import datetime
 # Ketika arena_invicta diakses, tampilan pertama kali muncul adalah halaman register berasal dari urls.py yang ada di arena_invicta
 def register(request):
     if request.user.is_authenticated:
-        return redirect('home')  # Redirect ke halaman beranda jika sudah login
+        return redirect('accounts:home')  # Redirect ke halaman beranda jika sudah login
     
     # Bind form hanya kalau ada data POST; kalau tidak, jadikan unbound form.
     form = UserCreationForm(request.POST or None)
