@@ -1,9 +1,82 @@
 # accounts/forms.py
-from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth import get_user_model
+from django.forms.forms import NON_FIELD_ERRORS
 
-class CustomUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        # Tentukan field apa saja yang muncul di form registrasi
-        fields = ('username', 'email')
+User = get_user_model()
+
+ROLE_CHOICES = [
+    ('registered', 'Registered (Can Comment & Create Profiles)'),
+    ('writer',     'Writer (Creator of News Articles)'),
+    # 'editor' dan 'admin' sengaja tidak ditampilkan untuk keamanan
+]
+
+BASE_INPUT_CLS = (
+    "w-full rounded-xl border border-surface/30 "
+    "focus:border-sea/60 focus:ring-2 focus:ring-sea/20 "
+    "px-4 py-3 text-base outline-none bg-white"
+)
+
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update({
+            "class": BASE_INPUT_CLS, "placeholder": "Your Username", "autofocus": True
+        })
+        self.fields["password"].widget.attrs.update({
+            "class": BASE_INPUT_CLS + "pr-10", # Kasih ruang untuk icon mata
+            "placeholder": "Password"
+        })
+
+    # Tambah class merah ke field yang error (dipanggil dari view)
+    def add_error_styles(self):
+        # 1) Jika ada non-field errors (mis. kredensial salah), highlight kedua field
+        if self.errors.get(NON_FIELD_ERRORS):
+            for name in ("username", "password"):
+                if name in self.fields:
+                    w = self.fields[name].widget
+                    w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()
+
+        # 2) Untuk semua field yang memang error, tambahkan highlight juga
+        for name in self.errors:
+            if name == NON_FIELD_ERRORS:
+                continue
+            field = self.fields.get(name)
+            if not field:
+                continue
+            w = field.widget
+            w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()
+
+class RegisterWithRoleForm(UserCreationForm):
+    role = forms.ChoiceField(choices=ROLE_CHOICES, label="Pilih Peran Anda")
+    class Meta:
+        model = User
+        fields = ("username", "password1", "password2", "role")  # password1 & password2 sudah ada dari UserCreationForm
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update({
+            "class": BASE_INPUT_CLS, "placeholder": "Your Username", "autofocus": True
+        })
+        self.fields["password1"].widget.attrs.update({
+            "class": BASE_INPUT_CLS + "pr-10", 
+            "placeholder": "Minimal 8 karakter"
+        })
+        self.fields["password2"].widget.attrs.update({
+            "class": BASE_INPUT_CLS + "pr-10", 
+            "placeholder": "Ulangi password"
+        })
+        self.fields["role"].widget.attrs.update({
+            "class": BASE_INPUT_CLS.replace("py-3", "py-2.5")
+        })
+    
+    def add_error_styles(self):
+        for name in self.errors:
+            if name == NON_FIELD_ERRORS:
+                continue
+            field = self.fields.get(name)
+            if not field:
+                continue
+            w = field.widget
+            w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()

@@ -1,9 +1,44 @@
-
-<!-- Ini untuk nanti ke halaman beranda kalo berhasil -->
 {% extends 'base.html' %}
-{% block title %}Beranda{% endblock %}
+{% block title %}Home{% endblock %}
 {% block content %}
-<h1>Berhasil login 🎉</h1>
-<p>Last login: {{ last_login }}</p>
-<p><a href="{% url 'accounts:logout' %}">Logout</a></p>
+<h1>Home (Publik)</h1>
+
+<p>Selamat datang di <strong>Arena Invicta</strong> — Berita · Analisis · Kuis.</p>
+
+<h2>Jelajah (tidak butuh login)</h2>
+<ul>
+  <li><a href="/news/">Daftar berita (contoh publik)</a></li>
+  <li><a href="/quiz/">Daftar kuis (contoh publik)</a></li>
+</ul>
+
+<h2>Aksi yang butuh login (akan minta login saat diklik)</h2>
+<ul>
+  <li><a href="/news/create/">Tulis berita</a></li>
+  <li><a href="/quiz/create/">Buat kuis</a></li>
+</ul>
+
+{% if request.user.is_authenticated %}
+    <p>Halo, {{ username }}. Last login: {{ last_login }}</p>
+
+    <!-- Badge Role -->
+    <div class="my-2 flex flex-wrap gap-2 items-center">
+        {% if request.user.is_superuser %}
+            <span class="inline-block px-2.5 py-1 rounded-full bg-primary text-mist text-xs">Admin</span>
+        {% endif %}
+        {% for name in roles %}
+          <span class="inline-block px-2.5 py-1 rounded-full text-xs
+            {% if g.name == 'Editor' %} bg-sea text-mist
+            {% elif g.name == 'Writer' %} bg-mint text-primary
+            {% else %} bg-surface/10 text-surface
+            {% endif %}">{{ name }}
+          </span>
+        {% empty %}
+          <span class="text-surface/70 text-sm">(Tidak ada role)</span>
+        {% endfor %}
+    </div>
+    <p><a href="{% url 'accounts:logout' %}">Log out</a></p>
+    
+{% else %}
+  <p><a href="{% url 'accounts:login' %}">Log in</a> · <a href="{% url 'accounts:register' %}">Sign up</a></p>
+{% endif %}
 {% endblock %}

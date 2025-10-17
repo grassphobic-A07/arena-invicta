@@ -1,0 +1,3 @@
+/* Arena Invicta: helpers */
+::selection { background: #8EC5B8; color: #102A43; }
+input::-ms-reveal, input::-ms-clear { display: none; } /* hide default eye */

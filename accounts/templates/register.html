@@ -1,14 +1,120 @@
 {% extends 'base.html' %}
-{% block title %}Register{% endblock %}
-{% block content %}
 
-<h1>Register</h1>
-<form method="post">
-  {% csrf_token %}
-  <table>
-    {{ form.as_table }}
-    <tr><td></td><td><button type="submit">Daftar</button></td></tr>
-  </table>
-</form>
-<p>Sudah punya akun? <a href="{% url 'accounts:login' %}">Login</a></p>
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-md">
+  <h1 class="text-3xl font-semibold text-primary mb-6">Register</h1>
+
+  <form method="post" class="bg-white rounded-xl border border-mist p-5 space-y-4">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 mb-3">
+        {% for e in form.non_field_errors %}
+          <p class="text-red-700 text-sm">{{ e }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Username -->
+    <div>
+      <label class="block mb-1" for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+      {% for e in form.username.errors %}
+        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Password 1 -->
+    <div>
+      <label class="block mb-1" for="{{ form.password1.id_for_label }}">Password</label>
+      <div class="relative"> 
+        {{ form.password1 }}
+        <!-- Tombol mata -->
+        <button type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-surface/70 hover:text-sea"
+                data-toggle-password data-target="#{{ form.password1.id_for_label }}"
+                aria-label="Toggle password visibility">
+          <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+          </svg>
+          <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
+            <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
+          </svg>
+        </button>
+      </div>
+      
+
+      {% if form.password1.help_text %}
+        <div class="text-xs text-surface/70 mt-1">{{ form.password1.help_text|safe }}</div>
+      {% endif %}
+      {% for e in form.password1.errors %}
+        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Password 2 -->
+    <div>
+      <label class="block mb-1" for="{{ form.password2.id_for_label }}">Password confirmation</label>
+      <div class="relative">
+        {{ form.password2 }}
+        <button type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-surface/70 hover:text-sea"
+                data-toggle-password data-target="#{{ form.password2.id_for_label }}"
+                aria-label="Toggle password visibility">
+          <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+          </svg>
+          <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
+            <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
+          </svg>
+        </button>
+        
+      </div>
+      {% for e in form.password2.errors %}
+        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Pemilihan Roles -->
+    <div>
+      <label class="block mb-1" for="{{ form.role.id_for_label }}">Pilih Peran Anda</label>
+      {{ form.role }}
+      {% for e in form.role.errors %}
+        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Tombol -->
+    <button type="submit" class="w-full bg-primary text-mist rounded-xl py-2.5 hover:bg-sea transition">
+      Create Account
+    </button>
+  </form>
+
+  <p class="mt-4 text-sm">
+    Sudah punya akun? <a class="text-sea hover:text-primary underline" href="{% url 'accounts:login' %}">Login</a>
+  </p>
+</section>
+<script>
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-toggle-password]');
+    if (!btn) {
+      return;
+    }
+    const input = document.querySelector(btn.getAttribute('data-target'));
+    if (!input) {
+      return;
+    }
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.querySelector('.eye')?.classList.toggle('hidden');
+    btn.querySelector('.eye-off')?.classList.toggle('hidden');
+  });
+</script>
+
+
 {% endblock %}

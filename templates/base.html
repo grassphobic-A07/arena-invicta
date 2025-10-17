@@ -1,19 +1,54 @@
 <!-- Base/basis untuk semua file html yang ada di website Arena Invicta  -->
- <!DOCTYPE html>
- <html lang="en">
- <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}App{% endblock %}</title>
- </head>
- <body>
-    {% if messages %}
-        <ul>
-            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-        </ul>
-    {% endif %}
+{% load static %}  <!-- load static supaya bisa akses file statis seperti css, js, gambar, dll -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Arena Invicta{% endblock %}</title>
+        
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: "#102A43",  /* navy dingin */
+                            surface: "#3E4C59",  /* steel */
+                            sea:     "#2A7F9D",  /* biru laut (muted) */
+                            mint:    "#8EC5B8",  /* foam/mint */
+                            mist:    "#E9EEF3",  /* neutral */
+                        },
+                        borderRadius: { xl: "14px" }
+                    }
+                }                
+            }
+        </script>
+        
+    </head>
 
-    {% block content %}{% endblock %}
-    
- </body>
- </html>
+    <body class="min-h-screen bg-mist text-surface">
+        <!-- Header kecil -->
+        <header class="px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
+        <div class="mx-auto max-w-3xl flex items-center justify-between">
+            <a href="/" class="font-semibold text-primary">Arena Invicta</a>
+            <nav class="text-sm">
+            <a class="hover:text-sea" href="/">Home</a>
+            </nav>
+        </div>
+        </header>
+
+        <!-- Content -->
+        <main class="mx-auto max-w-3xl px-4 py-10">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer kecil -->
+        <footer class="px-4 py-6 border-t border-surface/20 text-xs text-surface/70">
+            <div class="mx-auto max-w-3xl">
+                Arena Invicta • Berita · Analisis · Kuis
+            </div>
+        </footer>
+        
+    </body>
+</html>

@@ -1,60 +1,81 @@
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib import messages
+import datetime
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
-import datetime
+from django.shortcuts import render, redirect
+from django.urls import reverse
 
+from .forms import LoginForm, RegisterWithRoleForm
 
-# Ketika arena_invicta diakses, tampilan pertama kali muncul adalah halaman register berasal dari urls.py yang ada di arena_invicta
 def register(request):
-    if request.user.is_authenticated:
-        return redirect('accounts:home')  # Redirect ke halaman beranda jika sudah login
-    
-    # Bind form hanya kalau ada data POST; kalau tidak, jadikan unbound form.
-    form = UserCreationForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, "Akun berhasil dibuat! Silahkan login.")
-        return redirect('accounts:login')
-    
-    context = {
-        'form': form
-    }
+    """
+    GET  -> tampilkan form UserCreationForm (username, password1, password2)
+    POST -> valid? simpan user lalu redirect ke halaman login
+    """
+    if request.method == "POST":
+        form = RegisterWithRoleForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            role = form.cleaned_data.get("role")
+            if role == "writer":
+                group, _ = Group.objects.get_or_create(name="Writer")
+                group.user_set.add(user)
 
-    return render(request, 'register.html', context)
+            return redirect("accounts:login")
+        else:
+            form.add_error_styles()
+    else:
+        form = RegisterWithRoleForm()
+    return render(request, "register.html", {"form": form})
 
 def login_user(request):
-    if request.user.is_authenticated:
-        return redirect('accounts:home')  # Redirect ke halaman beranda jika sudah login
-    
-    form = AuthenticationForm(request, data=request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        user = form.get_user()
-        login(request, user)
+    """
+    GET  -> tampilkan LoginForm (username, password)
+    POST -> valid? login() lalu:
+            - kalau ada ?next= pakai itu (agar tim news/quiz bisa pakai proteksi)
+            - kalau tidak ada, ke 'home'
+    + Simpan cookie 'last_login' 
+    """
+    if request.method == "POST":
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            next_url = request.GET.get('next') or reverse('accounts:home')
 
-        # Simpan last_login ke cookie
-        response = HttpResponseRedirect(request.GET.get('next') or reverse('accounts:home'))
-        response.set_cookie('last_login', str(datetime.datetime.now()))
-        return response
-    
-    context = {
-        'form': form
-    }
+            response = HttpResponseRedirect(next_url)
+            response.set_cookie('last_login', str(datetime.datetime.now()))
+            return response
+        else:
+            form.add_error_styles()
 
-    return render(request, 'login.html', context)
+    else:
+        form = LoginForm(request)
+    return render(request, "login.html", {"form": form})
 
 def logout_user(request):
+    """
+    Logout dan hapus cookie last_login (biar bersih), lalu kembali ke login.
+    """
     logout(request)
     response = redirect('accounts:login')
     response.delete_cookie('last_login')
     return response
 
 # Kalo sudah login, akan diarahkan ke halaman beranda
-@login_required(login_url='/login')
 def home(request):
-    return render(request, 'home.html', {
-        'last_login': request.COOKIES.get('last_login', 'never')
-    })
+    """
+    Halaman sederhana sesudah login.
+    """
+    # hanya query groups kalau sudah login
+    roles = []
+    if request.user.is_authenticated:
+        roles = list(request.user.groups.values_list('name', flat=True))
+
+    context = {
+        'username': request.user.username,
+        'last_login': request.COOKIES.get('last_login', 'never'),
+        'roles': roles,  # list nama role (agar template tidak memicu query lagi)
+    }
+    return render(request, 'home.html', context)
