@@ -47,7 +47,7 @@
           <div class="mt-2 flex gap-2">
             <!-- tombol hapus avatar -->
             <button type="button" id="clearAvatarBtn"
-                    class="px-3 py-1.5 rounded-lg border border-surface/20 text-surface/80 hover:bg-mist/50 disabled:opacity-40"
+                    class="px-3 py-1.5 rounded-lg border border-danger/20 text-danger/80 hover:bg-mist/50 disabled:opacity-40"
                     {% if not form.instance.avatar_url %}disabled{% endif %}>
               Delete Avatar
             </button>
@@ -67,7 +67,7 @@
 
     <div class="flex gap-3">
       <button type="submit" class="bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Save</button>
-      <a href="{% url 'accounts:profile_detail' %}" class="px-4 py-2 rounded-xl border border-surface/20">Cancel</a>
+      <a href="{% url 'accounts:profile_detail' %}" class="px-4 py-2 rounded-xl border text-danger border-danger/20">Cancel</a>
     </div>
   </form>
 </section>
