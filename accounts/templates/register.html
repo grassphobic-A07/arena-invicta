@@ -48,8 +48,10 @@
       </div>
       
 
-      {% if form.password1.help_text %}
-        <div class="text-xs text-surface/70 mt-1">{{ form.password1.help_text|safe }}</div>
+      {% if form.password1.errors %}
+        <div class="mt-2 text-xs text-surface/70">
+          {{ form.password1.help_text|safe }}
+        </div>
       {% endif %}
       {% for e in form.password1.errors %}
         <p class="mt-2 text-sm text-red-600">{{ e }}</p>
@@ -58,7 +60,7 @@
 
     <!-- Password 2 -->
     <div>
-      <label class="block mb-1" for="{{ form.password2.id_for_label }}">Password confirmation</label>
+      <label class="block mb-1" for="{{ form.password2.id_for_label }}">Password Confirmation</label>
       <div class="relative">
         {{ form.password2 }}
         <button type="button"
@@ -83,7 +85,7 @@
 
     <!-- Pemilihan Roles -->
     <div>
-      <label class="block mb-1" for="{{ form.role.id_for_label }}">Pilih Peran Anda</label>
+      <label class="block mb-1" for="{{ form.role.id_for_label }}">Choose your Role!</label>
       {{ form.role }}
       {% for e in form.role.errors %}
         <p class="mt-2 text-sm text-red-600">{{ e }}</p>
@@ -97,7 +99,7 @@
   </form>
 
   <p class="mt-4 text-sm">
-    Sudah punya akun? <a class="text-sea hover:text-primary underline" href="{% url 'accounts:login' %}">Login</a>
+    Already have an account? <a class="text-sea hover:text-primary underline" href="{% url 'accounts:login' %}">Login</a>
   </p>
 </section>
 <script>

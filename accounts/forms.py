@@ -63,11 +63,11 @@ class RegisterWithRoleForm(UserCreationForm):
         })
         self.fields["password1"].widget.attrs.update({
             "class": BASE_INPUT_CLS + "pr-10", 
-            "placeholder": "Minimal 8 karakter"
+            "placeholder": "Must be 8 Characters"
         })
         self.fields["password2"].widget.attrs.update({
             "class": BASE_INPUT_CLS + "pr-10", 
-            "placeholder": "Ulangi password"
+            "placeholder": "Repeat Password"
         })
         self.fields["role"].widget.attrs.update({
             "class": BASE_INPUT_CLS.replace("py-3", "py-2.5")

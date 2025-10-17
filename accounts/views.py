@@ -70,7 +70,7 @@ def logout_user(request):
     Logout dan hapus cookie last_login (biar bersih), lalu kembali ke login.
     """
     logout(request)
-    response = redirect('accounts:login')
+    response = redirect('accounts:home')
     response.delete_cookie('last_login')
     return response
 
@@ -116,6 +116,9 @@ def profile_edit(request):
             form.save()
             messages.success(request, "Profile berhasil diperbarui.")
             return redirect('accounts:profile_detail')
+        
+        if request.POST.get("clear_avatar") == "1":
+            form.instance.avatar_url = ""  # atau None kalau fieldnya null=True
     else:
         form = ProfileForm(instance=profile)
 
