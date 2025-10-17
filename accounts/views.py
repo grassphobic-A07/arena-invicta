@@ -1,7 +1,7 @@
 import datetime
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Profile
 from .forms import ProfileForm
@@ -126,3 +126,18 @@ def profile_edit(request):
         'form': form
     }
     return render(request, 'profile_edit.html', context)
+
+@login_required
+@require_POST
+def delete_account(request):
+    """
+    Hapus akun user yang sedang login.
+    """
+    username = request.user.username
+    user = request.user
+    # Keluar dulu supaya sesi bersih
+    logout(request)
+    # Hapus user
+    user.delete()
+    messages.success(request, f"Akun {username} telah dihapus permanen")
+    return redirect('accounts:home')
