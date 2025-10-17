@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.models import User, Group
+from .models import Profile
 
 @receiver(post_migrate)
 def ensure_groups(sender, **kwargs):
@@ -9,8 +10,8 @@ def ensure_groups(sender, **kwargs):
         Group.objects.get_or_create(name=name)
 
 @receiver(post_save, sender=User)
-def add_registered_group(sender, instance, created, **kwargs):
+def create_profile_and_register(sender, instance, created, **kwargs):
     # User baru otomatis masuk group Registered
     if created:
-        group, _ = Group.objects.get_or_create(name="Registered")
-        group.user_set.add(instance)
+        Profile.objects.create(user=instance)
+        Group.objects.get_or_create(name="Registered")[0].user_set.add(instance)

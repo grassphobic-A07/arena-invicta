@@ -2,6 +2,9 @@ import datetime
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Profile
+from .forms import ProfileForm
 from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -28,7 +31,11 @@ def register(request):
             form.add_error_styles()
     else:
         form = RegisterWithRoleForm()
-    return render(request, "register.html", {"form": form})
+
+    context = {
+        'form': form
+    }
+    return render(request, "register.html", context)
 
 def login_user(request):
     """
@@ -52,7 +59,11 @@ def login_user(request):
 
     else:
         form = LoginForm(request)
-    return render(request, "login.html", {"form": form})
+    
+    context = {
+        'form': form
+    }
+    return render(request, "login.html", context)
 
 def logout_user(request):
     """
@@ -79,3 +90,36 @@ def home(request):
         'roles': roles,  # list nama role (agar template tidak memicu query lagi)
     }
     return render(request, 'home.html', context)
+
+@login_required
+def profile_detail(request):
+    """
+    Tampilkan profil user yang sedang login.
+    """
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # Menggunakan related_name 'profile' dari OneToOneField
+    roles = list(request.user.groups.values_list('name', flat=True))
+
+    context = {
+        'profile': profile,
+        'roles': roles,
+        "last_login": request.COOKIES.get("last_login", "never"),
+    }
+
+    return render(request, 'profile_detail.html', context)
+
+@login_required
+def profile_edit(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile berhasil diperbarui.")
+            return redirect('accounts:profile_detail')
+    else:
+        form = ProfileForm(instance=profile)
+
+    context = {
+        'form': form
+    }
+    return render(request, 'profile_edit.html', context)

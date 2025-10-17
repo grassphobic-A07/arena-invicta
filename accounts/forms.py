@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import get_user_model
 from django.forms.forms import NON_FIELD_ERRORS
 
+from .models import Profile
+
 User = get_user_model()
 
 ROLE_CHOICES = [
@@ -80,3 +82,15 @@ class RegisterWithRoleForm(UserCreationForm):
                 continue
             w = field.widget
             w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ("display_name", "favorite_team", "avatar_url", "bio")
+        widgets = {
+            "display_name": forms.TextInput(attrs={"class": BASE_INPUT_CLS, "placeholder": "Nama tampilan"}),
+            "favorite_team": forms.TextInput(attrs={"class": BASE_INPUT_CLS, "placeholder": "Tim favorit"}),
+            "avatar_url": forms.URLInput(attrs={"class": BASE_INPUT_CLS, "placeholder": "https://..."}),
+            "bio": forms.Textarea(attrs={"class": BASE_INPUT_CLS, "rows": 4, "placeholder": "Tulis bio singkat"}),
+        }

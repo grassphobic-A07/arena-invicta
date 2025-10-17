@@ -36,9 +36,6 @@
           <span class="text-surface/70 text-sm">(Tidak ada role)</span>
         {% endfor %}
     </div>
-    <p><a href="{% url 'accounts:logout' %}">Log out</a></p>
-    
-{% else %}
-  <p><a href="{% url 'accounts:login' %}">Log in</a> · <a href="{% url 'accounts:register' %}">Sign up</a></p>
 {% endif %}
+    
 {% endblock %}

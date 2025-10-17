@@ -1,0 +1,42 @@
+<header class="px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
+  <div class="mx-auto max-w-3xl flex items-center justify-between">
+    {% url 'accounts:home' as home_url %}
+    <a href="{{ home_url }}" class="font-semibold text-primary">Arena Invicta</a>
+
+    {% url 'accounts:login' as login_url %}
+    {% url 'accounts:register' as register_url %}
+    {% url 'accounts:profile_detail' as profile_url %}
+    {% url 'accounts:logout' as logout_url %}
+
+    {% with current=request.path %}
+      <nav class="flex items-center gap-1">
+        {% comment %} base classes untuk semua link {% endcomment %}
+        {% with link_base="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30" %}
+          {% with active="font-semibold text-primary bg-mist/70 border border-mist" idle="text-surface/80 hover:text-sea" %}
+
+            <a href="{{ home_url }}"
+               class="{{ link_base }} {% if current == home_url %}{{ active }}{% else %}{{ idle }}{% endif %}"
+               {% if current == home_url %}aria-current="page"{% endif %}>Home</a>
+
+            {% if request.user.is_authenticated %}
+              <a href="{{ profile_url }}"
+                 class="{{ link_base }} {% if current == profile_url %}{{ active }}{% else %}{{ idle }}{% endif %}"
+                 {% if current == profile_url %}aria-current="page"{% endif %}>Lihat profil</a>
+
+              <a href="{{ logout_url }}" class="{{ link_base }} {{ idle }}">Logout</a>
+            {% else %}
+              <a href="{{ login_url }}"
+                 class="{{ link_base }} {% if current == login_url %}{{ active }}{% else %}{{ idle }}{% endif %}"
+                 {% if current == login_url %}aria-current="page"{% endif %}>Login</a>
+
+              <a href="{{ register_url }}"
+                 class="{{ link_base }} {% if current == register_url %}{{ active }}{% else %}{{ idle }}{% endif %}"
+                 {% if current == register_url %}aria-current="page"{% endif %}>Sign up</a>
+            {% endif %}
+
+          {% endwith %}
+        {% endwith %}
+      </nav>
+    {% endwith %}
+  </div>
+</header>

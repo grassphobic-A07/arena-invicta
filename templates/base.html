@@ -28,18 +28,23 @@
     </head>
 
     <body class="min-h-screen bg-mist text-surface">
-        <!-- Header kecil -->
-        <header class="px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
-        <div class="mx-auto max-w-3xl flex items-center justify-between">
-            <a href="/" class="font-semibold text-primary">Arena Invicta</a>
-            <nav class="text-sm">
-            <a class="hover:text-sea" href="/">Home</a>
-            </nav>
-        </div>
-        </header>
+        {% include "nav.html" %}        
 
         <!-- Content -->
         <main class="mx-auto max-w-3xl px-4 py-10">
+            {% if messages %}
+                <div class="mb-4 space-y-2">
+                {% for message in messages %}
+                    <div class="rounded-lg px-4 py-3 text-sm
+                                {% if message.tags == 'success' %} bg-mint/30 text-primary
+                                {% elif message.tags == 'error' %} bg-red-50 text-red-700 border border-red-200
+                                {% else %} bg-surface/10 text-surface {% endif %}">
+                    {{ message }}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
         </main>
 

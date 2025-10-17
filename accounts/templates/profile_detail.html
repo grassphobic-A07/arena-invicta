@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Profil • Arena Invicta{% endblock %}
+{% block content %}
+<section class="bg-white rounded-xl border border-mist p-6">
+  <h1 class="text-3xl font-semibold text-primary mb-4">Profil</h1>
+
+  <div class="space-y-2 text-surface">
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Nama tampilan:</strong> {{ profile.display_name|default:"-" }}</p>
+    <p><strong>Tim favorit:</strong> {{ profile.favorite_team|default:"-" }}</p>
+    <p><strong>Avatar URL:</strong>
+      {% if profile.avatar_url %}
+        <a class="text-sea underline" href="{{ profile.avatar_url }}" target="_blank">{{ profile.avatar_url }}</a>
+      {% else %}-{% endif %}
+    </p>
+    <p><strong>Bio:</strong><br>{{ profile.bio|linebreaksbr|default:"-" }}</p>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    {% if request.user.is_superuser %}
+      <span class="inline-block px-2.5 py-1 rounded-full bg-primary text-mist text-xs">Admin</span>
+    {% endif %}
+    {% for name in roles %}
+      <span class="inline-block px-2.5 py-1 rounded-full text-xs
+        {% if name == 'Editor' %} bg-sea text-mist
+        {% elif name == 'Writer' %} bg-mint text-primary
+        {% else %} bg-surface/10 text-surface {% endif %}">{{ name }}</span>
+    {% empty %}
+      <span class="text-surface/70 text-sm">(Tidak ada role)</span>
+    {% endfor %}
+  </div>
+
+  <div class="mt-6">
+    <a href="{% url 'accounts:profile_edit' %}"
+       class="inline-block bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Edit profil</a>
+  </div>
+</section>
+{% endblock %}
