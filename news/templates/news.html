@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sports News - Arena Invicta</title>
+        
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: "#102A43",  /* navy dingin */
+                            surface: "#3E4C59",  /* steel */
+                            sea:     "#2A7F9D",  /* biru laut (muted) */
+                            mint:    "#8EC5B8",  /* foam/mint */
+                            mist:    "#E9EEF3",  /* neutral */
+                            danger:  "#D64545",  /* cool red */
+                        },
+                        borderRadius: { xl: "14px" }
+                    }
+                }
+            }
+        </script>
+    </head>
+
+    <body class="min-h-screen bg-mist text-surface">
+        
+        {% include "nav.html" %}
+
+        <!-- Full-Width Featured "Hot News" Slider -->
+        <section class="mb-8 group"> <!-- 'group' ditambahkan untuk efek hover -->
+            <div class="relative overflow-hidden bg-surface">
+                <div class="slider-wrapper flex transition-transform duration-500 ease-in-out">
+                    
+                    {% if featured_news %}
+                        {% for news_item in featured_news %}
+                        <a href="{% url 'news:detail_news' news_item.id %}" class="slide min-w-full block">
+                            {% if news_item.thumbnail %}
+                            <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-cover bg-center" style="background-image: url('{{ news_item.thumbnail }}');">
+                            {% else %}
+                            <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-surface">
+                            {% endif %}
+                                <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
+                                <div class="relative z-10 mx-auto max-w-7xl w-full px-4">
+                                    <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize mb-2 px-2 py-1 rounded-md">{{ news_item.get_sports_display }}</span>
+                                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight line-clamp-2">{{ news_item.title|upper }}</h1>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Fallback Slide -->
+                        <div class="slide min-w-full">
+                            <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-surface">
+                                <div class="relative z-10 mx-auto max-w-7xl w-full px-4">
+                                    <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize mb-2 px-2 py-1 rounded-md">Info</span>
+                                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">NO HOT NEWS AVAILABLE</h1>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+                
+                <!-- Tombol Navigasi Slider -->
+                {% if featured_news|length > 1 %}
+                <button id="prev-btn" class="absolute top-1/2 left-4 -translate-y-1/2 h-10 w-10 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-white z-20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <button id="next-btn" class="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-white z-20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Main Content (Responsive Width) -->
+        <main class="mx-auto max-w-3xl lg:max-w-5xl xl:max-w-7xl px-4 pb-10">
+            
+            <!-- Sports Filter Buttons -->
+            <div class="flex justify-center flex-wrap gap-2 mb-8">
+                <a href="{% url 'news:show_news' %}" 
+                   class="px-4 py-2 rounded-full text-sm font-semibold transition 
+                          {% if current_filter == 'all' %} bg-primary text-white shadow-md {% else %} bg-white text-surface/80 hover:bg-mist/80 {% endif %}">
+                    All Sports
+                </a>
+                {% for choice_value, choice_label in all_sports %}
+                    <a href="{% url 'news:show_news' %}?filter={{ choice_value }}"
+                       class="px-4 py-2 rounded-full text-sm font-semibold transition capitalize
+                              {% if current_filter == choice_value %} bg-primary text-white shadow-md {% else %} bg-white text-surface/80 hover:bg-mist/80 {% endif %}">
+                        {{ choice_label }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <!-- Add News Button -->
+            <div class="flex justify-end mb-6">
+                {% if 'Writer' in roles %}
+                    <a href="{% url 'news:add_news' %}" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 bg-primary text-white hover:bg-primary/90">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5v14"/><path d="M5 12h14"/>
+                        </svg>
+                        <span>Add News</span>
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Main News Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+                {% for news in news_list %}
+                    <a href="{% url 'news:detail_news' news.id %}" class="group block relative overflow-hidden rounded-xl shadow-lg transform transition-transform duration-300 hover:-translate-y-1">
+                        <!-- Card Background -->
+                        {% if news.thumbnail %}
+                        <div class="relative w-full h-56 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style="background-image: url('{{ news.thumbnail }}');">
+                        {% else %}
+                        <div class="relative w-full h-56 bg-surface transition-transform duration-300 group-hover:scale-105">
+                        {% endif %}
+                            <!-- Gradient Overlay for card -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl"></div>
+                            
+                            <!-- Card Content -->
+                            <div class="absolute top-0 left-0 p-4 z-10">
+                                <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md">{{ news.get_category_display }}</span>
+                            </div>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="col-span-full text-center py-12">
+                        <p class="text-surface/70">No news found for this category.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="px-4 py-6 border-t border-surface/20 text-xs text-surface/70">
+            <div class="mx-auto max-w-7xl">
+                Arena Invicta • Berita · Analisis · Kuis
+            </div>
+        </footer>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const sliderWrapper = document.querySelector('.slider-wrapper');
+                if (!sliderWrapper) return;
+
+                const slides = sliderWrapper.querySelectorAll('.slide');
+                const prevBtn = document.getElementById('prev-btn');
+                const nextBtn = document.getElementById('next-btn');
+                
+                let currentIndex = 0;
+                const totalSlides = slides.length;
+
+                if (totalSlides > 1) {
+                    function goToSlide(index) {
+                        if (index < 0) {
+                            currentIndex = totalSlides - 1;
+                        } else if (index >= totalSlides) {
+                            currentIndex = 0;
+                        } else {
+                            currentIndex = index;
+                        }
+                        
+                        const offset = -currentIndex * 100;
+                        sliderWrapper.style.transform = `translateX(${offset}%)`;
+                    }
+
+                    nextBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        goToSlide(currentIndex + 1);
+                    });
+
+                    prevBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        goToSlide(currentIndex - 1);
+                    });
+
+                    let autoSlideInterval = setInterval(() => {
+                        goToSlide(currentIndex + 1);
+                    }, 5000);
+
+                    const sliderContainer = sliderWrapper.closest('section');
+                    sliderContainer.addEventListener('mouseenter', () => {
+                        clearInterval(autoSlideInterval);
+                    });
+                    sliderContainer.addEventListener('mouseleave', () => {
+                        autoSlideInterval = setInterval(() => {
+                            goToSlide(currentIndex + 1);
+                        }, 5000);
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
+

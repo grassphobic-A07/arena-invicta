@@ -24,4 +24,5 @@ urlpatterns = [
     # Path pertama kali yang diakses adalah path untuk aplikasi 'accounts' (login/registrasi). Dikasih
     # namespace 'accounts' supaya di template bisa pakai 'accounts:nama_path' dan tidak ambigu di aplikasi selain 'accounts'
     path('', include(('accounts.urls', 'accounts'), namespace='accounts')),
+    path('home/', include(('news.urls', 'news'), namespace='news')),
 ]

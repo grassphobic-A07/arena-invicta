@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ news.title }}{% endblock %}
+
+{% block content %}
+<article>
+    <!-- Header Berita dengan Gambar Latar Belakang -->
+    {% if news.thumbnail %}
+    <div class="relative aspect-video sm:aspect-[3/1] w-full rounded-xl overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-cover bg-center mb-6" style="background-image: url('{{ news.thumbnail }}');">
+    {% else %}
+    <div class="relative aspect-video sm:aspect-[3/1] w-full rounded-xl overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-surface mb-6">
+    {% endif %}
+        <!-- Gradien untuk keterbacaan teks -->
+        <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/50 to-transparent"></div>
+        
+        <div class="relative z-10">
+            <!-- Kategori dan Olahraga -->
+            <div class="flex items-center gap-2 mb-2">
+                <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md">{{ news.get_sports_display }}</span>
+                <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md">{{ news.get_category_display }}</span>
+            </div>
+            <!-- Judul Berita -->
+            <h1 class="text-3xl md:text-4xl font-bold leading-tight">{{ news.title }}</h1>
+        </div>
+    </div>
+
+    <!-- Konten Berita -->
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+        <!-- Meta Info -->
+        <div class="flex items-center justify-between text-sm text-surface/70 mb-4 pb-4 border-b border-mist">
+            <span>Published on: {{ news.created_at|date:"F d, Y" }}</span>
+            <span>Views: {{ news.news_views }}</span>
+        </div>
+        
+        <!-- Isi Konten -->
+        <div class="prose max-w-none text-surface/90">
+            {{ news.content|linebreaks }}
+        </div>
+    </div>
+
+</article>
+
+<!-- Opsi: Tombol kembali ke halaman utama -->
+<div class="mt-8 text-center">
+    <a href="{% url 'news:show_news' %}" class="inline-flex items-center h-10 px-4 rounded-lg text-sm transition font-semibold text-primary bg-mist/70 border border-mist hover:bg-mist">
+        &larr; Back to News
+    </a>
+</div>
+
+{% endblock %}

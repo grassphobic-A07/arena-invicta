@@ -49,7 +49,7 @@ def login_user(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
-            next_url = request.GET.get('next') or reverse('accounts:home')
+            next_url = request.GET.get('next') or reverse('news:show_news')
 
             response = HttpResponseRedirect(next_url)
             response.set_cookie('last_login', str(datetime.datetime.now()))
