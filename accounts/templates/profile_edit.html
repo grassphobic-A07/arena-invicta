@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <!-- marker opsional untuk backend -->
+      <!-- Marker opsional untuk backend -->
       <input type="hidden" name="clear_avatar" id="clearedAvatarHidden" value="">
     </div>
 
@@ -70,7 +70,6 @@
       <button type="submit" class="bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Save</button>
       <a href="{% url 'accounts:profile_detail' request.user.username  %}" class="px-4 py-2 rounded-xl border text-danger border-danger/20">Cancel</a>
     </div>
-
   </form>
   
     <!-- Hapus akun lewat profile edit  -->
@@ -88,185 +87,71 @@
       </form>
       <p class="mt-2 text-xs text-surface/70">Akun akan dihapus permanen dari basis data.</p>
     </div>
+
 </section>
 
-<!-- Toast container untuk munculin notifikasi berhasil/tidak -->
-<div id="toast-holder" class="fixed top-4 right-4 space-y-2 z-50"></div>
-
-{# JS: update preview saat ketik + fallback bila gambar error #}
 <script>
-  // --- CSRF + Toast helpers ---
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + "=")) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
+(function () {
+  // csrf
+  function getCookie(name){let v=null;if(!document.cookie)return v;for(const c of document.cookie.split(";")){const s=c.trim();if(s.startsWith(name+"=")){v=decodeURIComponent(s.slice(name.length+1));break;}}return v;}
   const CSRF = getCookie("csrftoken");
 
-  function showToast(message, type="success") {
-    const holder = document.getElementById("toast-holder");
-    const el = document.createElement("div");
-    const base = "rounded-xl px-4 py-3 shadow-lg text-sm transition-opacity duration-300";
-    const tone = type === "success" ? "bg-mint text-primary"
-               : type === "error"   ? "bg-danger text-white"
-               : "bg-surface text-white";
-    el.className = base + " " + tone;
-    el.textContent = message;
-    holder.appendChild(el);
-    setTimeout(() => { el.style.opacity = "0"; }, 2400);
-    setTimeout(() => { el.remove(); }, 2800);
-  }
-
-  // --- Avatar preview + upgrade hapus avatar ke AJAX ---
-  (function () {
-    const input    = document.getElementById('{{ form.avatar_url.id_for_label }}');
-    const img      = document.getElementById('avatarPreview');
-    const fallback = document.getElementById('avatarFallback');
-    const clearBtn = document.getElementById('clearAvatarBtn');
-    const resetBtn = document.getElementById('resetSampleBtn');
-    const cleared  = document.getElementById('clearedAvatarHidden');
-
-    const SAMPLE = 'https://i.pravatar.cc/128?img=12'; // contoh; ganti kalau mau
-
-    function toggleClearState() {
-      const hasVal = !!(input?.value || '').trim();
-      if (clearBtn) clearBtn.disabled = !hasVal;
-      if (!hasVal) cleared.value = ''; // kalau user mengetik ulang, batalkan flag hapus
-    }
-
-    function show(url) {
-      const u = (url || '').trim();
-      if (u) {
-        img.src = u;
-        img.classList.remove('hidden');
-        fallback.classList.add('hidden');
-      } else {
-        img.removeAttribute('src');
-        img.classList.add('hidden');
-        fallback.classList.remove('hidden');
+  // SAVE
+  const editForm = document.getElementById("profileEditForm");
+  editForm?.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const btn = editForm.querySelector('button[type="submit"]'); btn?.setAttribute("disabled","disabled");
+    try{
+      const resp = await fetch("{% url 'accounts:profile_edit' %}", {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}, body:new FormData(editForm)});
+      if(resp.ok){
+        const data = await resp.json();
+        localStorage.setItem("ai_toast", JSON.stringify({text: data.message || "Profil berhasil disimpan.", level:"success"}));
+        window.location.assign(data.redirect_url || "{% url 'accounts:profile_detail' request.user.username %}");
+      }else{
+        const data = await resp.json().catch(()=>({})); const first = data?.errors ? (Object.values(data.errors)[0]?.[0] || "Gagal menyimpan profil.") : "Gagal menyimpan profil."; showToast(first,"error");
       }
-      toggleClearState();
-    }
+    }catch{ showToast("Kesalahan jaringan saat menyimpan profil.","error"); }
+    finally{ btn?.removeAttribute("disabled"); }
+  });
 
-    // init & live update
-    show(input?.value);
-    input?.addEventListener('input', e => show(e.target.value));
+  // DELETE AVATAR
+  const clearBtn = document.getElementById("clearAvatarBtn");
+  const avatarInp = document.getElementById("{{ form.avatar_url.id_for_label }}");
+  const imgPrev = document.getElementById("avatarPreview");
+  const svgFallback = document.getElementById("avatarFallback");
 
-    // jika gambar gagal dimuat -> fallback
-    img?.addEventListener('error', () => {
-      img.classList.add('hidden');
-      fallback.classList.remove('hidden');
-    });
+  clearBtn?.addEventListener("click", async ()=>{
+    const ok = await Confirm.open({ titleText:"Hapus avatar?", messageText:"Avatar akan dihapus dan diganti placeholder.", confirmText:"Delete Avatar", tone:"danger" });
+    if(!ok) return;
+    // optimistic UI
+    if(avatarInp) avatarInp.value=""; if(imgPrev){ imgPrev.classList.add("hidden"); imgPrev.removeAttribute("src"); } if(svgFallback) svgFallback.classList.remove("hidden");
+    clearBtn.disabled = true;
+    try{
+      const resp = await fetch("{% url 'accounts:delete_avatar' %}", {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}});
+      if(resp.ok){ const data = await resp.json().catch(()=>({})); showToast(data.message || "Avatar berhasil dihapus.","success"); }
+      else{ showToast("Gagal menghapus avatar di server.","error"); }
+    }catch{ showToast("Kesalahan jaringan saat menghapus avatar.","error"); }
+    finally{ clearBtn.disabled = false; }
+  });
 
-    // Hapus avatar via AJAX (tetap di halaman + toast notifikasi)
-    clearBtn?.addEventListener('click', async () => {
-      if (!confirm('Delete Avatar?')) return;
+  // DELETE ACCOUNT
+  const delForm = document.getElementById("deleteAccountForm");
+  delForm?.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const ok = await Confirm.open({ titleText:"Hapus akun?", messageText:"Akun akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.", confirmText:"Delete Account", tone:"danger" });
+    if(!ok) return;
+    const btn = delForm.querySelector('button[type="submit"]'); btn?.setAttribute("disabled","disabled");
+    try{
+      const resp = await fetch(delForm.action, {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}});
+      if(resp.ok){
+        const data = await resp.json().catch(()=>({}));
+        localStorage.setItem("ai_toast", JSON.stringify({text: data.message || "Akun berhasil dihapus.", level:"success"}));
+        window.location.assign(data.redirect_url || "{% url 'accounts:home' %}");
+      }else{ showToast("Gagal menghapus akun.","error"); }
+    }catch{ showToast("Kesalahan jaringan saat menghapus akun.","error"); }
+    finally{ btn?.removeAttribute("disabled"); }
+  });
 
-      // Optimistic UI: kosongkan preview
-      input.value = '';
-      cleared.value = '1';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-
-      try {
-        const resp = await fetch("{% url 'accounts:delete_avatar' %}", {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": CSRF }
-        });
-        if (resp.ok) {
-          showToast("Avatar berhasil dihapus.");
-        } else {
-          showToast("Gagal menghapus avatar di server.", "error");
-        }
-      } catch {
-        showToast("Kesalahan jaringan saat menghapus avatar.", "error");
-      }
-    });
-  })();
-
-
-  // --- Submit form via AJAX: simpan profil -> redirect ke detail (toast muncul di sana via Django messages) ---
-  (function () {
-    const form = document.getElementById("profileEditForm");
-    form?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData(form);
-
-      try {
-        const resp = await fetch("{% url 'accounts:profile_edit' %}", {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": CSRF },
-          body: fd
-        });
-
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.redirect_url) {
-            window.location.assign(data.redirect_url);
-          } else {
-            // fallback kalau backend tidak kirim redirect_url
-            showToast("Profil berhasil disimpan.");
-          }
-        } else {
-          const data = await resp.json().catch(() => ({}));
-          const firstMsg = data?.errors ? (Object.values(data.errors)[0]?.[0] || "Gagal menyimpan profil.")
-                                        : "Gagal menyimpan profil.";
-          showToast(firstMsg, "error");
-        }
-      } catch {
-        showToast("Kesalahan jaringan saat menyimpan profil.", "error");
-      }
-    });
-  })();
-
-  // Untuk Delete Account AJAX Based
-  (function () {
-    const CSRF = (window.getCookie ? getCookie("csrftoken") : null);
-    const delForm = document.getElementById("deleteAccountForm");
-    if (!delForm) return;
-
-    delForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!confirm("Hapus akun secara permanen? Tindakan ini tidak bisa dibatalkan.")) return;
-
-      const btn = delForm.querySelector("button[type='submit']");
-      btn.disabled = true;
-
-      try {
-        const resp = await fetch(delForm.action, {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": CSRF || "" }
-        });
-
-        if (resp.ok) {
-          const data = await resp.json().catch(() => ({}));
-
-          // simpan toast ke localStorage agar muncul setelah redirect (karena session logout)
-          try {
-            localStorage.setItem("ai_toast", JSON.stringify({
-              text: "Akun berhasil dihapus.",
-              level: "success"
-            }));
-          } catch {}
-
-          window.location.assign(data.redirect_url || "{% url 'accounts:home' %}");
-        } else {
-          showToast("Gagal menghapus akun.", "error");
-        }
-      } catch (err) {
-        showToast("Kesalahan jaringan saat menghapus akun.", "error");
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  })();
+})();
 </script>
 {% endblock %}

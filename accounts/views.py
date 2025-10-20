@@ -86,13 +86,13 @@ def home(request):
     roles = []
     if request.user.is_authenticated:
         roles = list(request.user.groups.values_list('name', flat=True))
-        
 
     context = {
         'username': request.user.username,
         'last_login': request.COOKIES.get('last_login', 'never'),
         'roles': roles,  # list nama role (agar template tidak memicu query lagi)
     }
+
     return render(request, 'home.html', context)
 
 
@@ -137,17 +137,26 @@ def profile_edit(request):
         
         # if request.POST.get("clear_avatar") == "1":
         #     form.instance.avatar_url = ""  # atau None kalau fieldnya null=True
+        
     if _is_ajax(request):
         form = ProfileForm(request.POST or None, request.FILES or None, instance=profile)
         if form.is_valid():
             form.save()
-            # Set pesan sukses agar muncul sebagai toast di halaman tujuan
-            messages.success(request, "Profil berhasil disimpan.")
+            # Set pesan sukses agar muncul sebagai toast di halaman tujuan dengan AJAX
             redirect_url = reverse("accounts:profile_detail", args=[request.user.username])
-            return JsonResponse({"Ok": True, "redirect_url": redirect_url})
+            return JsonResponse({
+                "Ok": True, 
+                "redirect_url": redirect_url,
+                "message": "Profil berhasil diperbarui."
+            })
         else:
             # Kirim error form untuk ditampilkan di UI
-            return JsonResponse({"Ok": False, "errors": form.errors}, status=400)
+            return JsonResponse({
+                "Ok": False, 
+                "errors": form.errors
+                }, 
+                status=400
+            )
 
     context = {
         'form': form,
@@ -165,7 +174,10 @@ def delete_avatar(request):
     if profile.avatar_url:
         profile.avatar_url = ""
         profile.save(update_fields=["avatar_url"])
-    return JsonResponse({"ok": True, "message": "Avatar berhasil dihapus."})
+    return JsonResponse({
+        "ok": True, 
+        "message": "Avatar berhasil dihapus."
+    })
 
 
 # Untuk delete account
@@ -175,7 +187,6 @@ def delete_account(request):
     """
     Hapus akun user yang sedang login.
     """
-    username = request.user.username
     user = request.user
     try:
         # akhiri sesi dulu, lalu hapus user (pakai salinan referensi)
@@ -183,10 +194,21 @@ def delete_account(request):
         user.delete()
     except ProtectedError:
         if _is_ajax(request):
-            return JsonResponse({"ok": False, "message": "Akun tidak bisa dihapus karena terkait data lain."}, status=409)
+            return JsonResponse({
+                "Ok": False, 
+                "message": "Akun tidak bisa dihapus karena terkait data lain."
+                }, 
+                status=409
+            )
         # fallback non-AJAX
         return redirect("accounts:home")
 
     if _is_ajax(request):
-        return JsonResponse({"ok": True, "redirect_url": reverse("accounts:home")})
+        return JsonResponse({
+            "Ok": True, 
+            "redirect_url": reverse("accounts:home"),
+            "message": "Akun berhasil dihapus."
+        })
+    
+    messages.success(request, "Akun berhasil dihapus.")
     return redirect("accounts:home")

@@ -37,43 +37,5 @@
   </div>
 </section>
 
-<!-- Toast container -->
-<div id="toast-holder" class="fixed top-4 right-4 space-y-2 z-50"></div>
-
-{% if messages %}
-<!-- Payload pesan (HTML, bukan JS) -->
-<div id="dj-messages" hidden>
-  {% for m in messages %}
-    <div data-level="{{ m.tags|default:"info" }}" data-text="{{ m|escape }}"></div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<script>
-(function () {
-  // define showToast kalau belum ada
-  window.showToast = window.showToast || function (message, type) {
-    const holder = document.getElementById("toast-holder");
-    if (!holder) return;
-    const el = document.createElement("div");
-    const base = "rounded-xl px-4 py-3 shadow-lg text-sm transition-opacity duration-300";
-    const tone =
-      (type && String(type).includes("success")) ? "bg-mint text-primary" :
-      (type && (String(type).includes("error") || String(type).includes("danger"))) ? "bg-danger text-white" :
-      "bg-surface text-white";
-    el.className = base + " " + tone;
-    el.textContent = message;
-    holder.appendChild(el);
-    setTimeout(() => { el.style.opacity = "0"; }, 2400);
-    setTimeout(() => { el.remove(); }, 2800);
-  };
-
-  // render semua messages sebagai toast
-  document.querySelectorAll("#dj-messages > div")
-    .forEach(n => showToast(n.dataset.text, n.dataset.level));
-})();
-</script>
-
-
 {% endblock %}
 
