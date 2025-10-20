@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from django.db.models.deletion import ProtectedError
 
 from .forms import LoginForm, RegisterWithRoleForm
 
@@ -176,9 +177,16 @@ def delete_account(request):
     """
     username = request.user.username
     user = request.user
-    # Keluar dulu supaya sesi bersih
-    logout(request)
-    # Hapus user
-    user.delete()
-    messages.success(request, f"Akun {username} telah dihapus permanen")
-    return redirect('accounts:home')
+    try:
+        # akhiri sesi dulu, lalu hapus user (pakai salinan referensi)
+        logout(request)
+        user.delete()
+    except ProtectedError:
+        if _is_ajax(request):
+            return JsonResponse({"ok": False, "message": "Akun tidak bisa dihapus karena terkait data lain."}, status=409)
+        # fallback non-AJAX
+        return redirect("accounts:home")
+
+    if _is_ajax(request):
+        return JsonResponse({"ok": True, "redirect_url": reverse("accounts:home")})
+    return redirect("accounts:home")

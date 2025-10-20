@@ -75,11 +75,11 @@
   
     <!-- Hapus akun lewat profile edit  -->
     <div class="mt-6 border-t border-surface/10 pt-4">
-      <form method="post" action="{% url 'accounts:delete' %}"
-            onsubmit="return confirm('Hapus akun secara permanen? Tindakan ini tidak bisa dibatalkan.');">
+      <form id="deleteAccountForm" method="post" action="{% url 'accounts:delete' %}">
         {% csrf_token %}
         <button type="submit"
                 class="inline-flex items-center gap-2 bg-danger text-white hover:bg-danger/90 rounded-xl px-4 py-2">
+          <!-- icon -->
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M3 6h18M8 6v12m4-12v12m4-12v12M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/>
           </svg>
@@ -223,6 +223,48 @@
         }
       } catch {
         showToast("Kesalahan jaringan saat menyimpan profil.", "error");
+      }
+    });
+  })();
+
+  // Untuk Delete Account AJAX Based
+  (function () {
+    const CSRF = (window.getCookie ? getCookie("csrftoken") : null);
+    const delForm = document.getElementById("deleteAccountForm");
+    if (!delForm) return;
+
+    delForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!confirm("Hapus akun secara permanen? Tindakan ini tidak bisa dibatalkan.")) return;
+
+      const btn = delForm.querySelector("button[type='submit']");
+      btn.disabled = true;
+
+      try {
+        const resp = await fetch(delForm.action, {
+          method: "POST",
+          headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": CSRF || "" }
+        });
+
+        if (resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+
+          // simpan toast ke localStorage agar muncul setelah redirect (karena session logout)
+          try {
+            localStorage.setItem("ai_toast", JSON.stringify({
+              text: "Akun berhasil dihapus.",
+              level: "success"
+            }));
+          } catch {}
+
+          window.location.assign(data.redirect_url || "{% url 'accounts:home' %}");
+        } else {
+          showToast("Gagal menghapus akun.", "error");
+        }
+      } catch (err) {
+        showToast("Kesalahan jaringan saat menghapus akun.", "error");
+      } finally {
+        btn.disabled = false;
       }
     });
   })();
