@@ -1,122 +1,137 @@
 {% extends 'base.html' %}
-
-{% block title %}Register{% endblock %}
+{% block title %}Register • Arena Invicta{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-md">
-  <h1 class="text-3xl font-semibold text-primary mb-6">Register</h1>
+<section class="mx-auto max-w-xl relative">
+  <h1 class="mb-6 text-3xl font-semibold text-primary">Register</h1>
 
-  <form method="post" class="bg-white rounded-xl border border-mist p-5 space-y-4">
+  <form method="post"
+        class="backdrop-blur-xl bg-white/70 border border-white/40 rounded-2xl shadow-[0_10px_40px_rgba(16,42,67,.12)] p-6 space-y-5">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
-      <div class="rounded-md border border-red-300 bg-red-50 px-4 py-3 mb-3">
-        {% for e in form.non_field_errors %}
-          <p class="text-red-700 text-sm">{{ e }}</p>
-        {% endfor %}
+      <div class="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3">
+        {% for e in form.non_field_errors %}<p class="text-sm">{{ e }}</p>{% endfor %}
       </div>
     {% endif %}
 
     <!-- Username -->
     <div>
-      <label class="block mb-1" for="{{ form.username.id_for_label }}">Username</label>
+      <label class="block text-sm font-medium text-primary/90 mb-1"
+             for="{{ form.username.id_for_label }}">Username</label>
       {{ form.username }}
-      {% for e in form.username.errors %}
-        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
+      {% for e in form.username.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
     </div>
 
-    <!-- Password 1 -->
     <div>
-      <label class="block mb-1" for="{{ form.password1.id_for_label }}">Password</label>
-      <div class="relative"> 
+      <label class="block text-sm font-medium text-primary/90 mb-1"
+            for="{{ form.password1.id_for_label }}">Password</label>
+      <div class="relative">
         {{ form.password1 }}
-        <!-- Tombol mata -->
         <button type="button"
-                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-surface/70 hover:text-sea"
-                data-toggle-password data-target="#{{ form.password1.id_for_label }}"
-                aria-label="Toggle password visibility">
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-primary"
+                data-toggle-password
+                data-target="#{{ form.password1.id_for_label }}"
+                aria-label="Toggle password visibility"
+                aria-pressed="false">
+          <!-- eye -->
           <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
             <circle cx="12" cy="12" r="3" stroke-width="2"/>
           </svg>
+          <!-- eye-off -->
           <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
             <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
           </svg>
         </button>
       </div>
-      
-
-      {% if form.password1.errors %}
-        <div class="mt-2 text-xs text-surface/70">
-          {{ form.password1.help_text|safe }}
-        </div>
-      {% endif %}
-      {% for e in form.password1.errors %}
-        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
+      {% for e in form.password1.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
     </div>
 
-    <!-- Password 2 -->
+    {# --- Password 2 (confirmation) --- #}
     <div>
-      <label class="block mb-1" for="{{ form.password2.id_for_label }}">Password Confirmation</label>
+      <label class="block text-sm font-medium text-primary/90 mb-1"
+            for="{{ form.password2.id_for_label }}">Password Confirmation</label>
       <div class="relative">
         {{ form.password2 }}
         <button type="button"
-                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-surface/70 hover:text-sea"
-                data-toggle-password data-target="#{{ form.password2.id_for_label }}"
-                aria-label="Toggle password visibility">
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-primary"
+                data-toggle-password
+                data-target="#{{ form.password2.id_for_label }}"
+                aria-label="Toggle password visibility"
+                aria-pressed="false">
+          <!-- eye -->
           <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
             <circle cx="12" cy="12" r="3" stroke-width="2"/>
           </svg>
+          <!-- eye-off -->
           <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
             <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
           </svg>
         </button>
-        
       </div>
-      {% for e in form.password2.errors %}
-        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
+      {% for e in form.password2.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
     </div>
 
-    <!-- Pemilihan Roles -->
+    <!-- Role -->
     <div>
-      <label class="block mb-1" for="{{ form.role.id_for_label }}">Choose your Role!</label>
+      <label class="block text-sm font-medium text-primary/90 mb-1"
+             for="{{ form.role.id_for_label }}">Choose your Role!</label>
       {{ form.role }}
-      {% for e in form.role.errors %}
-        <p class="mt-2 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
+      {% for e in form.role.errors %}<p class="mt-1 text-sm text-red-600">{{ e }}</p>{% endfor %}
     </div>
 
-    <!-- Tombol -->
-    <button type="submit" class="w-full bg-primary text-mist rounded-xl py-2.5 hover:bg-sea transition">
+    <button class="w-full rounded-xl py-3 text-white
+                   bg-gradient-to-r from-[#102A43] to-[#2A7F9D] hover:brightness-105"
+            type="submit">
       Create Account
     </button>
   </form>
 
   <p class="mt-4 text-sm">
-    Already have an account? <a class="text-sea hover:text-primary underline" href="{% url 'accounts:login' %}">Login</a>
+    Already have an account?
+    <a class="underline text-primary hover:text-sea" href="{% url 'accounts:login' %}">Login</a>
   </p>
 </section>
+
+<style type="text/tailwindcss">
+  @layer base{
+    input[type='text'], input[type='password'], select, textarea{
+      @apply w-full h-12 rounded-xl bg-white/90 border border-white/60 px-4 shadow-inner
+             focus:outline-none focus:ring-4 focus:ring-[#2A7F9D]/30;
+    }
+  }
+</style>
+
 <script>
-  document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
     const btn = e.target.closest('[data-toggle-password]');
-    if (!btn) {
-      return;
-    }
+    if (!btn) return;
     const input = document.querySelector(btn.getAttribute('data-target'));
-    if (!input) {
-      return;
+    if (!input) return;
+
+    const willShow = input.type === 'password';
+    input.type = willShow ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', willShow ? 'true' : 'false');
+
+    // switch ikon
+    const eye = btn.querySelector('.eye');
+    const eyeOff = btn.querySelector('.eye-off');
+    if (eye && eyeOff) {
+      eye.classList.toggle('hidden', willShow);
+      eyeOff.classList.toggle('hidden', !willShow);
     }
-    input.type = input.type === 'password' ? 'text' : 'password';
-    btn.querySelector('.eye')?.classList.toggle('hidden');
-    btn.querySelector('.eye-off')?.classList.toggle('hidden');
   });
+
+  // (opsional) kasih placeholder via JS kalau belum ada
+  (function setPH(){
+    const set = (id, ph) => { const el = document.getElementById(id); if (el && !el.placeholder) el.placeholder = ph; };
+    // panggil sesuai halaman yang aktif
+    set('{{ form.password1.id_for_label|default_if_none:"" }}','Password');
+    set('{{ form.password2.id_for_label|default_if_none:"" }}','Repeat password');
+  })();
 </script>
-
-
 {% endblock %}

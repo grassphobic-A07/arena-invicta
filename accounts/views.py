@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Profile
-from .forms import ProfileForm
+from .forms import ProfileForm, User
 from django.contrib.auth.models import Group
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 
 from .forms import LoginForm, RegisterWithRoleForm
@@ -21,14 +21,16 @@ def register(request):
         form = RegisterWithRoleForm(request.POST)
         if form.is_valid():
             user = form.save()
-            role = form.cleaned_data.get("role")
-            if role == "writer":
-                group, _ = Group.objects.get_or_create(name="Writer")
-                group.user_set.add(user)
+            role = form.cleaned_role_value()
+
+            if role == "content_staff":
+                Group.objects.get_or_create(name="Content Staff")[0].user_set.add(user)
+                # Catatan: permission publish bakal otomatis “nempel” via signals post_migrate
 
             return redirect("accounts:login")
         else:
-            form.add_error_styles()
+            if hasattr(form, "add_error_styles"):
+                form.add_error_styles()
     else:
         form = RegisterWithRoleForm()
 
@@ -55,7 +57,7 @@ def login_user(request):
             response.set_cookie('last_login', str(datetime.datetime.now()))
             return response
         else:
-            form.add_error_styles()
+            if hasattr(form, "add_error_styles"): form.add_error_styles()
 
     else:
         form = LoginForm(request)
@@ -83,6 +85,7 @@ def home(request):
     roles = []
     if request.user.is_authenticated:
         roles = list(request.user.groups.values_list('name', flat=True))
+        
 
     context = {
         'username': request.user.username,
@@ -91,42 +94,80 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
+
+# Untuk keperluan AJAX pada profile_edit dan delete avatar yang nantinya munculin toast
+def _is_ajax(request):
+    # Django 4.x tidak punya request.is_ajax()
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+
 @login_required
-def profile_detail(request):
+def profile_detail(request, username):
     """
     Tampilkan profil user yang sedang login.
     """
-    profile, _ = Profile.objects.get_or_create(user=request.user)  # Menggunakan related_name 'profile' dari OneToOneField
+    user = get_object_or_404(User, username=username)
+    profile, _ = Profile.objects.get_or_create(user=user)
     roles = list(request.user.groups.values_list('name', flat=True))
-
     context = {
         'profile': profile,
         'roles': roles,
-        "last_login": request.COOKIES.get("last_login", "never"),
     }
-
-    return render(request, 'profile_detail.html', context)
+    return render(request, "profile_detail.html", context)
 
 @login_required
 def profile_edit(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
-    if request.method == "POST":
-        form = ProfileForm(request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profile berhasil diperbarui.")
-            return redirect('accounts:profile_detail')
-        
-        if request.POST.get("clear_avatar") == "1":
-            form.instance.avatar_url = ""  # atau None kalau fieldnya null=True
-    else:
+
+    if request.method == "GET":
         form = ProfileForm(instance=profile)
 
-    context = {
-        'form': form
-    }
-    return render(request, 'profile_edit.html', context)
+        context = {
+            'form': form,
+            'profile': profile,
+        }
 
+        return render(request, "profile_edit.html", context)
+
+        # Dulu ketika belum AJAX based
+        # if form.is_valid():
+        #     form.save()
+        #     messages.success(request, "Profile berhasil diperbarui.")
+        #     return redirect('accounts:profile_detail')
+        
+        # if request.POST.get("clear_avatar") == "1":
+        #     form.instance.avatar_url = ""  # atau None kalau fieldnya null=True
+    if _is_ajax(request):
+        form = ProfileForm(request.POST or None, request.FILES or None, instance=profile)
+        if form.is_valid():
+            form.save()
+            # Set pesan sukses agar muncul sebagai toast di halaman tujuan
+            messages.success(request, "Profil berhasil disimpan.")
+            redirect_url = reverse("accounts:profile_detail", args=[request.user.username])
+            return JsonResponse({"Ok": True, "redirect_url": redirect_url})
+        else:
+            # Kirim error form untuk ditampilkan di UI
+            return JsonResponse({"Ok": False, "errors": form.errors}, status=400)
+
+    context = {
+        'form': form,
+        'profile': profile,
+    }
+
+    return render(request, 'profile_edit.html', context, status=400)
+
+# Untuk delete avatar via AJAX
+@login_required
+@require_POST
+def delete_avatar(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    # hapus file fisik & kosongkan field
+    if profile.avatar_url:
+        profile.avatar_url = ""
+        profile.save(update_fields=["avatar_url"])
+    return JsonResponse({"ok": True, "message": "Avatar berhasil dihapus."})
+
+
+# Untuk delete account
 @login_required
 @require_POST
 def delete_account(request):

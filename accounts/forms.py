@@ -8,17 +8,25 @@ from .models import Profile
 
 User = get_user_model()
 
-ROLE_CHOICES = [
-    ('registered', 'Registered (Can Comment & Create Profiles)'),
-    ('writer',     'Writer (Creator of News Articles)'),
-    # 'editor' dan 'admin' sengaja tidak ditampilkan untuk keamanan
-]
-
 BASE_INPUT_CLS = (
     "w-full rounded-xl border border-surface/30 "
     "focus:border-sea/60 focus:ring-2 focus:ring-sea/20 "
     "px-4 py-3 text-base outline-none bg-white"
 )
+
+# Role sudah aku buat jadi 2. Sekarang content_staff udah Writer + Editor. Dia nantinya bisa 
+# sekaligus nulis & publish di aplikasi News punya Rafa
+ROLE_CHOICES = [
+    ('registered', 'Registered (Can Comment & Create Profiles)'),
+    ('content_staff', 'Content Staff (Writer & Editor)'),
+]
+
+# Role sudah aku buat jadi 2. Sekarang content_staff udah Writer + Editor. Dia nantinya bisa 
+# sekaligus nulis & publish di aplikasi News punya Rafa
+ROLE_ALIASES = {
+    'writer': 'content_staff', 
+    'editor': 'content_staff',
+}
 
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -51,7 +59,8 @@ class LoginForm(AuthenticationForm):
             w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()
 
 class RegisterWithRoleForm(UserCreationForm):
-    role = forms.ChoiceField(choices=ROLE_CHOICES, label="Pilih Peran Anda")
+    role = forms.ChoiceField(choices=ROLE_CHOICES)
+    
     class Meta:
         model = User
         fields = ("username", "password1", "password2", "role")  # password1 & password2 sudah ada dari UserCreationForm
@@ -73,15 +82,18 @@ class RegisterWithRoleForm(UserCreationForm):
             "class": BASE_INPUT_CLS.replace("py-3", "py-2.5")
         })
     
+    def cleaned_role_value(self):
+        # role yang bersih + alias writer/editor -> content_staff
+        role = self.cleaned_data.get("role")
+        return ROLE_ALIASES.get(role, role)
+    
     def add_error_styles(self):
         for name in self.errors:
             if name == NON_FIELD_ERRORS:
                 continue
-            field = self.fields.get(name)
-            if not field:
-                continue
-            w = field.widget
-            w.attrs["class"] = (w.attrs.get("class", "") + " border-red-500 ring-2 ring-red-200").strip()
+            if name in self.fields:
+                w = self.fields[name].widget
+                w.attrs["class"] = (w.attrs.get("class","") + " border-red-500 ring-2 ring-red-200").strip()
 
 
 class ProfileForm(forms.ModelForm):

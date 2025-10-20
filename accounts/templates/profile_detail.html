@@ -17,13 +17,14 @@
   </div>
 
   <div class="mt-4 flex flex-wrap gap-2">
+    <!-- Perlu diperbaiki -->
     {% if request.user.is_superuser %}
       <span class="inline-block px-2.5 py-1 rounded-full bg-primary text-mist text-xs">Admin</span>
     {% endif %}
     {% for name in roles %}
       <span class="inline-block px-2.5 py-1 rounded-full text-xs
-        {% if name == 'Editor' %} bg-sea text-mist
-        {% elif name == 'Writer' %} bg-mint text-primary
+        {% if name == 'Registered' %} bg-sea text-mist
+        {% elif name == 'Content Staff' %} bg-mint text-primary
         {% else %} bg-surface/10 text-surface {% endif %}">{{ name }}</span>
     {% empty %}
       <span class="text-surface/70 text-sm">(Tidak ada role)</span>
@@ -35,4 +36,44 @@
        class="inline-block bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Edit Profile</a>
   </div>
 </section>
+
+<!-- Toast container -->
+<div id="toast-holder" class="fixed top-4 right-4 space-y-2 z-50"></div>
+
+{% if messages %}
+<!-- Payload pesan (HTML, bukan JS) -->
+<div id="dj-messages" hidden>
+  {% for m in messages %}
+    <div data-level="{{ m.tags|default:"info" }}" data-text="{{ m|escape }}"></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+(function () {
+  // define showToast kalau belum ada
+  window.showToast = window.showToast || function (message, type) {
+    const holder = document.getElementById("toast-holder");
+    if (!holder) return;
+    const el = document.createElement("div");
+    const base = "rounded-xl px-4 py-3 shadow-lg text-sm transition-opacity duration-300";
+    const tone =
+      (type && String(type).includes("success")) ? "bg-mint text-primary" :
+      (type && (String(type).includes("error") || String(type).includes("danger"))) ? "bg-danger text-white" :
+      "bg-surface text-white";
+    el.className = base + " " + tone;
+    el.textContent = message;
+    holder.appendChild(el);
+    setTimeout(() => { el.style.opacity = "0"; }, 2400);
+    setTimeout(() => { el.remove(); }, 2800);
+  };
+
+  // render semua messages sebagai toast
+  document.querySelectorAll("#dj-messages > div")
+    .forEach(n => showToast(n.dataset.text, n.dataset.level));
+})();
+</script>
+
+
 {% endblock %}
+

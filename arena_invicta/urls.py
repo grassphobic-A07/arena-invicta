@@ -21,7 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Path pertama kali yang diakses adalah path untuk aplikasi 'accounts' (login/registrasi). Dikasih
+    # Path pertama kali yang diakses adalah path untuk aplikasi 'accounts'. Dikasih
     # namespace 'accounts' supaya di template bisa pakai 'accounts:nama_path' dan tidak ambigu di aplikasi selain 'accounts'
     path('', include(('accounts.urls', 'accounts'), namespace='accounts')),
 ]

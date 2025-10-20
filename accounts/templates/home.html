@@ -27,8 +27,8 @@
         {% endif %}
         {% for name in roles %}
           <span class="inline-block px-2.5 py-1 rounded-full text-xs
-            {% if g.name == 'Editor' %} bg-sea text-mist
-            {% elif g.name == 'Writer' %} bg-mint text-primary
+            {% if name == 'Registered' %} bg-sea text-mist
+            {% elif name == 'Content Staff' %} bg-mint text-primary
             {% else %} bg-surface/10 text-surface
             {% endif %}">{{ name }}
           </span>
