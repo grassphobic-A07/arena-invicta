@@ -3,7 +3,7 @@
 {% block content %}
 <section>
   <h1 class="text-3xl font-semibold text-primary mb-1">Dewa Arena — Dashboard</h1>
-  <p class="text-sm text-surface/70 mb-4">Admin statis; role konten: registered / content_staff.</p>
+  <p class="text-sm text-surface/70 mb-4">Admin: statis; Role Content: Registered / Content Staff.</p>
 
   {% if messages %}
     <div class="mb-4 space-y-2">
@@ -66,22 +66,22 @@
         </thead>
 
         <tbody>
-          {% for u in users %}
+          {% for user in list_of_users %}
           <tr class="border-t border-mist/60">
             <td class="px-4 py-2">
               <div class="flex items-center gap-3">
-                {% if u.profile.avatar_url %}<img src="{{ u.profile.avatar_url }}" class="h-8 w-8 rounded-full object-cover" onerror="this.style.display='none'">{% else %}
+                {% if user.profile.avatar_url %}<img src="{{ user.profile.avatar_url }}" class="h-8 w-8 rounded-full object-cover" onerror="this.style.display='none'">{% else %}
                 <svg class="w-8 h-8 text-surface/50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>{% endif %}
                 <div>
-                  <div class="font-medium text-primary">{{ u.username }}</div>
-                  <div class="text-xs text-surface/60">{{ u.profile.display_name|default:"—" }}</div>
+                  <div class="font-medium text-primary">{{ user.username }}</div>
+                  <div class="text-xs text-surface/60">{{ user.profile.display_name|default:"—" }}</div>
                 </div>
               </div>
             </td>
             
             <td class="px-4 py-2">
-                {% if u.username == admin_username %}
+                {% if user.username == admin_username %}
                     <span class="inline-flex items-center rounded-full px-3 h-8
                                 border border-primary/20 text-primary bg-primary/10">
                     Admin
@@ -90,10 +90,10 @@
                     <form method="post" class="inline-flex items-center gap-2">
                         {% csrf_token %}
                         <input type="hidden" name="op" value="set_role">
-                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
                         <select name="role" class="h-9 rounded-lg border border-surface/20 bg-white px-2">
-                            <option value="registered"    {% if u.profile.role == 'registered' %}selected{% endif %}>Registered</option>
-                            <option value="content_staff" {% if u.profile.role == 'content_staff' %}selected{% endif %}>Content Staff</option>
+                            <option value="registered"    {% if user.profile.role == 'registered' %}selected{% endif %}>Registered</option>
+                            <option value="content_staff" {% if user.profile.role == 'content_staff' %}selected{% endif %}>Content Staff</option>
                         </select>
                         <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">Save</button>
                     </form>
@@ -101,7 +101,7 @@
             </td>
 
             <td class="px-4 py-2">
-              {% if u.is_active %}
+              {% if user.is_active %}
                 <span class="inline-flex items-center rounded-full px-3 h-8 border border-sea/20 text-sea bg-sea/10">Active</span>
               {% else %}
                 <span class="inline-flex items-center rounded-full px-3 h-8 border border-danger/30 text-danger bg-danger/10">Inactive</span>
@@ -110,16 +110,16 @@
 
             <td class="px-4 py-2">
               <div class="flex justify-end gap-2">
-                {% if u.username == admin_username %}
+                {% if user.username == admin_username %}
                     <span class="h-9 inline-flex items-center px-3 rounded-lg border border-surface/20 text-surface/50 cursor-not-allowed">
                         Protected
                     </span>
                 {% else %}
-                    <form method="post" onsubmit="return confirm('Ubah status akun {{ u.username }}?')">
+                    <form method="post" onsubmit="return confirm('Ubah status akun {{ user.username }}?')">
                         {% csrf_token %}
-                        <input type="hidden" name="op" value="toggle_active"><input type="hidden" name="user_id" value="{{ u.id }}">
+                        <input type="hidden" name="op" value="toggle_active"><input type="hidden" name="user_id" value="{{ user.id }}">
                         <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">
-                            {% if u.is_active %}
+                            {% if user.is_active %}
                                 Deactivate
                             {% else %}
                                 Reactivate
@@ -128,9 +128,9 @@
                     </form>
                 {% endif %}
                 
-                <form method="post" onsubmit="return confirm('Hapus permanen akun {{ u.username }}?')">
+                <form method="post" onsubmit="return confirm('Hapus permanen akun {{ user.username }}?')">
                   {% csrf_token %}
-                  <input type="hidden" name="op" value="delete_user"><input type="hidden" name="user_id" value="{{ u.id }}">
+                  <input type="hidden" name="op" value="delete_user"><input type="hidden" name="user_id" value="{{ user.id }}">
                   <button class="h-9 px-3 rounded-lg bg-danger text-white hover:bg-danger/90">Delete</button>
                 </form>
               </div>

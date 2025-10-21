@@ -171,7 +171,7 @@ def admin_dashboard(request):
                 else:
                     u.is_active = not u.is_active
                     u.save(update_fields=["is_active"])
-                    messages.success(request, f"{u.username} {'diaktifkan' if u.is_active else 'dinonaktifkan'}.")
+                    messages.success(request, f"User \"{u.username}\" {'diaktifkan' if u.is_active else 'dinonaktifkan'}.")
                 return redirect(request.path + "?tab=users")
 
             elif op == "delete_user":
@@ -190,9 +190,9 @@ def admin_dashboard(request):
 
     # ==== DATA (GET) ====
     q = (request.GET.get("q") or "").strip()
-    users = User.objects.select_related("profile").all().order_by("username")
+    list_of_users = User.objects.select_related("profile").all().order_by("username")
     if q:
-        users = users.filter(Q(username__icontains=q) | Q(email__icontains=q) | Q(profile__display_name__icontains=q))
+        list_of_users = list_of_users.filter(Q(username__icontains=q) | Q(email__icontains=q) | Q(profile__display_name__icontains=q))
 
     admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
     counts = {
@@ -221,7 +221,7 @@ def admin_dashboard(request):
 
     return render(request, "admin_dashboard.html", {
         "tab": tab, 
-        "users": users, 
+        "list_of_users": list_of_users, 
         "q": q,
         "counts": counts,
         "all_models": all_models, 
