@@ -221,9 +221,9 @@ def admin_dashboard(request):
 
     return render(request, "admin_dashboard.html", {
         "tab": tab, 
-        "list_of_users": list_of_users, 
+        "list_of_users": list_of_users,          # List semua user yang ada
         "q": q,
-        "counts": counts,
+        "counts": counts,                        # Hitung berapa banyak user
         "all_models": all_models, 
         "model_label": model_label,
         "fields": fields, 
