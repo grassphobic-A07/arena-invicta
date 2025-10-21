@@ -235,12 +235,22 @@ def profile_detail(request, username):
     """
     user = get_object_or_404(User, username=username)
     profile, _ = Profile.objects.get_or_create(user=user)
-    roles = list(request.user.groups.values_list('name', flat=True))
-    context = {
-        'profile': profile,
-        'roles': roles,
-    }
-    return render(request, "profile_detail.html", context)
+
+    admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    subject = profile.user  # user pemilik halaman profil
+
+    if subject.username == admin_username:
+        role_label = "Admin"
+    elif profile.role == "content_staff":
+        role_label = "Content Staff"
+    else:
+        role_label = "Registered"
+
+    return render(request, "profile_detail.html", {
+        "profile": profile,
+        "role_label": role_label,
+        "admin_username": admin_username,
+    })
 
 @login_required
 def profile_edit(request):
