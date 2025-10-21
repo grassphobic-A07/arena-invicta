@@ -28,14 +28,14 @@ Kehadiran Arena Invicta memberikan manfaat nyata bagi para penggunanya dalam tig
 
 iii. Daftar Modul\
 Modul yang akan diimplementasikan pada Arena Invicta yaitu:
-1. **Accounts & Profiles (Admin, Creator, Reader)** - Neal Guarddin\
-    Fitur ini mengatur autentikasi pengguna dan profil pengguna, termasuk pembuatan akun, login/logout, dan halaman profil.
+1. **Accounts & Profiles (Admin, Creator, Reader)** - Neal Guarddin ✅\
+    Fitur ini mengatur autentikasi pengguna dan profil pengguna, termasuk pembuatan akun, login/logout, dan halaman profil. ✅
 
     **CRUD:**
-    - **Create:** Registrasi akun baru.
-    - **Read:** Menampilkan halaman profil pengguna (bio, avatar, tim favorit).
-    - **Update:** Mengedit profil.
-    - **Delete:** Menghapus atau menonaktifkan akun.
+    - **Create:** Registrasi akun baru. ✅
+    - **Read:** Menampilkan halaman profil pengguna (bio, avatar, tim favorit). ✅
+    - **Update:** Mengedit profil. ✅
+    - **Delete:** Menghapus atau menonaktifkan akun. ✅
 
 2. **News** - Rafasya Muhammad Subhan\
     Fitur ini menyediakan artikel sepak bola dengan sistem draft, review, dan publish.
