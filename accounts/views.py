@@ -28,9 +28,15 @@ def register(request):
             user = form.save()
             role = form.cleaned_role_value()
 
+            profile, _ = Profile.objects.get_or_create(user=user)
+            profile.role = "content_staff" if role == "content_staff" else "registered"
+            profile.save(update_fields=["role"])
+
             if role == "content_staff":
                 Group.objects.get_or_create(name="Content Staff")[0].user_set.add(user)
-                # Catatan: permission publish bakal otomatis “nempel” via signals post_migrate
+            else:
+                # Pastikan tidak nyangkut di grup Content Staff
+                user.groups.filter(name="Content Staff").delete()
 
             return redirect("accounts:login")
         else:
@@ -150,6 +156,10 @@ def admin_dashboard(request):
                 else:
                     u.profile.role = "content_staff" if role == "content_staff" else "registered"
                     u.profile.save(update_fields=["role"])
+                    if role == "content_staff":
+                        Group.objects.get_or_create(name="Content Staff")[0].user_set.add(u)
+                    else:
+                        u.groups.filter(name="Content Staff").delete()
                     messages.success(request, f"Role {u.username} → {u.profile.role}.")
                 return redirect(request.path + "?tab=users")
 
@@ -185,7 +195,6 @@ def admin_dashboard(request):
         users = users.filter(Q(username__icontains=q) | Q(email__icontains=q) | Q(profile__display_name__icontains=q))
 
     admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
-    from .models import Profile
     counts = {
         "total": User.objects.count(),
         "registered": Profile.objects.filter(role="registered")
