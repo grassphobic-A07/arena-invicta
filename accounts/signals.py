@@ -27,7 +27,7 @@ def ensure_static_admin(sender, **kwargs):
     # pastikan profile ada, role kontennya biarkan 'registered' (admin ≠ content_staff)
     Profile.objects.get_or_create(user=admin_user)
 
-
+# Penting untuk nanti model News (Rafa)
 @receiver(post_migrate)
 def ensure_groups_and_bind_news_perms(sender, **kwargs):
     # Pastikan grup utama
