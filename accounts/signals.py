@@ -1,9 +1,32 @@
 # accounts/signals.py
+import os
 from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from .models import Profile
+
+# Khusus Admin
+@receiver(post_migrate)
+def ensure_static_admin(sender, **kwargs):
+    # jalan saat migrate app apa pun; batasi hanya sekali untuk project
+    # (check label 'accounts' aman, tapi kalau tak pasti—biarkan saja, kodenya idempotent)
+    if getattr(sender, "name", "") not in {"accounts"}:
+        return
+
+    username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    password = os.getenv("ARENA_ADMIN_PASS", "ArenaAdmin123!")
+
+    admin_user, created = User.objects.get_or_create(username=username, defaults={"is_active": True})
+    if created or not admin_user.has_usable_password():
+        admin_user.set_password(password)
+    admin_user.is_active = True
+    # Tidak pakai Django Admin UI → tak perlu is_staff/is_superuser
+    admin_user.save()
+
+    # pastikan profile ada, role kontennya biarkan 'registered' (admin ≠ content_staff)
+    Profile.objects.get_or_create(user=admin_user)
+
 
 @receiver(post_migrate)
 def ensure_groups_and_bind_news_perms(sender, **kwargs):

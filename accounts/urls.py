@@ -1,6 +1,6 @@
 # accounts/urls.py
 from django.urls import path
-from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar
+from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar, admin_dashboard
 
 app_name = 'accounts'
 
@@ -17,4 +17,7 @@ urlpatterns = [
 
     # >>> paling akhir: dinamis
     path('profile/<str:username>/', profile_detail, name='profile_detail'),
+
+    # Admin
+    path("admin/", admin_dashboard, name="admin_dashboard")
 ]

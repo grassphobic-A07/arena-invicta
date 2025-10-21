@@ -1,4 +1,4 @@
-import datetime
+import datetime, os
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -9,6 +9,10 @@ from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+from django.apps import apps
 from django.db.models.deletion import ProtectedError
 
 from .forms import LoginForm, RegisterWithRoleForm
@@ -83,17 +87,140 @@ def home(request):
     Halaman sederhana sesudah login.
     """
     # hanya query groups kalau sudah login
-    roles = []
-    if request.user.is_authenticated:
-        roles = list(request.user.groups.values_list('name', flat=True))
+    admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
 
+    role_label = None
+    if request.user.is_authenticated:
+        if request.user.username == admin_username:
+            role_label = "Admin"
+        elif getattr(getattr(request.user, "profile", None), "role", "") == "content_staff":
+            role_label = "Content Staff"
+        else:
+            role_label = "Registered"
+            
     context = {
         'username': request.user.username,
+        "admin_username": admin_username,
         'last_login': request.COOKIES.get('last_login', 'never'),
-        'roles': roles,  # list nama role (agar template tidak memicu query lagi)
+        'role_label': role_label,  # list nama role (agar template tidak memicu query lagi)
     }
 
     return render(request, 'home.html', context)
+
+# Admin dashboard view
+def is_arena_admin(user) -> bool:
+    """Admin statis: username cocok ENV"""
+    return user.is_authenticated and user.username == os.getenv("ARENA_ADMIN_USER", "arena_admin")
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def admin_dashboard(request):
+    if not is_arena_admin(request.user):
+        return HttpResponseForbidden("Admin only.")
+
+    tab = request.GET.get("tab", "users")
+
+    # ==== ACTIONS (POST) ====
+    if request.method == "POST":
+        op = request.POST.get("op", "")
+        try:
+            if op == "create_user":
+                uname = (request.POST.get("username") or "").strip()
+                pwd   = (request.POST.get("password") or "").strip()
+                role  = (request.POST.get("role") or "registered").strip()
+                if not uname or not pwd:
+                    messages.error(request, "Username & password wajib diisi.")
+                elif User.objects.filter(username=uname).exists():
+                    messages.error(request, "Username sudah dipakai.")
+                else:
+                    u = User.objects.create_user(username=uname, password=pwd, is_active=True)
+                    p, _ = Profile.objects.get_or_create(user=u)
+                    p.role = "content_staff" if role == "content_staff" else "registered"
+                    p.save(update_fields=["role"])
+                    messages.success(request, f"User {uname} dibuat.")
+                return redirect(request.path + "?tab=users")
+
+            elif op == "set_role":
+                uid  = int(request.POST["user_id"])
+                role = (request.POST.get("role") or "registered").strip()
+                u = User.objects.select_related("profile").get(pk=uid)
+                if is_arena_admin(u) and role != "registered":
+                    # admin tetap admin (role konten jangan diutak-atik)
+                    messages.error(request, "Akun admin tidak diubah role kontennya.")
+                else:
+                    u.profile.role = "content_staff" if role == "content_staff" else "registered"
+                    u.profile.save(update_fields=["role"])
+                    messages.success(request, f"Role {u.username} → {u.profile.role}.")
+                return redirect(request.path + "?tab=users")
+
+            elif op == "toggle_active":
+                uid = int(request.POST["user_id"])
+                u = User.objects.get(pk=uid)
+                if is_arena_admin(u):
+                    messages.error(request, "Tidak boleh menonaktifkan akun admin.")
+                else:
+                    u.is_active = not u.is_active
+                    u.save(update_fields=["is_active"])
+                    messages.success(request, f"{u.username} {'diaktifkan' if u.is_active else 'dinonaktifkan'}.")
+                return redirect(request.path + "?tab=users")
+
+            elif op == "delete_user":
+                uid = int(request.POST["user_id"])
+                u = User.objects.get(pk=uid)
+                if is_arena_admin(u):
+                    messages.error(request, "Tidak boleh menghapus akun admin.")
+                else:
+                    u.delete()
+                    messages.success(request, "Akun dihapus.")
+                return redirect(request.path + "?tab=users")
+
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            return redirect(request.path + "?tab=users")
+
+    # ==== DATA (GET) ====
+    q = (request.GET.get("q") or "").strip()
+    users = User.objects.select_related("profile").all().order_by("username")
+    if q:
+        users = users.filter(Q(username__icontains=q) | Q(email__icontains=q) | Q(profile__display_name__icontains=q))
+
+    admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    from .models import Profile
+    counts = {
+        "total": User.objects.count(),
+        "registered": Profile.objects.filter(role="registered")
+                       .exclude(user__username=admin_username).count(),
+        "content_staff": Profile.objects.filter(role="content_staff").count(),
+    }
+
+    # DB browser (read-only)
+    all_models = []
+    for m in apps.get_models():
+        lbl = f"{m._meta.app_label}.{m.__name__}"
+        if m._meta.app_label in {"admin","contenttypes","sessions"}:
+            continue
+        all_models.append(lbl)
+    all_models.sort()
+
+    model_label = request.GET.get("model") or ""
+    fields, rows = None, None
+    if tab == "db" and model_label in all_models:
+        app_label, model_name = model_label.split(".")
+        M = apps.get_model(app_label, model_name)
+        fields = [f.name for f in M._meta.fields]
+        rows = [[getattr(obj, f) for f in fields] for obj in M.objects.all()[:50]]
+
+    return render(request, "admin_dashboard.html", {
+        "tab": tab, 
+        "users": users, 
+        "q": q,
+        "counts": counts,
+        "all_models": all_models, 
+        "model_label": model_label,
+        "fields": fields, 
+        "rows": rows,
+        "admin_username": admin_username,        # ← kirim ke template
+    })
 
 
 # Untuk keperluan AJAX pada profile_edit dan delete avatar yang nantinya munculin toast
