@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Buat Kuis Baru - Arena Invicta{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Buat Kuis Baru</h1>
+        <p class="text-gray-600">Isi detail kuis dan tambahkan pertanyaan sebanyak yang Anda mau.</p>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <fieldset class="space-y-4">
+            <div>
+                <label for="{{ quiz_form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ quiz_form.title.label }}</label>
+                {{ quiz_form.title }}
+                {% if quiz_form.title.errors %}<p class="text-red-600 text-sm mt-1">{{ quiz_form.title.errors.as_text }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ quiz_form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ quiz_form.description.label }}</label>
+                {{ quiz_form.description }}
+                {% if quiz_form.description.errors %}<p class="text-red-600 text-sm mt-1">{{ quiz_form.description.errors.as_text }}</p>{% endif %}
+            </div>
+        </fieldset>
+
+        <hr class="my-8">
+
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Pertanyaan</h2>
+        
+        {{ question_formset.management_form }}
+
+        <div id="question-forms-container" class="space-y-6">
+            {% for form in question_formset %}
+                <div class="question-form p-4 border rounded-lg bg-gray-50 relative">
+                    <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">{{ forloop.counter }}</span></h3>
+                    <div class="space-y-3">
+                        {{ form.text.label_tag }}
+                        {{ form.text }}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <div>{{ form.option_a.label_tag }} {{ form.option_a }}</div>
+                            <div>{{ form.option_b.label_tag }} {{ form.option_b }}</div>
+                            <div>{{ form.option_c.label_tag }} {{ form.option_c }}</div>
+                            <div>{{ form.option_d.label_tag }} {{ form.option_d }}</div>
+                        </div>
+                        <div class="pt-2">
+                            <p class="font-medium text-sm text-gray-700 mb-2">{{ form.correct_answer.label }}</p>
+                            <div class="flex space-x-4">{{ form.correct_answer }}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-question-btn absolute top-3 right-3 text-red-500 hover:text-red-700 font-bold">X</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6">
+            <button type="button" id="add-question-btn" class="w-full bg-mint/50 hover:bg-mint/80 text-primary font-bold py-2 px-4 rounded-lg transition duration-300">
+                + Tambah Pertanyaan
+            </button>
+        </div>
+
+        <div class="mt-8 border-t pt-6">
+            <button type="submit" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                Simpan Kuis Beserta Pertanyaan
+            </button>
+        </div>
+    </form>
+</div>
+
+<template id="empty-form-template">
+    <div class="question-form p-4 border rounded-lg bg-gray-50 relative">
+        <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">__prefix__</span></h3>
+        <div class="space-y-3">
+            <div>{{ question_formset.empty_form.text.label_tag }} {{ question_formset.empty_form.text }}</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>{{ question_formset.empty_form.option_a.label_tag }} {{ question_formset.empty_form.option_a }}</div>
+                <div>{{ question_formset.empty_form.option_b.label_tag }} {{ question_formset.empty_form.option_b }}</div>
+                <div>{{ question_formset.empty_form.option_c.label_tag }} {{ question_formset.empty_form.option_c }}</div>
+                <div>{{ question_formset.empty_form.option_d.label_tag }} {{ question_formset.empty_form.option_d }}</div>
+            </div>
+            <div class="pt-2">
+                <p class="font-medium text-sm text-gray-700 mb-2">{{ question_formset.empty_form.correct_answer.label }}</p>
+                <div class="flex space-x-4">{{ question_formset.empty_form.correct_answer }}</div>
+            </div>
+        </div>
+        <button type="button" class="remove-question-btn absolute top-3 right-3 text-red-500 hover:text-red-700 font-bold">X</button>
+    </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const addQuestionBtn = document.getElementById('add-question-btn');
+    const container = document.getElementById('question-forms-container');
+    const template = document.getElementById('empty-form-template');
+    const totalFormsInput = document.querySelector('input[name="questions-TOTAL_FORMS"]');
+
+    const updateQuestionNumbers = () => {
+        const questionForms = container.querySelectorAll('.question-form');
+        questionForms.forEach((form, index) => {
+            const numberSpan = form.querySelector('.question-number');
+            if (numberSpan) {
+                numberSpan.textContent = index + 1;
+            }
+        });
+    };
+
+    addQuestionBtn.addEventListener('click', () => {
+        // Dapatkan jumlah form saat ini dari management form
+        let formNum = parseInt(totalFormsInput.value);
+        
+        // Buat konten baru dari template
+        let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
+        
+        // Buat elemen div sementara untuk menampung form baru
+        const div = document.createElement('div');
+        div.innerHTML = newFormHtml;
+        
+        // Tambahkan form baru ke kontainer
+        container.appendChild(div.firstElementChild);
+        
+        // Perbarui nilai TOTAL_FORMS
+        totalFormsInput.value = formNum + 1;
+        
+        // Perbarui nomor urut pertanyaan
+        updateQuestionNumbers();
+    });
+
+    // Tambahkan event listener untuk tombol hapus (menggunakan event delegation)
+    container.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('remove-question-btn')) {
+            // Dapatkan parent .question-form terdekat dan hapus
+            e.target.closest('.question-form').remove();
+            
+            // Perbarui TOTAL_FORMS
+            totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+
+            // Perbarui nomor urut pertanyaan
+            updateQuestionNumbers();
+        }
+    });
+
+    // Panggil sekali di awal untuk memastikan nomornya benar
+    updateQuestionNumbers();
+});
+</script>
+{% endblock %}

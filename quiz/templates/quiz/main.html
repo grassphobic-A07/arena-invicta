@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Halaman Quiz - Arena Invicta{% endblock %}
+
+{% block content %}
+<div class="mb-8 text-center">
+  <h1 class="text-5xl font-bold text-gray-900 mb-2">Daftar Kuis</h1>
+  <p class="text-lg text-gray-600">Pilih kuis di bawah ini untuk memulai!</p>
+</div>
+{% if authorized %}
+<div class="mb-8 text-center">
+    <a href="{% url 'quiz:create_quiz' %}" class="inline-block bg-primary hover:bg-sea text-white font-bold py-2 px-5 rounded-lg transition duration-300">
+        + Buat Kuis Baru
+    </a>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for quiz in quizzes %}
+    <div class="group bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
+        <div class="p-6 flex-grow">
+            <h2 class="text-xl font-bold text-primary mb-2">
+                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="hover:text-sea transition-colors">
+                    {{ quiz.title }}
+                </a>
+            </h2>
+            <p class="text-sm text-surface/80 mb-4 line-clamp-3">
+                {{ quiz.description|default:"Tidak ada deskripsi." }}
+            </p>
+        </div>
+
+        <div class="p-6 border-t bg-gray-50/50">
+            <div class="flex items-center justify-between">
+                <p class="text-xs text-surface/60">
+                    Dibuat oleh: <strong>{{ quiz.user.username }}</strong>
+                </p>
+                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="text-sm font-semibold text-sea group-hover:underline">
+                    Lihat &raquo;
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
+        <h3 class="text-xl font-semibold text-gray-700">Belum Ada Kuis</h3>
+        <p class="text-gray-500 mt-2">Jadilah yang pertama untuk membuat kuis baru!</p>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }} - Arena Invicta{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
+    <p class="text-lg text-gray-600 mb-4">Oleh: {{ quiz.user.username }}</p>
+    
+    {% if quiz.description %}
+        <p class="text-gray-700 mb-6">{{ quiz.description }}</p>
+    {% endif %}
+
+    {% if quiz.user == request.user %}
+        <form method="post" action="{% url 'quiz:delete_quiz' quiz.id %}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kuis ini? Tindakan ini tidak dapat diurungkan.');">
+            {% csrf_token %}
+            <button type="submit" class="bg-danger hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                Hapus Kuis
+            </button>
+        </form>
+    {% endif %}
+
+    <div class="mt-8 border-t pt-6">
+        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="block w-full text-center bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+            Mulai Kuis
+        </a>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'quiz:show_main' %}" class="text-sea hover:underline text-sm">
+            &larr; Kembali ke Daftar Kuis
+        </a>
+    </div>
+
+</div>
+{% endblock %}

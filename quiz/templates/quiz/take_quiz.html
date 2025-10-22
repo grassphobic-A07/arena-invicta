@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Mengerjakan: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+    <div class="mb-6 border-b pb-4">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
+        <p class="text-gray-600">{{ quiz.description|default:"Jawablah pertanyaan di bawah ini dengan benar." }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="space-y-8">
+            {% for question in questions %}
+                <fieldset class="p-4 border rounded-lg bg-gray-50/50">
+                    <legend class="text-lg font-semibold text-gray-800 px-2">
+                        Pertanyaan #{{ forloop.counter }}:
+                    </legend>
+                    <p class="text-gray-900 mb-4 px-2">{{ question.text }}</p>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                            <input type="radio" id="q{{ question.id }}_a" name="question_{{ question.id }}" value="A" class="h-4 w-4 text-primary focus:ring-sea" required>
+                            <label for="q{{ question.id }}_a" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_a }}</label>
+                        </div>
+                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                            <input type="radio" id="q{{ question.id }}_b" name="question_{{ question.id }}" value="B" class="h-4 w-4 text-primary focus:ring-sea">
+                            <label for="q{{ question.id }}_b" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_b }}</label>
+                        </div>
+                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                            <input type="radio" id="q{{ question.id }}_c" name="question_{{ question.id }}" value="C" class="h-4 w-4 text-primary focus:ring-sea">
+                            <label for="q{{ question.id }}_c" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_c }}</label>
+                        </div>
+                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                            <input type="radio" id="q{{ question.id }}_d" name="question_{{ question.id }}" value="D" class="h-4 w-4 text-primary focus:ring-sea">
+                            <label for="q{{ question.id }}_d" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_d }}</label>
+                        </div>
+                    </div>
+                </fieldset>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 border-t pt-6">
+            <button type="submit" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                Selesai & Lihat Hasil
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

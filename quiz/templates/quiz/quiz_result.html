@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Hasil Kuis: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-xl shadow-md text-center">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Hasil Kuis: {{ quiz.title }}</h1>
+    <p class="text-gray-600 mb-6">Berikut adalah hasil pengerjaan kuis Anda.</p>
+    
+    <div class="bg-mint/20 p-6 rounded-lg inline-block">
+        <p class="text-lg text-primary">Skor Anda:</p>
+        <p class="text-6xl font-bold text-primary my-2">{{ score }} / {{ total_questions }}</p>
+        <p class="text-2xl font-semibold text-sea">{{ percentage }}%</p>
+    </div>
+
+    <div class="mt-8">
+        {% if percentage == 100 %}
+            <p class="text-xl text-gray-800">Sempurna! Kerja yang sangat bagus! 🎉</p>
+        {% elif percentage >= 75 %}
+            <p class="text-xl text-gray-800">Luar biasa! Anda menguasai ini. 👍</p>
+        {% elif percentage >= 50 %}
+            <p class="text-xl text-gray-800">Bagus, teruslah berlatih!</p>
+        {% else %}
+            <p class="text-xl text-gray-800">Jangan menyerah, coba lagi untuk hasil yang lebih baik!</p>
+        {% endif %}
+    </div>
+
+    <div class="mt-8 flex justify-center space-x-4">
+        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="px-6 py-2 border border-primary text-primary font-semibold rounded-lg hover:bg-primary hover:text-white transition-colors">
+            Coba Lagi
+        </a>
+        <a href="{% url 'quiz:show_main' %}" class="px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-sea transition-colors">
+            Kembali ke Daftar Kuis
+        </a>
+    </div>
+</div>
+{% endblock %}
