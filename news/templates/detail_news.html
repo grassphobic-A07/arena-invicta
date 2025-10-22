@@ -6,13 +6,12 @@
 <article>
     <!-- Header Berita dengan Gambar Latar Belakang -->
     {% if news.thumbnail %}
-    <div class="relative aspect-video sm:aspect-[3/1] w-full rounded-xl overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-cover bg-center mb-6" style="background-image: url('{{ news.thumbnail }}');">
+    <div class="relative aspect-video sm:aspect-[3/1] w-full overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-cover bg-center mb-6" style="background-image: url('{{ news.thumbnail }}');">
     {% else %}
-    <div class="relative aspect-video sm:aspect-[3/1] w-full rounded-xl overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-surface mb-6">
+    <div class="relative aspect-video sm:aspect-[3/1] w-full overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-surface mb-6">
     {% endif %}
         <!-- Gradien untuk keterbacaan teks -->
         <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/50 to-transparent"></div>
-        
         <div class="relative z-10">
             <!-- Kategori dan Olahraga -->
             <div class="flex items-center gap-2 mb-2">
@@ -24,10 +23,15 @@
         </div>
     </div>
 
+    <div class="mt-8 text-left">
+        <a href="{% url 'news:show_news' %}" class="inline-flex items-center h-10 px-4 rounded-lg text-sm transition font-semibold text-primary bg-mist/70 border border-mist hover:text-sea">
+            &larr; Back to News
+        </a>
+    </div>
     <!-- Konten Berita -->
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mx-[15px]">
         <!-- Meta Info -->
-        <div class="flex items-center justify-between text-sm text-surface/70 mb-4 pb-4 border-b border-mist">
+        <div class="flex items-center justify-between text-sm text-surface/70 mb-10 pb-4 border-b border-mist">
             <span>Published on: {{ news.created_at|date:"F d, Y" }}</span>
             <span>Views: {{ news.news_views }}</span>
         </div>
@@ -36,15 +40,37 @@
         <div class="prose max-w-none text-surface/90">
             {{ news.content|linebreaks }}
         </div>
+        <!-- Nama Author -->
+        {% if news.author %}  <div class="mt-8 pt-4 border-t border-mist text-right text-sm text-surface/80">
+            <span>Written by: </span>
+            <strong class="font-semibold text-surface/90">
+                {{ news.author.profile.display_name|default:news.author.username }}
+            </strong>
+        </div>
+        {% endif %}
     </div>
 
-</article>
+    {% if request.user.is_authenticated and request.user == news.author %}
+    <div class="mt-2 pt-1 mb-4 mr-3 border-t border-mist flex flex-wrap items-center justify-end gap-3">
+        <!-- Tombol Edit -->
+        <a href="{% url 'news:edit_news' news.id %}"
+           class="inline-flex items-center h-10 px-4 rounded-lg text-sm font-semibold transition bg-sea/10 text-sea border border-sea/30 hover:bg-sea/20">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            Edit News
+        </a>
+        <!-- Tombol Delete -->
+        <form method="post" action="{% url 'news:delete_news' news.id %}"
+              onsubmit="return confirm('Are you sure you want to delete this news article?');"> {# <-- Konfirmasi JS #}
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center h-10 px-4 rounded-lg text-sm font-semibold transition bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Delete News
+            </button>
+        </form>
+    </div>
+    {% endif %}
 
-<!-- Opsi: Tombol kembali ke halaman utama -->
-<div class="mt-8 text-center">
-    <a href="{% url 'news:show_news' %}" class="inline-flex items-center h-10 px-4 rounded-lg text-sm transition font-semibold text-primary bg-mist/70 border border-mist hover:bg-mist">
-        &larr; Back to News
-    </a>
-</div>
+</article>
 
 {% endblock %}

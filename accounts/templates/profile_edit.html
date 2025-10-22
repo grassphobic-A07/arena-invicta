@@ -4,7 +4,8 @@
 <section class="mx-auto max-w-2xl">
   <h1 class="text-3xl font-semibold text-primary mb-6">Edit Profile</h1>
 
-  <form method="post" class="bg-white rounded-xl border border-mist p-6 space-y-5">
+  <!-- Ditambah id untuk di-hook oleh JavaScript -->
+  <form id="profileEditForm" method="post" class="bg-white rounded-xl border border-mist p-6 space-y-5">
     {% csrf_token %}
 
     <div>
@@ -55,7 +56,7 @@
         </div>
       </div>
 
-      <!-- marker opsional untuk backend -->
+      <!-- Marker opsional untuk backend -->
       <input type="hidden" name="clear_avatar" id="clearedAvatarHidden" value="">
     </div>
 
@@ -67,18 +68,17 @@
 
     <div class="flex gap-3">
       <button type="submit" class="bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Save</button>
-      <a href="{% url 'accounts:profile_detail' %}" class="px-4 py-2 rounded-xl border text-danger border-danger/20">Cancel</a>
+      <a href="{% url 'accounts:profile_detail' request.user.username  %}" class="px-4 py-2 rounded-xl border text-danger border-danger/20">Cancel</a>
     </div>
-
   </form>
   
     <!-- Hapus akun lewat profile edit  -->
     <div class="mt-6 border-t border-surface/10 pt-4">
-      <form method="post" action="{% url 'accounts:delete' %}"
-            onsubmit="return confirm('Hapus akun secara permanen? Tindakan ini tidak bisa dibatalkan.');">
+      <form id="deleteAccountForm" method="post" action="{% url 'accounts:delete' %}">
         {% csrf_token %}
         <button type="submit"
                 class="inline-flex items-center gap-2 bg-danger text-white hover:bg-danger/90 rounded-xl px-4 py-2">
+          <!-- icon -->
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-width="2" d="M3 6h18M8 6v12m4-12v12m4-12v12M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/>
           </svg>
@@ -87,64 +87,71 @@
       </form>
       <p class="mt-2 text-xs text-surface/70">Akun akan dihapus permanen dari basis data.</p>
     </div>
+
 </section>
 
-{# JS: update preview saat ketik + fallback bila gambar error #}
 <script>
   (function () {
-    const input    = document.getElementById('{{ form.avatar_url.id_for_label }}');
-    const img      = document.getElementById('avatarPreview');
-    const fallback = document.getElementById('avatarFallback');
-    const clearBtn = document.getElementById('clearAvatarBtn');
-    const resetBtn = document.getElementById('resetSampleBtn');
-    const cleared  = document.getElementById('clearedAvatarHidden');
+    // csrf
+    function getCookie(name){let v=null;if(!document.cookie)return v;for(const c of document.cookie.split(";")){const s=c.trim();if(s.startsWith(name+"=")){v=decodeURIComponent(s.slice(name.length+1));break;}}return v;}
+    const CSRF = getCookie("csrftoken");
 
-    const SAMPLE = 'https://i.pravatar.cc/128?img=12'; // contoh; ganti kalau mau
-
-    function toggleClearState() {
-      const hasVal = !!(input?.value || '').trim();
-      if (clearBtn) clearBtn.disabled = !hasVal;
-      if (!hasVal) cleared.value = ''; // kalau user mengetik ulang, batalkan flag hapus
-    }
-
-    function show(url) {
-      const u = (url || '').trim();
-      if (u) {
-        img.src = u;
-        img.classList.remove('hidden');
-        fallback.classList.add('hidden');
-      } else {
-        img.removeAttribute('src');
-        img.classList.add('hidden');
-        fallback.classList.remove('hidden');
-      }
-      toggleClearState();
-    }
-
-    // init & live update
-    show(input?.value);
-    input?.addEventListener('input', e => show(e.target.value));
-
-    // jika gambar gagal dimuat -> fallback
-    img?.addEventListener('error', () => {
-      img.classList.add('hidden');
-      fallback.classList.remove('hidden');
+    // SAVE
+    const editForm = document.getElementById("profileEditForm");
+    editForm?.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const btn = editForm.querySelector('button[type="submit"]'); btn?.setAttribute("disabled","disabled");
+      try{
+        const resp = await fetch("{% url 'accounts:profile_edit' %}", {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}, body:new FormData(editForm)});
+        if(resp.ok){
+          const data = await resp.json();
+          localStorage.setItem("ai_toast", JSON.stringify({text: data.message || "Profil berhasil disimpan.", level:"success"}));
+          window.location.assign(data.redirect_url || "{% url 'accounts:profile_detail' request.user.username %}");
+        }else{
+          const data = await resp.json().catch(()=>({})); const first = data?.errors ? (Object.values(data.errors)[0]?.[0] || "Gagal menyimpan profil.") : "Gagal menyimpan profil."; showToast(first,"error");
+        }
+      }catch{ showToast("Kesalahan jaringan saat menyimpan profil.","error"); }
+      finally{ btn?.removeAttribute("disabled"); }
     });
 
-    // klik: hapus avatar (kosongkan field + set flag)
-    clearBtn?.addEventListener('click', () => {
-      if (!confirm('Delete Avatar?')) return;
-      input.value = '';
-      cleared.value = '1';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+    // DELETE AVATAR
+    const clearBtn = document.getElementById("clearAvatarBtn");
+    const avatarInp = document.getElementById("{{ form.avatar_url.id_for_label }}");
+    const imgPrev = document.getElementById("avatarPreview");
+    const svgFallback = document.getElementById("avatarFallback");
+
+    clearBtn?.addEventListener("click", async ()=>{
+      const ok = await Confirm.open({ titleText:"Hapus avatar?", messageText:"Avatar akan dihapus dan diganti placeholder.", confirmText:"Delete Avatar", tone:"danger" });
+      if(!ok) return;
+      // optimistic UI
+      if(avatarInp) avatarInp.value=""; if(imgPrev){ imgPrev.classList.add("hidden"); imgPrev.removeAttribute("src"); } if(svgFallback) svgFallback.classList.remove("hidden");
+      clearBtn.disabled = true;
+      try{
+        const resp = await fetch("{% url 'accounts:delete_avatar' %}", {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}});
+        if(resp.ok){ const data = await resp.json().catch(()=>({})); showToast(data.message || "Avatar berhasil dihapus.","success"); }
+        else{ showToast("Gagal menghapus avatar di server.","error"); }
+      }catch{ showToast("Kesalahan jaringan saat menghapus avatar.","error"); }
+      finally{ clearBtn.disabled = false; }
     });
 
-    // klik: pakai contoh (opsional)
-    resetBtn?.addEventListener('click', () => {
-      input.value = SAMPLE;
-      cleared.value = ''; // tidak dianggap hapus
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+    // DELETE ACCOUNT
+    const delForm = document.getElementById("deleteAccountForm");
+    delForm?.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const ok = await Confirm.open({ titleText:"Hapus akun?", messageText:"Akun akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.", confirmText:"Delete Account", tone:"danger" });
+      if(!ok) return;
+      const btn = delForm.querySelector('button[type="submit"]'); btn?.setAttribute("disabled","disabled");
+      try{
+        const resp = await fetch(delForm.action, {method:"POST", headers:{"X-Requested-With":"XMLHttpRequest","X-CSRFToken":CSRF}});
+        if(resp.ok){
+          const data = await resp.json().catch(()=>({}));
+          localStorage.setItem("ai_toast", JSON.stringify({text: data.message || "Akun berhasil dihapus.", level:"success"}));
+          window.location.assign(data.redirect_url || "{% url 'accounts:home' %}");
+        }else{ showToast("Gagal menghapus akun.","error"); }
+      }catch{ showToast("Kesalahan jaringan saat menghapus akun.","error"); }
+      finally{ btn?.removeAttribute("disabled"); }
     });
+
   })();
 </script>
 {% endblock %}

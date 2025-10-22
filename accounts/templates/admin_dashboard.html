@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard • Arena Invicta{% endblock %}
+{% block content %}
+<section>
+  <h1 class="text-3xl font-semibold text-primary mb-1">Dewa Arena — Dashboard</h1>
+  <p class="text-sm text-surface/70 mb-4">Admin: statis; Role Content: Registered / Content Staff.</p>
+
+  {% if messages %}
+    <div class="mb-4 space-y-2">
+      {% for message in messages %}
+        <div class="rounded-xl px-4 py-3 text-sm
+          {% if message.tags == 'success' %} bg-mint/30 text-primary
+          {% elif message.tags == 'error' %} bg-danger/10 text-danger border border-danger/30
+          {% else %} bg-surface/10 text-surface {% endif %}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="flex gap-2 mb-4">
+    <a href="?tab=users" class="inline-flex items-center h-9 px-3 rounded-full border
+      {% if tab == 'users' %} bg-white text-primary border-mist {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">Users</a>
+    <a href="?tab=db" class="inline-flex items-center h-9 px-3 rounded-full border
+      {% if tab == 'db' %} bg-white text-primary border-mist {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">Database</a>
+  </div>
+
+  {% if tab == 'users' %}
+    <div class="grid grid-cols-3 md:grid-cols-3 gap-3 mb-4">
+      <div class="bg-white rounded-xl border border-mist p-4"><div class="text-xs text-surface/60">Total</div><div class="text-2xl font-semibold text-primary">{{ counts.total }}</div></div>
+      <div class="bg-white rounded-xl border border-mist p-4"><div class="text-xs text-surface/60">Registered</div><div class="text-2xl font-semibold text-primary">{{ counts.registered }}</div></div>
+      <div class="bg-white rounded-xl border border-mist p-4"><div class="text-xs text-surface/60">Content Staff</div><div class="text-2xl font-semibold text-primary">{{ counts.content_staff }}</div></div>
+    </div>
+
+    <!-- Create user -->
+    <form method="post" class="bg-white rounded-xl border border-mist p-4 mb-4">
+      {% csrf_token %}<input type="hidden" name="op" value="create_user">
+      <div class="grid md:grid-cols-4 gap-3">
+        <div><label class="block text-sm mb-1">Username</label><input name="username" class="w-full h-10 rounded-lg border border-surface/20 px-3 bg-white" required></div>
+        <div><label class="block text-sm mb-1">Password</label><input name="password" type="password" class="w-full h-10 rounded-lg border border-surface/20 px-3 bg-white" required></div>
+        <div><label class="block text-sm mb-1">Role</label>
+          <select name="role" class="w-full h-10 rounded-lg border border-surface/20 px-3 bg-white">
+            <option value="registered">Registered</option>
+            <option value="content_staff">Content Staff</option>
+          </select>
+        </div>
+        <div class="flex items-end"><button class="w-full h-10 rounded-lg bg-primary text-white hover:bg-sea">Create</button></div>
+      </div>
+    </form>
+
+    <!-- List users -->
+    <div class="bg-white rounded-xl border border-mist overflow-hidden">
+      <div class="p-3 border-b border-mist">
+        <form method="get" class="flex items-center gap-2">
+          <input type="hidden" name="tab" value="users">
+          <input name="q" value="{{ q }}" placeholder="Cari username/nama/email" class="flex-1 h-10 rounded-lg border border-surface/20 px-3 bg-white">
+          <button class="h-10 px-4 rounded-lg border border-surface/20 hover:bg-mist/60">Filter</button>
+        </form>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-mist/60 text-surface/70">
+            <tr>
+                <th class="text-left px-4 py-2">User</th>
+                <th class="text-left px-4 py-2">Role</th>
+                <th class="text-left px-4 py-2">Status</th>
+                <th class="text-right px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+          {% for user in list_of_users %}
+          <tr class="border-t border-mist/60">
+            <td class="px-4 py-2">
+              <div class="flex items-center gap-3">
+                {% if user.profile.avatar_url %}<img src="{{ user.profile.avatar_url }}" class="h-8 w-8 rounded-full object-cover" onerror="this.style.display='none'">{% else %}
+                <svg class="w-8 h-8 text-surface/50" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>{% endif %}
+                <div>
+                  <div class="font-medium text-primary">{{ user.username }}</div>
+                  <div class="text-xs text-surface/60">{{ user.profile.display_name|default:"—" }}</div>
+                </div>
+              </div>
+            </td>
+            
+            <td class="px-4 py-2">
+                {% if user.username == admin_username %}
+                    <span class="inline-flex items-center rounded-full px-3 h-8
+                                border border-primary/20 text-primary bg-primary/10">
+                    Admin
+                    </span>
+                {% else %}
+                    <form method="post" class="inline-flex items-center gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="op" value="set_role">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <select name="role" class="h-9 rounded-lg border border-surface/20 bg-white px-2">
+                            <option value="registered"    {% if user.profile.role == 'registered' %}selected{% endif %}>Registered</option>
+                            <option value="content_staff" {% if user.profile.role == 'content_staff' %}selected{% endif %}>Content Staff</option>
+                        </select>
+                        <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">Save</button>
+                    </form>
+                {% endif %}
+            </td>
+
+            <td class="px-4 py-2">
+              {% if user.is_active %}
+                <span class="inline-flex items-center rounded-full px-3 h-8 border border-sea/20 text-sea bg-sea/10">Active</span>
+              {% else %}
+                <span class="inline-flex items-center rounded-full px-3 h-8 border border-danger/30 text-danger bg-danger/10">Inactive</span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-2">
+              <div class="flex justify-end gap-2">
+                {% if user.username == admin_username %}
+                    <span class="h-9 inline-flex items-center px-3 rounded-lg border border-surface/20 text-surface/50 cursor-not-allowed">
+                        Protected
+                    </span>
+                {% else %}
+                    <form method="post" onsubmit="return confirm('Ubah status akun {{ user.username }}?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="op" value="toggle_active"><input type="hidden" name="user_id" value="{{ user.id }}">
+                        <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">
+                            {% if user.is_active %}
+                                Deactivate
+                            {% else %}
+                                Reactivate
+                            {% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+                
+                <form method="post" onsubmit="return confirm('Hapus permanen akun {{ user.username }}?')">
+                  {% csrf_token %}
+                  <input type="hidden" name="op" value="delete_user"><input type="hidden" name="user_id" value="{{ user.id }}">
+                  <button class="h-9 px-3 rounded-lg bg-danger text-white hover:bg-danger/90">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+            <tr><td colspan="4" class="px-4 py-6 text-center text-surface/50">Tidak ada data.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  {% if tab == 'db' %}
+    <div class="bg-white rounded-xl border border-mist p-4">
+      <form method="get" class="flex flex-wrap items-center gap-2 mb-4">
+        <input type="hidden" name="tab" value="db">
+        <select name="model" class="h-10 rounded-lg border border-surface/20 px-3 bg-white flex-1 min-w-[240px]">
+          <option value="">Pilih model…</option>
+          {% for lbl in all_models %}<option value="{{ lbl }}" {% if model_label == lbl %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+        </select>
+        <button class="h-10 px-4 rounded-lg border border-surface/20 hover:bg-mist/60">Lihat</button>
+      </form>
+
+      {% if fields %}
+        <div class="overflow-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-mist/60 text-surface/70 sticky top-0"><tr>{% for f in fields %}<th class="text-left px-3 py-2">{{ f }}</th>{% endfor %}</tr></thead>
+            <tbody>
+              {% for row in rows %}
+                <tr class="border-t border-mist/60">{% for val in row %}<td class="px-3 py-2 whitespace-nowrap">{{ val }}</td>{% endfor %}</tr>
+              {% empty %}
+                <tr><td colspan="{{ fields|length }}" class="px-3 py-4 text-center text-surface/50">Tidak ada data.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-2 text-xs text-surface/60">Menampilkan maksimum 50 baris.</p>
+      {% else %}
+        <p class="text-surface/60">Pilih model untuk melihat data.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,17 +1,23 @@
 # accounts/urls.py
 from django.urls import path
-from django.contrib.auth import views as auth_views
-from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account
+from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar, admin_dashboard
 
 app_name = 'accounts'
 
 urlpatterns = [
-    # Halaman beranda, kalo berhasil login
     path('', home, name='home'),
     path('register/', register, name='register'),
     path('login/', login_user, name='login'),
     path('logout/', logout_user, name='logout'),
-    path('profile', profile_detail, name='profile_detail'),
-    path("profile/edit/", profile_edit, name="profile_edit"),
-    path("delete/", delete_account, name="delete"),
+    path('delete/', delete_account, name='delete'),
+
+    # >>> statis lebih dulu
+    path('profile/edit/', profile_edit, name='profile_edit'),
+    path('profile/avatar/delete/', delete_avatar, name='delete_avatar'),
+
+    # >>> paling akhir: dinamis
+    path('profile/<str:username>/', profile_detail, name='profile_detail'),
+
+    # Admin
+    path("admin/", admin_dashboard, name="admin_dashboard")
 ]

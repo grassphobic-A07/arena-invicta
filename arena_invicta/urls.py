@@ -19,10 +19,10 @@ from django.urls import path, include
 
 # Ini untuk mengatur URL di proyek Django secara umum sampai ke folder aplikasinya
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     
-    # Path pertama kali yang diakses adalah path untuk aplikasi 'accounts' (login/registrasi). Dikasih
+    # Path pertama kali yang diakses adalah path untuk aplikasi 'accounts'. Dikasih
     # namespace 'accounts' supaya di template bisa pakai 'accounts:nama_path' dan tidak ambigu di aplikasi selain 'accounts'
-    path('', include(('accounts.urls', 'accounts'), namespace='accounts')),
-    path('home/', include(('news.urls', 'news'), namespace='news')),
+    path('', include(('news.urls', 'news'), namespace='news')),
+    path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
 ]
