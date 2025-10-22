@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Login • Arena Invicta{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-xl relative">
+  <h1 class="mb-6 text-3xl font-semibold text-primary">Login</h1>
+
+  <form method="post"
+        class="backdrop-blur-xl bg-white/70 border border-white/40 rounded-2xl shadow-[0_10px_40px_rgba(16,42,67,.12)] p-6 space-y-5">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3">
+        {% for e in form.non_field_errors %}<p class="text-sm">{{ e }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Username -->
+    <div>
+      <label class="block text-sm font-medium text-primary/90 mb-1" for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }} 
+      {% for e in form.username.errors %}
+      <p class="mt-1 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Password -->
+    <div>
+      <label class="block text-sm font-medium text-primary/90 mb-1" for="{{ form.password.id_for_label }}">Password</label>
+      <div class="relative">
+        {{ form.password }}
+        <button type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-primary"
+                data-toggle-password data-target="#{{ form.password.id_for_label }}"
+                aria-label="Toggle password">
+          <!-- eye -->
+          <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3" stroke-width="2"/>
+          </svg>
+          <!-- eye-off -->
+          <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
+            <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
+          </svg>
+        </button>
+      </div>
+      {% for e in form.password.errors %}
+      <p class="mt-1 text-sm text-red-600">{{ e }}</p>
+      {% endfor %}
+    </div>
+
+    <button type="submit"
+            class="w-full rounded-xl py-3 text-white
+                   bg-gradient-to-r from-[#102A43] to-[#2A7F9D] hover:brightness-105">
+      Login
+    </button>
+  </form>
+
+  <p class="mt-4 text-sm">
+    Don't have an account?
+    <a class="underline text-primary hover:text-sea" href="{% url 'accounts:register' %}">Sign up</a>
+  </p>
+</section>
+
+<!-- Styling global untuk input tanpa perlu as_widget/attr -->
+<style type="text/tailwindcss">
+  @layer base{
+    input[type='text'], input[type='password'], select, textarea{
+      @apply w-full h-12 rounded-xl bg-white/90 border border-white/60 px-4 shadow-inner
+             focus:outline-none focus:ring-4 focus:ring-[#2A7F9D]/30;
+    }
+  }
+</style>
+
+<!-- JS: toggle & placeholder ringan -->
+<script>
+  (function () {
+    const setPH = (id, ph) => { const el = document.getElementById(id); if (el && !el.placeholder) el.placeholder = ph; };
+    setPH('{{ form.username.id_for_label }}', 'Your Username');
+    setPH('{{ form.password.id_for_label }}', 'Password');
+
+    document.addEventListener('click', function(e){
+      const b = e.target.closest('[data-toggle-password]'); if(!b) return;
+      const i = document.querySelector(b.getAttribute('data-target')); if(!i) return;
+      i.type = i.type === 'password' ? 'text' : 'password';
+      b.querySelector('.eye')?.classList.toggle('hidden');
+      b.querySelector('.eye-off')?.classList.toggle('hidden');
+    });
+  })();
+</script>
+{% endblock %}

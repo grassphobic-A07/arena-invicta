@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Profile • Arena Invicta{% endblock %}
+{% block content %}
+<section class="bg-white rounded-xl border border-mist p-6">
+  <h1 class="text-3xl font-semibold text-primary mb-4">Profile</h1>
+
+  <div class="space-y-2 text-surface">
+    <p><strong>Username:</strong> {{ request.user.username }}</p>
+    <p><strong>Display Name:</strong> {{ profile.display_name|default:"-" }}</p>
+    <p><strong>Favourite Team:</strong> {{ profile.favorite_team|default:"-" }}</p>
+    <p><strong>Avatar URL:</strong>
+      {% if profile.avatar_url %}
+        <a class="text-sea underline" href="{{ profile.avatar_url }}" target="_blank">{{ profile.avatar_url }}</a>
+      {% else %}-{% endif %}
+    </p>
+    <p><strong>Bio:</strong><br>{{ profile.bio|linebreaksbr|default:"-" }}</p>
+  </div>
+
+  {% if role_label %}
+    <div class="mt-4 flex flex-wrap gap-2">
+      <span class="inline-flex items-center rounded-full px-3 h-8
+                {% if role_label == 'Admin' %}
+                  border border-primary/20 text-primary bg-primary/10
+                {% elif role_label == 'Content Staff' %}
+                  border border-sea/20 text-sea bg-sea/10
+                {% else %}
+                  border border-surface/20 text-surface/70 bg-surface/10
+                {% endif %}">
+      {{ role_label }}
+      </span>
+    </div>
+  {% endif %}
+
+  <div class="mt-6">
+    <a href="{% url 'accounts:profile_edit' %}"
+       class="inline-block bg-primary text-mist rounded-xl px-4 py-2 hover:bg-sea">Edit Profile</a>
+  </div>
+</section>
+
+{% endblock %}
+
