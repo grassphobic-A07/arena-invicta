@@ -6,7 +6,6 @@
 
       {% url 'accounts:login' as login_url %}
       {% url 'accounts:register' as register_url %}
-      {% url 'accounts:profile_detail' as profile_url %}
       {% url 'accounts:logout' as logout_url %}
 
       {# ============== DESKTOP NAV (≥ md) ============== #}
@@ -18,9 +17,16 @@
           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
           Home
         </a>
-
+        {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
+          <a href="{% url 'accounts:admin_dashboard' %}"
+            class="inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 bg-white hover:bg-mist/60">
+            Admin
+          </a>
+        {% endif %}
         {% if request.user.is_authenticated %}
           {# ---- Avatar trigger (gabungan Profil + Logout) ---- #}
+
+          {% url 'accounts:profile_detail' request.user.username as profile_url %}
           <div class="relative">
             <button id="user-menu-button"
                     class="relative h-9 w-9 rounded-full border border-surface/20 bg-mist/50
@@ -122,7 +128,10 @@
           <svg class="w-8 h-8 text-surface/70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
         {% endif %}
         <span class="font-semibold text-primary">
-          {% if request.user.is_authenticated %}{{ request.user.get_username }}{% else %}Menu{% endif %}
+          {% if request.user.is_authenticated %}
+            {{ request.user.get_username }}
+          {% else %}Menu
+          {% endif %}
         </span>
       </div>
       <button id="nav-close" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-surface/20 text-surface/80 hover:text-sea" aria-label="Close menu">
@@ -133,7 +142,6 @@
     {% url 'accounts:home' as home_url %}
     {% url 'accounts:login' as login_url %}
     {% url 'accounts:register' as register_url %}
-    {% url 'accounts:profile_detail' as profile_url %}
     {% url 'accounts:logout' as logout_url %}
 
     <nav class="p-3">
@@ -146,13 +154,28 @@
         </li>
 
         {% if request.user.is_authenticated %}
+          {% url 'accounts:profile_detail' request.user.username as profile_url %}
           <li>
             <div class="rounded-xl border border-surface/20">
-              <div class="px-4 pt-3 pb-1 text-xs tracking-wide text-surface/60">AKUN</div>
+              <div class="px-4 pt-3 pb-1 text-xs tracking-wide text-surface/60">
+                AKUN
+              </div>
+              
               <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
                 <span>My Profile</span>
               </a>
+
+              <!-- Khusus User Admin -->
+              {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
+                <a href="{% url 'accounts:admin_dashboard' %}"
+                  class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
+                  <span>Admin</span>
+                </a>
+              {% endif %}
+
+
               <a href="{{ logout_url }}" class="flex items-center gap-3 px-4 py-3 text-danger hover:bg-mist/50 border-t border-surface/10">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path stroke-width="2" d="M14 7l5 5-5 5"/><path stroke-width="2" d="M19 12H9"/></svg>
                 <span>Logout</span>
