@@ -38,16 +38,16 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     - **Delete:** Menghapus atau menonaktifkan akun. ✅
 
 2. **News** - Rafasya Muhammad Subhan\
-    Fitur ini menyediakan artikel sepak bola dengan sistem draft, review, dan publish.
+    Fitur ini menyediakan artikel sepak bola dengan publish dan publish.
 
     **CRUD:**
-    - **Create:** Membuat artikel baru.
+    - **Create:** Membuat dan mempublikasikan artikel baru.
     - **Read:** Membaca daftar artikel dan detail berita.
     - **Update:** Mengedit isi/artikel.
-    - **Delete:** Menghapus atau men-unpublish artikel oleh editor.
+    - **Delete:** Menghapus atau men-unpublish artikel.
 
 3. **Quiz** - Hannan Afif Darmawan\
-    Fitur kuis interaktif tentang sepak bola. Writer/editor dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
+    Fitur kuis interaktif tentang sepak bola. Content Staff dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
 
     **CRUD:**
     - **Create:** Membuat kuis dan pertanyaan.
@@ -62,7 +62,7 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     - **Create:** Membuat thread atau komentar.
     - **Read:** Melihat thread dan balasan.
     - **Update:** Mengedit komentar sendiri.
-    - **Delete:** Menghapus komentar atau moderasi oleh editor.
+    - **Delete:** Menghapus komentar sendiri.
 
 5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki\
     Fitur ini menampilkan data liga, tim, jadwal pertandingan, hasil, dan informasi terkait lainnya.
@@ -111,32 +111,20 @@ Berikut adalah struktur peran pengguna yang bisa diterapkan, dari yang paling da
     * **Menulis, mengedit, dan menghapus komentar** mereka sendiri di modul `discussions`.
     * Mendapatkan pengalaman yang lebih personal (misalnya, notifikasi atau rekomendasi di masa depan).
 
-#### 3. **Penulis (Writer)**
+#### 3. **Content Staff (Writer + Editor, digabung)**
 
 * **Deskripsi:**
-    Ini adalah peran untuk tim konten internal kalian. Mereka adalah para "Jurnalis Arena" yang bertugas membuat konten berkualitas. Mereka memiliki akses ke bagian *backend* (Django Admin) namun terbatas.
+    Ini adalah peran untuk tim konten internal kalian. Mereka adalah para "Jurnalis Arena" yang bertugas membuat konten berkualitas dan mempublikasikan artikelnya.
 
 * **Hak Akses & Kemampuan:**
     * Memiliki semua hak akses seorang **Anggota Arena**.
-    * Akses ke Django Admin untuk modul `news` dan `quiz`.
-    * **Membuat (Create)** artikel berita baru dan menyimpannya sebagai *draft*.
+    * **Membuat dan mempublikasikan (Create)** artikel News.
+    * **Membaca daftar artikel, detail berita, dan kuis**.
     * **Mengubah (Update)** artikel berita yang mereka tulis sendiri (selama belum dipublikasikan).
     * **Membuat dan mengelola** set pertanyaan untuk kuis.
-    * **Tidak bisa** mempublikasikan artikel secara langsung ke publik. Artikel harus direview terlebih dahulu oleh Editor.
+    * **Menghapus (Delete)** artikel News ataupun set pertanyaan kuis.
 
-#### 4. **Editor**
-
-* **Deskripsi:**
-    Peran ini bertanggung jawab atas kualitas dan manajemen seluruh konten di website. Mereka adalah "Penjaga Gerbang Arena" yang memastikan semua konten layak tayang dan terorganisir dengan baik.
-
-* **Hak Akses & Kemampuan:**
-    * Memiliki semua hak akses seorang **Penulis**.
-    * **Mempublikasikan (Publish)** artikel yang ditulis oleh para Penulis.
-    * **Mengedit dan menghapus** artikel mana pun dari Penulis mana pun.
-    * **Mengelola data master** seperti kategori berita (`news`) dan data klasemen/jadwal (`leagues`).
-    * **Moderasi konten:** Dapat menghapus komentar pengguna yang tidak pantas di modul `discussions`.
-
-#### 5. **Administrator (Superuser)**
+#### 4. **Administrator (Superuser)**
 
 * **Deskripsi:**
     Ini adalah peran tertinggi, biasanya dipegang oleh pemilik produk atau pengembang utama. "Dewa Arena" ini memiliki kontrol penuh atas seluruh aspek teknis dan non-teknis website.
