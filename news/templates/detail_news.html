@@ -96,7 +96,7 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const newsData = await response.json();
-            console.log("Data diterima:", newsData);
+
             // --- 2. Populate Form ---
             form.querySelector('#modal_title').value = newsData.title || '';
             form.querySelector('#modal_content').value = newsData.content || '';
