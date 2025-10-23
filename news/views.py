@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.urls import reverse
 from news.models import News
 from news.forms import NewsForm
@@ -78,7 +78,8 @@ def delete_news(request, news_id):
 @require_POST
 def add_news_ajax(request):
     if not request.user.profile.is_content_staff:
-        return HttpResponseForbidden("Permission Denied.")
+        return JsonResponse({'error': 'Permission Denied.'}, status=403)
+    
     title = strip_tags(request.POST.get("title", "")) 
     content = strip_tags(request.POST.get("content", "")) 
     category = request.POST.get("category", "")
@@ -87,7 +88,7 @@ def add_news_ajax(request):
     is_featured = request.POST.get("is_featured") == 'on'
 
     if not title or not content or not category or not sports:
-        return HttpResponse(b"Missing required fields (Title, Content, Category, Sports)", status=400)
+        return JsonResponse({'error': 'Missing required fields (Title, Content, Category, Sports)'}, status=400)
     
     try:
         new_news = News(
@@ -100,11 +101,21 @@ def add_news_ajax(request):
             author=request.user
         )
         new_news.save()
-        return HttpResponse(b"CREATED", status=201)
+
+        news_data = {
+            'id': str(new_news.id),
+            'title': new_news.title,
+            # 'content': new_news.content, # Biasanya tidak perlu konten lengkap di list
+            'category_display': new_news.get_category_display(),
+            'sports_display': new_news.get_sports_display(),
+            'thumbnail': new_news.thumbnail,
+            'detail_url': reverse('news:detail_news', args=[new_news.id])
+        }
+        return JsonResponse(news_data, status=201)
     
     except Exception as e:
-        print(f"Error saving news via AJAX: {e}") # Log errornya
-        return HttpResponse(b"Internal Server Error", status=500)
+        print(f"Error saving news via AJAX: {e}")
+        return JsonResponse({'error': 'Internal Server Error'}, status=500)
     
 
 # DUMMY
@@ -119,3 +130,9 @@ def league(request):
         'page-title': "League"
     }
     return render(request, "league.html", context)
+
+def quiz(request):
+    context = {
+        'page-title' : 'Quiz'
+    }
+    return render(request, "quiz.html", context)

@@ -23,7 +23,7 @@
             </button>
         </div>
 
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto">
+        <div class="p-4 sm:p-4 space-y-4 overflow-y-auto">
             <form id="addNewsForm" method="POST" action="{% url 'news:add_news_ajax' %}" novalidate>
                 <div>
                     <label for="modal_title" class="block text-sm font-medium text-surface/90 mb-1">Title <span class="text-danger">*</span></label>
@@ -81,7 +81,15 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 mt-[5px]">
+                <div>
+                    <label for="modal_thumbnail" class="block text-sm font-medium text-surface/90 mb-1 my-[10px]">Thumbnail URL</label>
+                    <input type="url" id="modal_thumbnail" name="thumbnail" 
+                        class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition" 
+                        placeholder="https://example.com/image.jpg">
+                    <span class="text-xs text-danger mt-1 empty:hidden error-message-thumbnail"></span>
+                </div>
+
+                <div class="flex items-center gap-2 mt-[7px]">
                     <input id="modal_is_featured" name="is_featured" type="checkbox" 
                            class="h-4 w-4 rounded border-surface/40 text-primary focus:ring-sea/40 cursor-pointer">
                     <label for="modal_is_featured" class="text-sm font-medium text-surface/90">Mark as Featured News?</label>
@@ -109,13 +117,12 @@
     const newsModal = document.getElementById('addNewsModal');
     const newsModalContent = document.getElementById('addNewsModalContent');
     const newsForm = document.getElementById('addNewsForm');
-    const newsSubmitButton = newsForm.closest('#addNewsModalContent').querySelector('.submit-button'); // Find button in footer
+    const newsSubmitButton = newsForm.closest('#addNewsModalContent').querySelector('.submit-button');
 
     function showNewsModal() {
-        newsForm.reset(); // Clear form on open
-        clearNewsFormErrors(); // Clear any previous errors
+        newsForm.reset();
+        clearNewsFormErrors();
         newsModal.classList.remove('hidden');
-        // Trigger animation
         requestAnimationFrame(() => {
             newsModalContent.classList.remove('opacity-0', 'scale-95');
             newsModalContent.classList.add('opacity-100', 'scale-100');
@@ -125,16 +132,14 @@
     function hideNewsModal() {
         newsModalContent.classList.remove('opacity-100', 'scale-100');
         newsModalContent.classList.add('opacity-0', 'scale-95');
-        // Hide after animation
         setTimeout(() => {
             newsModal.classList.add('hidden');
-        }, 200); // Match duration-200
+        }, 200);
     }
 
     async function submitNewsForm() {
         clearNewsFormErrors();
-        
-        // Show loading state
+
         const submitText = newsSubmitButton.querySelector('.submit-text');
         const loadingIndicator = newsSubmitButton.querySelector('.loading-indicator');
         newsSubmitButton.disabled = true;
@@ -142,62 +147,48 @@
         loadingIndicator.classList.remove('hidden');
 
         const formData = new FormData(newsForm);
-        // --- CSRF Handling ---
-        // If you are NOT using @csrf_exempt, get the token and add it to headers.
-        // const csrfToken = newsForm.querySelector('[name=csrfmiddlewaretoken]')?.value || document.querySelector('[name=csrfmiddlewaretoken]')?.value; // Get from modal or page
-        
         try {
             const response = await fetch(newsForm.action, {
                 method: "POST",
                 body: formData,
                 headers: {
-                     'X-Requested-With': 'XMLHttpRequest', // Tells Django it's AJAX
-                     // 'X-CSRFToken': csrfToken // Uncomment if sending CSRF token
+                    'X-Requested-With': 'XMLHttpRequest',
                 }
             });
 
-            if (response.status === 201) { // Check for CREATED status (like tutorial)
+            // --- PERUBAHAN UTAMA ADA DI SINI ---
+            const data = await response.json(); // Coba parse JSON
+
+            if (response.status === 201) { // Sukses
                 hideNewsModal();
-                showToast('News added successfully!', 'success'); // Use global toast
+                showToast('News added successfully!', 'success');
 
-                // Optional: Dispatch event if other parts of the page need to refresh
-                document.dispatchEvent(new CustomEvent('newsAdded'));
-                
-                // If you want to auto-refresh the page instead:
-                // window.location.reload(); 
+                // Panggil fungsi untuk menambahkan kartu baru ke grid
+                prependNewsCard(data);
 
-            } else {
-                 // Handle errors (e.g., 400 Bad Request if validation fails, 500 server error)
-                let errorData = {};
-                try {
-                     // Try to parse JSON error (if your view returns it on validation fail)
-                     errorData = await response.json(); 
-                } catch {
-                     // Otherwise, get plain text error
-                     errorData.message = await response.text() || `Request failed with status ${response.status}`;
+                // Hapus pesan "No news found" jika ada
+                const noNewsMsg = document.getElementById('no-news-message');
+                if (noNewsMsg) {
+                    noNewsMsg.remove();
                 }
 
-                console.error("Form submission error:", errorData);
-                
-                if (errorData.errors) {
-                    // If view returned Django form errors in JSON like {'ok': false, 'errors': {...}}
-                    displayNewsFormErrors(errorData.errors);
+            } else { // Error
+                console.error("Form submission error:", data);
+                if (data.errors) {
+                    displayNewsFormErrors(data.errors); // Tampilkan error form (jika ada)
                     showToast('Please correct the errors below.', 'error');
-                } else if (response.status === 400 && errorData.error) {
-                     // If view returned simple JSON error like {'error': 'Missing...'}
-                     showToast(errorData.error, 'error');
-                }
-                 else {
-                     // Generic error message from text or status
-                    showToast(errorData.message || `An error occurred (Status: ${response.status}).`, 'error');
+                } else if (data.error) {
+                    showToast(data.error, 'error'); // Tampilkan error string manual
+                } else {
+                    showToast(data.message || `An error occurred (Status: ${response.status}).`, 'error');
                 }
             }
+            // --- AKHIR PERUBAHAN ---
 
         } catch (error) {
             console.error('Network or JS error during submission:', error);
             showToast('A network error occurred. Please try again.', 'error');
         } finally {
-             // Always re-enable button and hide loading indicator
             newsSubmitButton.disabled = false;
             submitText.classList.remove('hidden');
             loadingIndicator.classList.add('hidden');
@@ -206,7 +197,7 @@
 
     function clearNewsFormErrors() {
         newsForm.querySelectorAll('[class*="border-danger"]').forEach(el => {
-            el.classList.remove('border-danger', 'ring-2', 'ring-danger/20'); // Use your error classes
+            el.classList.remove('border-danger', 'ring-2', 'ring-danger/20');
         });
         newsForm.querySelectorAll('[class^="error-message-"]').forEach(span => {
             span.textContent = '';
@@ -214,32 +205,76 @@
     }
 
     function displayNewsFormErrors(errors) {
-         // This function assumes errors is an object like Django's form.errors
-         // {'title': ['Error message 1'], 'content': ['Another error']}
         for (const fieldName in errors) {
             const errorSpan = newsForm.querySelector(`.error-message-${fieldName}`);
             const inputElement = newsForm.querySelector(`[name="${fieldName}"]`);
             if (errorSpan && errors[fieldName].length > 0) {
-                errorSpan.textContent = errors[fieldName][0]; // Show first error
+                errorSpan.textContent = errors[fieldName][0];
             }
-             if (inputElement) {
-                 inputElement.classList.add('border-danger', 'ring-2', 'ring-danger/20'); // Add error style
-             }
-             // Handle non-field errors ('__all__') if needed
+            if (inputElement) {
+                inputElement.classList.add('border-danger', 'ring-2', 'ring-danger/20');
+            }
         }
     }
 
+    // --- FUNGSI BARU UNTUK MEMBUAT DAN MENAMBAHKAN KARTU ---
+    function prependNewsCard(newsData) {
+        const grid = document.getElementById('news-grid');
+        if (!grid) return;
+
+        // 1. Buat elemen <a> utama
+        const cardLink = document.createElement('a');
+        cardLink.href = newsData.detail_url;
+        cardLink.className = "group block relative overflow-hidden rounded-xl shadow-lg transform transition-transform duration-300 hover:-translate-y-1";
+
+        // 2. Buat div background
+        const backgroundDiv = document.createElement('div');
+        backgroundDiv.className = "relative w-full h-56 transition-transform duration-300 group-hover:scale-105";
+        if (newsData.thumbnail) {
+            backgroundDiv.classList.add('bg-cover', 'bg-center');
+            backgroundDiv.style.backgroundImage = `url('${newsData.thumbnail}')`;
+        } else {
+            backgroundDiv.classList.add('bg-gradient-to-r', 'from-primary', 'to-sea');
+        }
+
+        // 3. Buat div overlay
+        const overlayDiv = document.createElement('div');
+        overlayDiv.className = "absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl";
+
+        // 4. Buat div konten (bawah)
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "absolute bottom-0 left-0 p-4 z-10";
+
+        // 5. Buat span kategori
+        const categorySpan = document.createElement('span');
+        categorySpan.className = "inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md";
+        categorySpan.textContent = newsData.category_display; // Gunakan display name
+
+        // 6. Buat h3 judul
+        const titleHeader = document.createElement('h3');
+        titleHeader.className = "text-white text-lg font-semibold leading-tight line-clamp-2 group-hover:underline mt-1"; // Tambah mt-1 jika perlu jarak
+        titleHeader.textContent = newsData.title.toUpperCase(); // Buat uppercase
+
+        // 7. Susun elemen
+        contentDiv.appendChild(categorySpan);
+        contentDiv.appendChild(titleHeader);
+        backgroundDiv.appendChild(overlayDiv);
+        backgroundDiv.appendChild(contentDiv);
+        cardLink.appendChild(backgroundDiv);
+
+        // 8. Tambahkan ke awal grid
+        grid.prepend(cardLink);
+    }
+    // --- AKHIR FUNGSI BARU ---
 
     newsForm.addEventListener("submit", function(event) {
-        event.preventDefault(); // Prevent default browser submit
-        submitNewsForm();       // Call the async AJAX function
+        event.preventDefault();
+        submitNewsForm();
     });
 
-    // Optional: Close modal on Escape key press
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !newsModal.classList.contains('hidden')) {
             hideNewsModal();
         }
     });
-
 </script>

@@ -77,13 +77,13 @@
             {% endif %}
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+        <div id="news-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
             {% for news in news_list %}
                 <a href="{% url 'news:detail_news' news.id %}" class="group block relative overflow-hidden rounded-xl shadow-lg transform transition-transform duration-300 hover:-translate-y-1">
                     {% if news.thumbnail %}
                     <div class="relative w-full h-56 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style="background-image: url('{{ news.thumbnail }}');">
                     {% else %}
-                    <div class="relative w-full h-56 bg-surface transition-transform duration-300 group-hover:scale-105">
+                    <div class="relative w-full h-56 bg-gradient-to-r from-primary to-sea transition-transform duration-300 group-hover:scale-105">
                     {% endif %}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl"></div>
                         
@@ -98,7 +98,7 @@
                     </div>
                 </a>
             {% empty %}
-                <div class="col-span-full text-center py-12">
+                <div id="no-news-message" class="col-span-full text-center py-12">
                     <p class="text-surface/70">No news found for this category.</p>
                 </div>
             {% endfor %}
