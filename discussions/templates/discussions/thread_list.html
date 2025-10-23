@@ -1,0 +1,13 @@
+<h1>Forum Diskusi</h1>
+<p>Gunakan halaman ini untuk menemukan percakapan terbaru dari komunitas Arena Invicta.</p>
+<a href="{% url 'discussions:thread-create' %}">Mulai Diskusi Baru</a>
+<ul>
+    {% for thread in threads %}
+    <li>
+        <a href="{% url 'discussions:thread-detail' thread.pk %}">{{ thread.title }}</a>
+        <small>oleh {{ thread.author }}</small>
+    </li>
+    {% empty %}
+    <li>Belum ada diskusi. Jadilah yang pertama memulai!</li>
+    {% endfor %}
+</ul>

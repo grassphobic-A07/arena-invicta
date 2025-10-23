@@ -1,0 +1,41 @@
+<h1>{{ thread.title }}</h1>
+<p>{{ thread.body|default:"Belum ada deskripsi untuk diskusi ini." }}</p>
+<p><small>Dibuat oleh {{ thread.author }} pada {{ thread.created_at }}</small></p>
+
+{% if user.is_authenticated and thread.author == user %}
+<p>
+    <a href="{% url 'discussions:thread-edit' thread.pk %}">Edit</a>
+    <a href="{% url 'discussions:thread-delete' thread.pk %}">Hapus</a>
+</p>
+{% endif %}
+
+<section>
+    <h2>Komentar</h2>
+    <ul>
+        {% for comment in comments %}
+        <li>
+            <strong>{{ comment.author }}</strong> menulis:<br>
+            {{ comment.content }}
+            <div>
+                <small>Terakhir diperbarui {{ comment.updated_at }}</small>
+                {% if user.is_authenticated and comment.author == user %}
+                <a href="{% url 'discussions:comment-edit' comment.pk %}">Edit</a>
+                <a href="{% url 'discussions:comment-delete' comment.pk %}">Hapus</a>
+                {% endif %}
+            </div>
+        </li>
+        {% empty %}
+        <li>Belum ada komentar. Jadilah yang pertama memberikan tanggapan!</li>
+        {% endfor %}
+    </ul>
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'discussions:comment-create' thread.pk %}">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Kirim</button>
+    </form>
+    {% else %}
+    <p>Silakan masuk untuk berpartisipasi dalam diskusi.</p>
+    {% endif %}
+</section>
