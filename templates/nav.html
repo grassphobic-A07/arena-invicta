@@ -153,16 +153,25 @@
       <ul class="space-y-2">
         <li>
           <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'show_news' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+          <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
             <span>Home</span>
           </a>
         </li>
         <li>
           <a href="{% url 'discussions:thread-list' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'thread-list' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+           </svg>
             <span>Discussions</span>
           </a>
         </li>
         <li>
           <a href="{{ league_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'league' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
+             <path d="M12 12v4m0 4v4m-4 0h8"></path>
+             <path d="M8 12a4 4 0 0 1 8 0"></path>
+           </svg>
             <span>League</span>
           </a>
         </li>
