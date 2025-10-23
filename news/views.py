@@ -5,7 +5,7 @@ from django.urls import reverse
 from news.models import News
 from news.forms import NewsForm
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.utils.html import strip_tags
 from django.contrib import messages
 
@@ -34,44 +34,81 @@ def show_news(request):
 def detail_news(request, news_id):
     news = get_object_or_404(News, pk=news_id)
     news.increment_views() 
+    form_for_modal_choices = NewsForm()
     context = {
-        'news' : news
+        'news' : news,
+        'news_form' : form_for_modal_choices
     }
     return render(request, "detail_news.html", context)
 
-@login_required
-@csrf_exempt
-def edit_news(request, news_id):
-    news = get_object_or_404(News, pk=news_id)
-    if request.user != news.author:
-        return HttpResponseForbidden("You do not have permission to edit this news.")
-
-    if request.method == "POST":
-        form = NewsForm(request.POST or None, instance=news)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'News "{news.title}" updated successfully!')
-            return redirect('news:detail_news', news_id=news.id)
-    else:
-        form = NewsForm(instance=news)
-
-    context = {
-        'form': form,
-        'news': news
-    }
-    return render(request, "edit_news.html", context)
+@require_GET
+def get_news_data_json(request, news_id):
+    try:
+        news = News.objects.get(pk=news_id)
+        data = {
+            'id': str(news.id),
+            'title': news.title,
+            'content': news.content,
+            'category': news.category,
+            'sports': news.sports,
+            'thumbnail': news.thumbnail,
+            'is_featured': news.is_featured
+        }
+        return JsonResponse(data)
+    except News.DoesNotExist:
+        return JsonResponse({'error': 'News not found'}, status=404)
+    except Exception as e:
+        print(f"Error fetching news JSON: {e}")
+        return JsonResponse({'error': 'Server error fetching data'}, status=500)
 
 @login_required
 @require_POST
-def delete_news(request, news_id):
+@csrf_exempt
+def edit_news_ajax(request, news_id):
     news = get_object_or_404(News, pk=news_id)
     if request.user != news.author:
-        return HttpResponseForbidden("You do not have permission to delete this news.")
+        return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
+    
+    form = NewsForm(request.POST or None, instance=news)
+    if form.is_valid():
+        try:
+            updated_news = form.save()
+            redirect_url = reverse('news:detail_news', kwargs={'news_id': updated_news.id})
+            return JsonResponse({
+                'ok': True,
+                'message': f'News "{updated_news.title}" updated successfully!',
+                'redirect_url': redirect_url
+            })
+        except Exception as e:
+            print(f"Error updating news via AJAX: {e}")
+            return JsonResponse({'ok': False, 'error': 'Could not update news.'}, status=500)
+    else:
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+        
 
-    news_title = news.title
-    news.delete()
-    messages.success(request, f'News "{news_title}" has been deleted.')
-    return redirect('news:show_news')
+@login_required
+@require_POST
+@csrf_exempt
+def delete_news_ajax(request, news_id):
+    news = get_object_or_404(News, pk=news_id)
+    if request.user != news.author:
+        return JsonResponse({'ok': False, 'error': 'Permission Denied.'}, status=403)
+    
+    try:
+        news_title = news.title # Untuk pesan
+        news.delete()
+
+        success_msg = f'News "{news_title}" has been deleted.'
+        redirect_url = reverse('news:show_news')
+
+        return JsonResponse({
+            'ok': True,
+            'message': success_msg,
+            'redirect_url': redirect_url
+        })
+    except Exception as e:
+        print(f"Error deleting news via AJAX: {e}")
+        return JsonResponse({'ok': False, 'error': 'Could not delete this news.'}, status=500)
 
 @login_required
 @csrf_exempt
