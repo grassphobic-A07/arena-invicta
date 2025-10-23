@@ -1,7 +1,60 @@
-<h1>Hapus Diskusi</h1>
-<p>Apakah Anda yakin ingin menghapus diskusi "{{ object.title }}"?</p>
-<form method="post">
-    {% csrf_token %}
-    <button type="submit">Ya, hapus</button>
-</form>
-<a href="{% url 'discussions:thread-detail' object.pk %}">Batal</a>
+{% extends 'base.html' %}
+
+{% block title %}Hapus Diskusi · {{ object.title }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto flex min-h-[60vh] w-full max-w-md items-center justify-center px-4 py-12">
+  <div class="w-full rounded-2xl border border-danger/20 bg-white/95 shadow-xl">
+    <form method="post" class="space-y-6 p-6">
+      {% csrf_token %}
+
+      <header class="space-y-2 text-center">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-danger/10 text-danger">
+          <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 9v4"></path>
+            <path d="M12 17h.01"></path>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path>
+          </svg>
+        </div>
+        <h1 class="text-xl font-semibold text-primary">Hapus Diskusi?</h1>
+        <p class="text-sm text-surface/70">
+          Tindakan ini akan menghapus diskusi
+          <span class="font-semibold text-danger">"{{ object.title }}"</span>
+          beserta seluruh komentar yang terkait. Tindakan tidak dapat dibatalkan.
+        </p>
+      </header>
+
+      <div class="flex flex-col gap-3 text-sm text-surface/70">
+        <span class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-surface/50">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Konfirmasi Penghapusan
+        </span>
+        <p>Pastikan Anda benar-benar ingin menghapus diskusi ini dari komunitas Arena Invicta.</p>
+      </div>
+
+      <footer class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <a href="{% url 'discussions:thread-detail' object.pk %}"
+           class="inline-flex items-center justify-center gap-2 rounded-lg border border-surface/30 px-4 py-2 text-sm font-medium text-surface/70 transition hover:border-primary/40 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+          Batal
+        </a>
+        <button type="submit"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white transition hover:bg-danger/90 focus:outline-none focus:ring-2 focus:ring-danger/40">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <path d="M10 11v6"></path>
+            <path d="M14 11v6"></path>
+          </svg>
+          Ya, Hapus Diskusi
+        </button>
+      </footer>
+    </form>
+  </div>
+</section>
+{% endblock %}

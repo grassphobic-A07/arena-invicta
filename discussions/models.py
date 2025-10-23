@@ -5,6 +5,13 @@ from django.db import models
 class DiscussionThread(models.Model):
     title = models.CharField(max_length=150)
     body = models.TextField()
+    news = models.ForeignKey(
+        'news.News',
+        on_delete=models.CASCADE,
+        related_name='discussion_threads',
+        null=True,
+        blank=True,
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -20,6 +27,10 @@ class DiscussionThread(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def news_uuid(self):
+        return getattr(self.news, 'pk', None)
 
 
 class DiscussionComment(models.Model):

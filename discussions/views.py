@@ -1,25 +1,73 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
 
 from .forms import ThreadForm, CommentForm
 from .models import DiscussionThread, DiscussionComment
 
 
 def thread_list(request):
-    threads = DiscussionThread.objects.select_related('author')
-    context = {'threads': threads}
+    query = request.GET.get('q', '').strip()
+    threads_qs = _filter_threads(_thread_queryset(), query)
+    threads = list(threads_qs)
+    for thread in threads:
+        profile = getattr(thread.author, 'profile', None)
+        thread.author_profile = profile
+        thread.author_display = (
+            getattr(profile, 'display_name', None)
+            or thread.author.get_full_name()
+            or thread.author.get_username()
+        )
+    context = {
+        'threads': threads,
+        'search_query': query,
+        'thread_form': ThreadForm(),
+        'api_list_url': reverse('discussions:thread-list-api'),
+        'api_create_url': reverse('discussions:thread-create-api'),
+    }
     return render(request, 'discussions/thread_list.html', context)
 
 
+@require_GET
+def thread_list_api(request):
+    query = request.GET.get('q', '').strip()
+    threads = _filter_threads(_thread_queryset(), query)
+    payload = [_serialize_thread(thread) for thread in threads]
+    return JsonResponse({'threads': payload})
+
+
 def thread_detail(request, pk):
-    thread = get_object_or_404(DiscussionThread.objects.select_related('author'), pk=pk)
-    comments = thread.comments.filter(is_removed=False).select_related('author', 'parent')
+    thread = get_object_or_404(_thread_queryset(), pk=pk)
+    comments_qs = thread.comments.filter(is_removed=False).select_related('author', 'author__profile', 'parent', 'parent__author', 'parent__author__profile')
+    comments = list(comments_qs)
+    for comment in comments:
+        profile = getattr(comment.author, 'profile', None)
+        comment.author_profile = profile
+        comment.author_display = (
+            getattr(profile, 'display_name', None)
+            or comment.author.get_full_name()
+            or comment.author.get_username()
+        )
+    thread_author_profile = getattr(thread.author, 'profile', None)
+    thread_author_display = (
+        getattr(thread_author_profile, 'display_name', None)
+        or thread.author.get_full_name()
+        or thread.author.get_username()
+    )
     comment_form = CommentForm()
     context = {
         'thread': thread,
         'comments': comments,
         'comment_form': comment_form,
+        'thread_author_profile': thread_author_profile,
+        'thread_author_display': thread_author_display,
     }
     return render(request, 'discussions/thread_detail.html', context)
 
@@ -65,6 +113,36 @@ def thread_delete(request, pk):
         return redirect('discussions:thread-list')
 
     return render(request, 'discussions/thread_confirm_delete.html', {'object': thread})
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def thread_create_api(request):
+    if request.content_type == 'application/json':
+        try:
+            payload = json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'error': 'Payload tidak valid.'}, status=400)
+        form = ThreadForm(payload)
+    else:
+        form = ThreadForm(request.POST)
+
+    if form.is_valid():
+        thread = form.save(commit=False)
+        thread.author = request.user
+        thread.save()
+        thread = _thread_queryset().get(pk=thread.pk)
+        return JsonResponse(
+            {
+                'ok': True,
+                'message': 'Diskusi berhasil dibuat.',
+                'thread': _serialize_thread(thread),
+            },
+            status=201,
+        )
+
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
 
 @login_required
@@ -137,3 +215,52 @@ def _can_manage_thread(user, thread):
 
 def _can_manage_comment(user, comment):
     return user.is_authenticated and (comment.author == user or user.is_staff)
+
+
+def _thread_queryset():
+    return (
+        DiscussionThread.objects.select_related('author', 'author__profile', 'news')
+        .annotate(
+            comment_count=Count(
+                'comments',
+                filter=Q(comments__is_removed=False),
+            )
+        )
+    )
+
+
+def _filter_threads(queryset, query):
+    if query:
+        queryset = queryset.filter(
+            Q(news__title__icontains=query)
+            | Q(news__id__icontains=query)
+        )
+    return queryset
+
+
+def _serialize_thread(thread):
+    profile = getattr(thread.author, 'profile', None)
+    avatar_url = getattr(profile, 'avatar_url', '') or None
+    display_name = getattr(profile, 'display_name', '') or ''
+    news = thread.news
+
+    return {
+        'id': thread.pk,
+        'title': thread.title,
+        'body': thread.body,
+        'created_at': thread.created_at.isoformat(),
+        'is_locked': thread.is_locked,
+        'is_pinned': thread.is_pinned,
+        'comment_count': getattr(thread, 'comment_count', 0),
+        'detail_url': reverse('discussions:thread-detail', args=[thread.pk]),
+        'news': {
+            'uuid': str(news.id) if news else None,
+            'title': news.title if news else None,
+            'detail_url': reverse('news:detail_news', kwargs={'news_id': news.id}) if news else None,
+        } if news else None,
+        'author': {
+            'username': thread.author.get_username(),
+            'display_name': display_name or thread.author.get_full_name() or thread.author.get_username(),
+            'avatar_url': avatar_url,
+        },
+    }

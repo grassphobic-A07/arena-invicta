@@ -1,7 +1,73 @@
-<h1>{% if form.instance.pk %}Edit Diskusi{% else %}Diskusi Baru{% endif %}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Simpan</button>
-</form>
-<a href="{% if form.instance.pk %}{% url 'discussions:thread-detail' form.instance.pk %}{% else %}{% url 'discussions:thread-list' %}{% endif %}">Batal</a>
+{% extends 'base.html' %}
+
+{% block title %}
+{% if form.instance.pk %}Edit Diskusi · {{ form.instance.title }}{% else %}Buat Diskusi Baru{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl px-4 py-8 space-y-6">
+  <div class="flex items-center gap-2 text-sm text-surface/60">
+    <a href="{% url 'discussions:thread-list' %}" class="inline-flex items-center gap-1 text-primary transition hover:text-primary/70">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Kembali ke daftar
+    </a>
+  </div>
+
+  <div class="rounded-2xl border border-surface/15 bg-white/95 p-6 shadow-sm">
+    <header class="mb-6 space-y-1">
+      <h1 class="text-2xl font-semibold text-primary">
+        {% if form.instance.pk %}Edit Diskusi{% else %}Diskusi Baru{% endif %}
+      </h1>
+      <p class="text-sm text-surface/60">
+        {% if form.instance.pk %}
+          Perbarui informasi diskusi untuk menjaga percakapan tetap relevan.
+        {% else %}
+          Mulai percakapan baru dan ajak komunitas untuk berdiskusi.
+        {% endif %}
+      </p>
+    </header>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      <div class="space-y-2">
+        <label for="{{ form.news.id_for_label }}" class="text-sm font-medium text-surface/80">Berita terkait</label>
+        {{ form.news }}
+        {% if form.news.help_text %}
+          <p class="text-xs text-surface/50">{{ form.news.help_text }}</p>
+        {% endif %}
+        {% if form.news.errors %}
+          <p class="text-xs text-danger">{{ form.news.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.title.id_for_label }}" class="text-sm font-medium text-surface/80">Judul thread</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+          <p class="text-xs text-danger">{{ form.title.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.body.id_for_label }}" class="text-sm font-medium text-surface/80">Pembuka diskusi</label>
+        {{ form.body }}
+        {% if form.body.errors %}
+          <p class="text-xs text-danger">{{ form.body.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 pt-2">
+        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30">
+          Simpan Diskusi
+        </button>
+        <a href="{% if form.instance.pk %}{% url 'discussions:thread-detail' form.instance.pk %}{% else %}{% url 'discussions:thread-list' %}{% endif %}" class="inline-flex items-center gap-2 rounded-lg border border-surface/20 bg-white px-4 py-2 text-sm text-surface/70 transition hover:border-primary/40 hover:text-primary">
+          Batal
+        </a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
