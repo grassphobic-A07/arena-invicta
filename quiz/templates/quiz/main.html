@@ -1,58 +1,277 @@
 {% extends 'base.html' %}
 
-{% block title %}Halaman Quiz - Arena Invicta{% endblock %}
+{% block title %}Quizzes - Arena Invicta{% endblock %}
 
 {% block content %}
-<div class="mb-8 text-center">
-  <h1 class="text-5xl font-bold text-gray-900 mb-2">Daftar Kuis</h1>
-  <p class="text-lg text-gray-600">Pilih kuis di bawah ini untuk memulai!</p>
-</div>
-{% if authorized %}
-<div class="mb-8 text-center">
-    <a href="{% url 'quiz:create_quiz' %}" class="inline-block bg-primary hover:bg-sea text-white font-bold py-2 px-5 rounded-lg transition duration-300">
-        + Buat Kuis Baru
-    </a>
-</div>
+
+{% if messages %}
+    <div id="dj-messages" hidden>
+        {% for message in messages %}
+        <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
+        {% endfor %}
+    </div>
 {% endif %}
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for quiz in quizzes %}
-    <div class="group bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
-        <div class="p-6 flex-grow">
-            <h2 class="text-xl font-bold text-primary mb-2">
-                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="hover:text-sea transition-colors">
-                    {{ quiz.title }}
-                </a>
-            </h2>
-            <p class="text-sm text-surface/80 mb-4 line-clamp-3">
-                {{ quiz.description|default:"Tidak ada deskripsi." }}
-            </p>
-        </div>
-
-        <div class="p-6 border-t bg-gray-50/50">
-            <div class="flex items-center justify-between">
-                <p class="text-xs text-surface/60">
-                    Dibuat oleh: <strong>{{ quiz.user.username }}</strong>
+<div class="mx-auto max-w-3xl mt-3 mb-3">
+    <div class="mb-8 text-center">
+        <h1 class="text-5xl font-bold text-gray-900 mb-2">Quizzes</h1>
+        <p class="text-lg text-gray-600">Choose a quiz below to get started!</p>
+    </div>
+    
+    {% if authorized %}
+    <div class="mb-8 text-center">
+        <a href="{% url 'quiz:create_quiz' %}" 
+           id="create-quiz-btn-ajax"
+           class="inline-block bg-primary hover:bg-sea text-white font-bold py-2 px-5 rounded-lg transition duration-300">
+            + Create New Quiz
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for quiz in quizzes %}
+        <div class="group bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
+            <div class="p-6 flex-grow">
+                <h2 class="text-xl font-bold text-primary mb-2">
+                    <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="hover:text-sea transition-colors">
+                        {{ quiz.title }}
+                    </a>
+                </h2>
+                <p class="text-sm text-surface/80 mb-4 line-clamp-3">
+                    {{ quiz.description|default:"No description available." }}
                 </p>
-                <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="text-sm font-semibold text-sea group-hover:underline">
-                    Lihat &raquo;
-                </a>
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50/50">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs text-surface/60">
+                        Created by: <strong>{{ quiz.user.username }}</strong>
+                    </p>
+                    <a href="{% url 'quiz:quiz_detail' quiz.id %}" class="text-sm font-semibold text-sea group-hover:underline">
+                        View &raquo;
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        {% if authorized %}
+        <div class="md:col-span-2 lg:grid-cols-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
+            <h3 class="text-xl font-semibold text-gray-700">You haven't created any quizzes yet</h3>
+            <p class="text-gray-500 mt-2">Create your first quiz to get started!</p>
+        </div>
+        {% else %}
+        <div class="md:col-span-2 lg:grid-cols-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
+            <h3 class="text-xl font-semibold text-gray-700">No quizzes available</h3>
+            <p class="text-gray-500 mt-2">Be the first to create a new quiz!</p>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div id="ajax-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div id="modal-overlay" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+            <div class="bg-white p-6 md:p-8 relative">
+                <button id="modal-close-btn" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                
+                <div id="modal-content-target">
+                    <div class="text-center py-12">
+                        <p class="text-gray-600">Loading...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    {% empty %}
-    {% if authorized %}
-    <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
-        <h3 class="text-xl font-semibold text-gray-700">Belum ada kuis buatanmu</h3>
-        <p class="text-gray-500 mt-2">Buat kuis pertamamu sekarang!</p>
-    </div>
-    {% else %}
-    <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
-        <h3 class="text-xl font-semibold text-gray-700">Belum Ada Kuis</h3>
-        <p class="text-gray-500 mt-2">Jadilah yang pertama untuk membuat kuis baru!</p>
-    </div>
-    {% endif %}
-    {% endfor %}
 </div>
 
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+// ===============================================
+// ==  SHARED FORMSET LOGIC (from create_quiz.html)
+// ===============================================
+function initializeFormset(formContainer) {
+    const container = formContainer.querySelector('#question-forms-container');
+    if (!container) return;
+    
+    const addQuestionBtn = formContainer.querySelector('#add-question-btn');
+    const template = formContainer.querySelector('#empty-form-template');
+    // Note: Use a more robust selector for totalFormsInput
+    const totalFormsInput = formContainer.querySelector('input[name$="-TOTAL_FORMS"]');
+    
+    if (!addQuestionBtn || !template || !totalFormsInput) {
+        console.warn('Formset elements not found. JS initializer failed.');
+        return;
+    }
+
+    const formsetPrefix = totalFormsInput.name.split('-')[0]; // e.g., 'questions'
+
+    const updateQuestionNumbers = () => {
+        const visibleQuestionForms = container.querySelectorAll('.question-form:not([style*="display: none"])');
+        visibleQuestionForms.forEach((form, index) => {
+            const numberSpan = form.querySelector('.question-number');
+            if (numberSpan) {
+                numberSpan.textContent = index + 1;
+            }
+        });
+    };
+
+    // Prevent duplicate listeners
+    if (addQuestionBtn.dataset.initialized) return;
+    addQuestionBtn.dataset.initialized = 'true';
+    
+    addQuestionBtn.addEventListener('click', () => {
+        let formNum = parseInt(totalFormsInput.value);
+        let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
+        
+        // Fix for radio button names in new forms
+        newFormHtml = newFormHtml.replace(new RegExp(formsetPrefix + '-__prefix__-correct_answer', 'g'), formsetPrefix + '-' + formNum + '-correct_answer');
+
+        const div = document.createElement('div');
+        div.innerHTML = newFormHtml;
+        const newFormElement = div.firstElementChild;
+        
+        container.appendChild(newFormElement);
+        totalFormsInput.value = formNum + 1;
+        
+        updateQuestionNumbers();
+    });
+
+    container.addEventListener('click', (e) => {
+        let targetButton = e.target.closest('.remove-question-btn');
+        if (targetButton) {
+            const formElement = targetButton.closest('.question-form');
+            if (!formElement) return;
+
+            const idInput = formElement.querySelector(`input[name$="-id"]`);
+
+            if (idInput && idInput.value) {
+                const deleteInput = formElement.querySelector(`input[name$="-DELETE"]`);
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    formElement.style.display = 'none';
+                }
+            } else {
+                formElement.remove();
+            }
+            
+            updateQuestionNumbers();
+        }
+    });
+
+    updateQuestionNumbers();
+}
+
+// ===============================================
+// ==  MODAL & AJAX FORM HANDLING LOGIC
+// ===============================================
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('ajax-modal');
+    const modalContent = document.getElementById('modal-content-target');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const createBtn = document.getElementById('create-quiz-btn-ajax');
+    
+    if (!modal || !createBtn) return;
+
+    const openModal = () => modal.classList.remove('hidden');
+    const closeModal = () => modal.classList.add('hidden');
+    const setModalLoading = () => modalContent.innerHTML = '<div class="text-center py-12"><p class="text-gray-600">Loading...</p></div>';
+
+    modalCloseBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', closeModal);
+
+    // --- 1. Handle "Create Quiz" button click ---
+    createBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = e.target.href;
+        
+        setModalLoading();
+        openModal();
+
+        try {
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) throw new Error('Network response was not ok.');
+
+            const html = await response.text();
+            modalContent.innerHTML = html;
+            
+            // Inisialisasi JS untuk form yang baru dimuat
+            const form = modalContent.querySelector('#quiz-form');
+            if(form) {
+                initializeFormset(form.parentElement);
+                attachFormSubmitHandler(form);
+            }
+        } catch (error) {
+            console.error('Failed to load create form:', error);
+            modalContent.innerHTML = '<p class="text-red-600 text-center py-12">Failed to load content. Please try again.</p>';
+        }
+    });
+
+    // --- 2. Function to handle AJAX form submission ---
+    function attachFormSubmitHandler(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const url = form.action;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (window.showToast && data.message) {
+                        window.showToast(data.message, 'success');
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 700);
+
+                } else {
+                    if (window.showToast && data.message) {
+                        window.showToast(data.message, 'error');
+                    }
+                    // Gagal validasi, render ulang form dengan error
+                    modalContent.innerHTML = data.html;
+                    // Attach ulang listener ke form baru
+                    const newForm = modalContent.querySelector('#quiz-form');
+                    if(newForm) {
+                        initializeFormset(newForm.parentElement);
+                        attachFormSubmitHandler(newForm);
+                    }
+                }
+            } catch (error) {
+                console.error('Form submission error:', error);
+                if (window.showToast) {
+                    window.showToast('An error occurred during submission.', 'error');
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

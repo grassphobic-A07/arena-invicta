@@ -12,5 +12,4 @@ urlpatterns = [
 
     path('discussions/', discussion, name='discussions'),
     path('league/', league, name='league'),
-    path('quiz/', quiz, name='quiz'),
 ]

@@ -1,10 +1,9 @@
 # quiz/urls.py
 
 from django.urls import path
-# --- TAMBAHKAN 'toggle_publish' DI BAWAH INI ---
 from quiz.views import (
     show_main, create_quiz_with_questions, quiz_detail, 
-    take_quiz, deleteQuiz, edit_quiz, toggle_publish
+    take_quiz, deleteQuiz, edit_quiz, toggle_publish, display_score
 )
 
 app_name = 'quiz'
@@ -17,4 +16,5 @@ urlpatterns = [
     path('<int:quiz_id>/delete/', deleteQuiz, name='delete_quiz'),
     path('<int:quiz_id>/edit/', edit_quiz, name='edit_quiz'),
     path('<int:quiz_id>/toggle_publish/', toggle_publish, name='toggle_publish'),
+    path('<int:quiz_id>/result/', display_score, name='quiz_result'),
 ]

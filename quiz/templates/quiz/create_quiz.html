@@ -1,113 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Buat Kuis Baru - Arena Invicta{% endblock %}
+{% block title %}
+    {% if quiz_form.instance.pk %}
+        Edit Quiz - Arena Invicta
+    {% else %}
+        Create New Quiz - Arena Invicta
+    {% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
-    <div class="mb-6">
-        {% if quiz %}
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Kuis: {{ quiz.title }}</h1>
-            <p class="text-gray-600">Perbarui detail kuis dan pertanyaan di bawah ini.</p>
-        {% else %}
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Buat Kuis Baru</h1>
-            <p class="text-gray-600">Isi detail kuis dan tambahkan pertanyaan sebanyak yang Anda mau.</p>
-        {% endif %}
+
+<div class="mx-auto max-w-2xl mt-3 mb-3">    
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+        {% include "quiz/_quiz_form_partial.html" %}
     </div>
-
-    <form method="post" novalidate>
-        {% csrf_token %}
-
-        <fieldset class="space-y-4">
-            <div>
-                <label for="{{ quiz_form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ quiz_form.title.label }}</label>
-                {{ quiz_form.title }}
-                {% if quiz_form.title.errors %}<p class="text-red-600 text-sm mt-1">{{ quiz_form.title.errors.as_text }}</p>{% endif %}
-            </div>
-            <div>
-                <label for="{{ quiz_form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ quiz_form.description.label }}</label>
-                {{ quiz_form.description }}
-                {% if quiz_form.description.errors %}<p class="text-red-600 text-sm mt-1">{{ quiz_form.description.errors.as_text }}</p>{% endif %}
-            </div>
-            <div class="flex items-center space-x-3 pt-2">
-                {{ quiz_form.is_published }}
-                <label for="{{ quiz_form.is_published.id_for_label }}" class="font-medium text-gray-700">{{ quiz_form.is_published.label }}</label>
-                <p class="text-sm text-gray-500">(Centang untuk membuat kuis ini bisa dilihat oleh semua orang)</p>
-            </div>
-        </fieldset>
-
-        <hr class="my-8">
-
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Pertanyaan</h2>
-        
-        {{ question_formset.management_form }}
-
-        <div id="question-forms-container" class="space-y-6">
-            {% for form in question_formset %}
-                <div class="question-form p-4 border rounded-lg bg-gray-50 relative">
-                    {{ form.id }} <div style="display: none;">{{ form.DELETE }}</div> <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">{{ forloop.counter }}</span></h3>
-                    <div class="space-y-3">
-                        {{ form.text.label_tag }}
-                        {{ form.text }}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <div>{{ form.option_a.label_tag }} {{ form.option_a }}</div>
-                            <div>{{ form.option_b.label_tag }} {{ form.option_b }}</div>
-                            <div>{{ form.option_c.label_tag }} {{ form.option_c }}</div>
-                            <div>{{ form.option_d.label_tag }} {{ form.option_d }}</div>
-                        </div>
-                        <div class="pt-2">
-                            <p class="font-medium text-sm text-gray-700 mb-2">{{ form.correct_answer.label }}</p>
-                            <div class="flex space-x-4">{{ form.correct_answer }}</div>
-                        </div>
-                    </div>
-                    <button type="button" class="remove-question-btn absolute top-3 right-3 text-red-500 hover:text-red-700 font-bold">X</button>
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="mt-6">
-            <button type="button" id="add-question-btn" class="w-full bg-mint/50 hover:bg-mint/80 text-primary font-bold py-2 px-4 rounded-lg transition duration-300">
-                + Tambah Pertanyaan
-            </button>
-        </div>
-
-        <div class="mt-8 border-t pt-6">
-            <button type="submit" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
-                Simpan Kuis Beserta Pertanyaan
-            </button>
-        </div>
-    </form>
 </div>
 
-<template id="empty-form-template">
-    <div class="question-form p-4 border rounded-lg bg-gray-50 relative">
-        <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">__prefix__</span></h3>
-        <div class="space-y-3">
-            <div>{{ question_formset.empty_form.text.label_tag }} {{ question_formset.empty_form.text }}</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div>{{ question_formset.empty_form.option_a.label_tag }} {{ question_formset.empty_form.option_a }}</div>
-                <div>{{ question_formset.empty_form.option_b.label_tag }} {{ question_formset.empty_form.option_b }}</div>
-                <div>{{ question_formset.empty_form.option_c.label_tag }} {{ question_formset.empty_form.option_c }}</div>
-                <div>{{ question_formset.empty_form.option_d.label_tag }} {{ question_formset.empty_form.option_d }}</div>
-            </div>
-            <div class="pt-2">
-                <p class="font-medium text-sm text-gray-700 mb-2">{{ question_formset.empty_form.correct_answer.label }}</p>
-                <div class="flex space-x-4">{{ question_formset.empty_form.correct_answer }}</div>
-            </div>
-        </div>
-        <button type="button" class="remove-question-btn absolute top-3 right-3 text-red-500 hover:text-red-700 font-bold">X</button>
-    </div>
-</template>
+{% endblock %}
 
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const addQuestionBtn = document.getElementById('add-question-btn');
-    const container = document.getElementById('question-forms-container');
-    const template = document.getElementById('empty-form-template');
-    const totalFormsInput = document.querySelector('input[name="questions-TOTAL_FORMS"]');
-    const formsetPrefix = 'questions'; // Sesuaikan jika prefix Anda berbeda (biasanya nama related_name)
+// Fungsi untuk menginisialisasi logika formset (add/remove)
+function initializeFormset(formContainer) {
+    const container = formContainer.querySelector('#question-forms-container');
+    if (!container) return;
+    
+    const addQuestionBtn = formContainer.querySelector('#add-question-btn');
+    const template = formContainer.querySelector('#empty-form-template');
+    const totalFormsInput = formContainer.querySelector('input[name$="-TOTAL_FORMS"]');
+    if (!addQuestionBtn || !template || !totalFormsInput) return;
+
+    const formsetPrefix = totalFormsInput.name.split('-')[0]; // e.g., 'questions'
 
     const updateQuestionNumbers = () => {
-        // Hanya hitung form yang terlihat (yang tidak ditandai untuk dihapus)
         const visibleQuestionForms = container.querySelectorAll('.question-form:not([style*="display: none"])');
         visibleQuestionForms.forEach((form, index) => {
             const numberSpan = form.querySelector('.question-number');
@@ -120,6 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
     addQuestionBtn.addEventListener('click', () => {
         let formNum = parseInt(totalFormsInput.value);
         let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
+        
+        // Ganti juga name attribute untuk radio button
+        newFormHtml = newFormHtml.replace(new RegExp(formsetPrefix + '-__prefix__-correct_answer', 'g'), formsetPrefix + '-' + formNum + '-correct_answer');
 
         const div = document.createElement('div');
         div.innerHTML = newFormHtml;
@@ -132,39 +60,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     container.addEventListener('click', (e) => {
-        if (e.target && e.target.classList.contains('remove-question-btn')) {
-            const formElement = e.target.closest('.question-form');
+        let targetButton = e.target.closest('.remove-question-btn');
+        if (targetButton) {
+            const formElement = targetButton.closest('.question-form');
             if (!formElement) return;
 
-            // Cari tahu apakah ini form yang sudah ada (punya ID) atau form baru
-            // Kita cek input 'id' yang tersembunyi, contoh: input[name="questions-0-id"]
             const idInput = formElement.querySelector(`input[name$="-id"]`);
 
             if (idInput && idInput.value) {
-                // --- INI FORM YANG SUDAH ADA ---
-                // Jangan hapus elemennya. Cukup centang checkbox DELETE
-                // dan sembunyikan formnya dari tampilan.
+                // This is an existing form, mark it for deletion
                 const deleteInput = formElement.querySelector(`input[name$="-DELETE"]`);
                 if (deleteInput) {
                     deleteInput.checked = true;
                     formElement.style.display = 'none';
                 }
             } else {
-                // --- INI FORM BARU (DARI TEMPLATE) ---
-                // Aman untuk menghapus elemennya dari DOM.
+                // This is a new form, just remove it
                 formElement.remove();
-                
-                // Kurangi TOTAL_FORMS karena kita menghapus form baru
-                totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+                // We must update TOTAL_FORMS when removing a *new* form
+                // Note: This simple decrement can be buggy if forms are removed out of order.
+                // A safer way is to re-count forms, but this matches original logic.
+                // totalFormsInput.value = parseInt(totalFormsInput.value) - 1; 
+                // Biarkan TOTAL_FORMS, Django bisa menangani form kosong.
             }
             
-            // Perbarui nomor urut pertanyaan yang terlihat
             updateQuestionNumbers();
         }
     });
 
-    // Panggil sekali di awal untuk memastikan nomornya benar
     updateQuestionNumbers();
+}
+
+// Inisialisasi untuk halaman ini
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('quiz-form');
+    if (form) {
+        initializeFormset(form.parentElement);
+    }
 });
 </script>
 {% endblock %}

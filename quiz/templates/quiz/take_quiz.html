@@ -1,51 +1,123 @@
 {% extends 'base.html' %}
 
-{% block title %}Mengerjakan: {{ quiz.title }}{% endblock %}
+{% block title %}Taking Quiz: {{ quiz.title }}{% endblock %}
 
 {% block content %}
-<div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
-    <div class="mb-6 border-b pb-4">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
-        <p class="text-gray-600">{{ quiz.description|default:"Jawablah pertanyaan di bawah ini dengan benar." }}</p>
-    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="space-y-8">
-            {% for question in questions %}
-                <fieldset class="p-4 border rounded-lg bg-gray-50/50">
-                    <legend class="text-lg font-semibold text-gray-800 px-2">
-                        Pertanyaan #{{ forloop.counter }}:
-                    </legend>
-                    <p class="text-gray-900 mb-4 px-2">{{ question.text }}</p>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                            <input type="radio" id="q{{ question.id }}_a" name="question_{{ question.id }}" value="A" class="h-4 w-4 text-primary focus:ring-sea" required>
-                            <label for="q{{ question.id }}_a" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_a }}</label>
-                        </div>
-                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                            <input type="radio" id="q{{ question.id }}_b" name="question_{{ question.id }}" value="B" class="h-4 w-4 text-primary focus:ring-sea">
-                            <label for="q{{ question.id }}_b" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_b }}</label>
-                        </div>
-                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                            <input type="radio" id="q{{ question.id }}_c" name="question_{{ question.id }}" value="C" class="h-4 w-4 text-primary focus:ring-sea">
-                            <label for="q{{ question.id }}_c" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_c }}</label>
-                        </div>
-                        <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                            <input type="radio" id="q{{ question.id }}_d" name="question_{{ question.id }}" value="D" class="h-4 w-4 text-primary focus:ring-sea">
-                            <label for="q{{ question.id }}_d" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_d }}</label>
-                        </div>
-                    </div>
-                </fieldset>
-            {% endfor %}
+{% if messages %}
+    <div id="dj-messages" hidden>
+        {% for message in messages %}
+        <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="mx-auto max-w-2xl mt-3 mb-3" id="quiz-container">
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+        <div class="mb-6 border-b pb-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
+            <p class="text-gray-600">{{ quiz.description|default:"Answer the questions below as best as you can." }}</p>
         </div>
-        
-        <div class="mt-8 border-t pt-6">
-            <button type="submit" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
-                Selesai & Lihat Hasil
-            </button>
-        </div>
-    </form>
+
+        <form method="post" action="{% url 'quiz:take_quiz' quiz.id %}" id="take-quiz-form">
+            {% csrf_token %}
+            <div class="space-y-8">
+                {% for question in questions %}
+                    <fieldset class="p-4 border rounded-lg bg-gray-50/50">
+                        <legend class="text-lg font-semibold text-gray-800 px-2">
+                            Question #{{ forloop.counter }}:
+                        </legend>
+                        <p class="text-gray-900 mb-4 px-2">{{ question.text }}</p>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                                <input type="radio" id="q{{ question.id }}_a" name="question_{{ question.id }}" value="A" class="h-4 w-4 text-primary focus:ring-sea" required>
+                                <label for="q{{ question.id }}_a" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_a }}</label>
+                            </div>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                                <input type="radio" id="q{{ question.id }}_b" name="question_{{ question.id }}" value="B" class="h-4 w-4 text-primary focus:ring-sea">
+                                <label for="q{{ question.id }}_b" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_b }}</label>
+                            </div>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                                <input type="radio" id="q{{ question.id }}_c" name="question_{{ question.id }}" value="C" class="h-4 w-4 text-primary focus:ring-sea">
+                                <label for="q{{ question.id }}_c" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_c }}</label>
+                            </div>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
+                                <input type="radio" id="q{{ question.id }}_d" name="question_{{ question.id }}" value="D" class="h-4 w-4 text-primary focus:ring-sea">
+                                <label for="q{{ question.id }}_d" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_d }}</label>
+                            </div>
+                        </div>
+                    </fieldset>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-8 border-t pt-6">
+                <button type="submit" id="submit-quiz-btn" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                    Submit & View Results
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const quizForm = document.getElementById('take-quiz-form');
+    const quizContainer = document.getElementById('quiz-container');
+    const submitBtn = document.getElementById('submit-quiz-btn');
+
+    if (quizForm && quizContainer && submitBtn) {
+        quizForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Tampilkan loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const formData = new FormData(quizForm);
+            const url = quizForm.action;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Ganti konten halaman dengan hasil
+                    quizContainer.innerHTML = data.html;
+                    // Scroll ke atas
+                    window.scrollTo(0, 0);
+                    const resultUrl = data.result_url;
+                    history.replaceState({ page: "result" }, "Quiz Result", resultUrl);
+                } else {
+                    // Tampilkan error jika ada
+                    if (window.showToast) {
+                        window.showToast(data.error || 'Gagal submit kuis.', 'error');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit & View Results';
+                }
+
+            } catch (error) {
+                console.error('Quiz submission error:', error);
+                if (window.showToast) {
+                    window.showToast('Gagal terhubung ke server.', 'error');
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit & View Results';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
