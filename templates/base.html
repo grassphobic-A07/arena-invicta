@@ -78,38 +78,43 @@
         <div id="toast-viewport" class="fixed top-4 right-4 space-y-2 z-[100000]"></div>
 
         <div id="ai-confirm"
-             class="fixed inset-0 z-[10050] hidden"
-             role="dialog" aria-modal="true" aria-labelledby="ai-confirm-title" aria-describedby="ai-confirm-desc">
+            class="fixed inset-0 z-[10050] hidden"
+            role="dialog" aria-modal="true" aria-labelledby="ai-confirm-title" aria-describedby="ai-confirm-desc">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-ai-close></div>
 
             <div class="absolute inset-0 flex items-center justify-center p-4">
                 <div data-ai-card
-                     class="w-full max-w-md rounded-2xl border border-mist bg-white shadow-2xl overflow-hidden
+                    class="w-full max-w-md rounded-2xl border border-mist bg-white shadow-2xl overflow-hidden
                             transform transition-all duration-150 opacity-0 scale-95">
-                <div class="px-5 py-4 flex items-start gap-3">
-                    <div id="ai-confirm-badge"
-                         class="h-10 w-10 rounded-full grid place-items-center bg-danger/10 text-danger">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-width="2" d="M12 9v4m0 4h.01"/><path stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                    </svg>
+                    <div class="px-5 py-4 flex items-start gap-3">
+                        
+                        {# --- Area Ikon --- #}
+                        <div id="ai-confirm-badge"
+                            class="h-20 w-20 rounded-full grid place-items-center bg-danger/10 text-danger flex-shrink-0">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                {# Pastikan path tanda seru benar #}
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01"/><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                        </div>
+                        {# --- Akhir Area Ikon --- #}
+
+                        <div class="min-w-0 flex-grow">
+                            <h3 id="ai-confirm-title" class="text-lg font-semibold text-primary">Konfirmasi</h3>
+                            <p id="ai-confirm-desc" class="mt-1 text-sm text-surface/80">Yakin?</p>
+                        </div>
+                        <button class="ml-auto rounded-lg p-1.5 text-surface/60 hover:bg-mist flex-shrink-0" {# <-- Tambah flex-shrink-0 #}
+                                data-ai-close aria-label="Close">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-width="2" d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
-                    <div class="min-w-0">
-                    <h3 id="ai-confirm-title" class="text-lg font-semibold text-primary">Konfirmasi</h3>
-                    <p id="ai-confirm-desc" class="mt-1 text-sm text-surface/80">Yakin?</p>
+                    <div class="px-5 py-3 bg-mist/60 flex justify-end gap-2">
+                        <button data-ai-cancel
+                                class="px-3 py-1.5 rounded-lg border border-surface/20 text-surface hover:bg-mist">Cancel</button>
+                        <button data-ai-confirm
+                                class="px-3 py-1.5 rounded-lg text-white bg-danger hover:bg-danger/90">Delete</button>
                     </div>
-                    <button class="ml-auto rounded-lg p-1.5 text-surface/60 hover:bg-mist"
-                            data-ai-close aria-label="Close">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-width="2" d="M18 6L6 18M6 6l12 12"/>
-                    </svg>
-                    </button>
-                </div>
-                <div class="px-5 py-3 bg-mist/60 flex justify-end gap-2">
-                    <button data-ai-cancel
-                            class="px-3 py-1.5 rounded-lg border border-surface/20 text-surface hover:bg-mist">Cancel</button>
-                    <button data-ai-confirm
-                            class="px-3 py-1.5 rounded-lg text-white bg-danger hover:bg-danger/90">Delete</button>
-                </div>
                 </div>
             </div>
         </div>

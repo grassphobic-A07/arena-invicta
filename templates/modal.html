@@ -119,8 +119,7 @@
     const newsForm = document.getElementById('addNewsForm');
     const newsSubmitButton = newsForm.closest('#addNewsModalContent').querySelector('.submit-button');
 
-    function showNewsModal() {
-        newsForm.reset();
+    function showNewsModal(){
         clearNewsFormErrors();
         newsModal.classList.remove('hidden');
         requestAnimationFrame(() => {
@@ -129,7 +128,7 @@
         });
     }
 
-    function hideNewsModal() {
+    function hideNewsModal(){
         newsModalContent.classList.remove('opacity-100', 'scale-100');
         newsModalContent.classList.add('opacity-0', 'scale-95');
         setTimeout(() => {
@@ -137,7 +136,7 @@
         }, 200);
     }
 
-    async function submitNewsForm() {
+    async function submitNewsForm(){
         clearNewsFormErrors();
 
         const submitText = newsSubmitButton.querySelector('.submit-text');
@@ -147,7 +146,7 @@
         loadingIndicator.classList.remove('hidden');
 
         const formData = new FormData(newsForm);
-        try {
+        try{
             const response = await fetch(newsForm.action, {
                 method: "POST",
                 body: formData,
@@ -159,7 +158,7 @@
             // --- PERUBAHAN UTAMA ADA DI SINI ---
             const data = await response.json(); // Coba parse JSON
 
-            if (response.status === 201) { // Sukses
+            if(response.status === 201){ // Sukses
                 hideNewsModal();
                 showToast('News added successfully!', 'success');
 
@@ -168,34 +167,39 @@
 
                 // Hapus pesan "No news found" jika ada
                 const noNewsMsg = document.getElementById('no-news-message');
-                if (noNewsMsg) {
+                if(noNewsMsg){
                     noNewsMsg.remove();
                 }
 
-            } else { // Error
+            } 
+            else{ // Error
                 console.error("Form submission error:", data);
-                if (data.errors) {
+                if(data.errors){
                     displayNewsFormErrors(data.errors); // Tampilkan error form (jika ada)
                     showToast('Please correct the errors below.', 'error');
-                } else if (data.error) {
+                } 
+                else if(data.error){
                     showToast(data.error, 'error'); // Tampilkan error string manual
-                } else {
+                } 
+                else{
                     showToast(data.message || `An error occurred (Status: ${response.status}).`, 'error');
                 }
             }
             // --- AKHIR PERUBAHAN ---
 
-        } catch (error) {
+        } 
+        catch(error){
             console.error('Network or JS error during submission:', error);
             showToast('A network error occurred. Please try again.', 'error');
-        } finally {
+        } 
+        finally{
             newsSubmitButton.disabled = false;
             submitText.classList.remove('hidden');
             loadingIndicator.classList.add('hidden');
         }
     }
 
-    function clearNewsFormErrors() {
+    function clearNewsFormErrors(){
         newsForm.querySelectorAll('[class*="border-danger"]').forEach(el => {
             el.classList.remove('border-danger', 'ring-2', 'ring-danger/20');
         });
@@ -204,14 +208,14 @@
         });
     }
 
-    function displayNewsFormErrors(errors) {
-        for (const fieldName in errors) {
+    function displayNewsFormErrors(errors){
+        for(const fieldName in errors){
             const errorSpan = newsForm.querySelector(`.error-message-${fieldName}`);
             const inputElement = newsForm.querySelector(`[name="${fieldName}"]`);
-            if (errorSpan && errors[fieldName].length > 0) {
+            if(errorSpan && errors[fieldName].length > 0){
                 errorSpan.textContent = errors[fieldName][0];
             }
-            if (inputElement) {
+            if(inputElement){
                 inputElement.classList.add('border-danger', 'ring-2', 'ring-danger/20');
             }
         }
@@ -220,7 +224,7 @@
     // --- FUNGSI BARU UNTUK MEMBUAT DAN MENAMBAHKAN KARTU ---
     function prependNewsCard(newsData) {
         const grid = document.getElementById('news-grid');
-        if (!grid) return;
+        if(!grid) return;
 
         // 1. Buat elemen <a> utama
         const cardLink = document.createElement('a');
@@ -230,10 +234,11 @@
         // 2. Buat div background
         const backgroundDiv = document.createElement('div');
         backgroundDiv.className = "relative w-full h-56 transition-transform duration-300 group-hover:scale-105";
-        if (newsData.thumbnail) {
+        if(newsData.thumbnail){
             backgroundDiv.classList.add('bg-cover', 'bg-center');
             backgroundDiv.style.backgroundImage = `url('${newsData.thumbnail}')`;
-        } else {
+        } 
+        else{
             backgroundDiv.classList.add('bg-gradient-to-r', 'from-primary', 'to-sea');
         }
 
@@ -267,7 +272,7 @@
     }
     // --- AKHIR FUNGSI BARU ---
 
-    newsForm.addEventListener("submit", function(event) {
+    newsForm.addEventListener("submit", function(event){
         event.preventDefault();
         submitNewsForm();
     });
