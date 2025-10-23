@@ -5,6 +5,7 @@ from django.db import models
 ROLE_CHOICES = [
     ("registered", "Registered"),
     ("content_staff", "Content Staff"), # Writer + Editor (boleh publish)
+    
 ]
 
 # Untuk konfigurasi Profile

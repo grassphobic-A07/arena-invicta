@@ -9,8 +9,6 @@ from .models import Profile
 # Khusus Admin
 @receiver(post_migrate)
 def ensure_static_admin(sender, **kwargs):
-    # jalan saat migrate app apa pun; batasi hanya sekali untuk project
-    # (check label 'accounts' aman, tapi kalau tak pasti—biarkan saja, kodenya idempotent)
     if getattr(sender, "name", "") not in {"accounts"}:
         return
 
@@ -20,12 +18,14 @@ def ensure_static_admin(sender, **kwargs):
     admin_user, created = User.objects.get_or_create(username=username, defaults={"is_active": True})
     if created or not admin_user.has_usable_password():
         admin_user.set_password(password)
-    admin_user.is_active = True
-    # Tidak pakai Django Admin UI → tak perlu is_staff/is_superuser
-    admin_user.save()
 
-    # pastikan profile ada, role kontennya biarkan 'registered' (admin ≠ content_staff)
+    admin_user.is_active = True
+    admin_user.is_superuser = True   # ← penting: admin sungguhan
+    admin_user.is_staff = False      # ← tetap blok /admin Django bawaan
+    admin_user.save(update_fields=["is_active", "is_superuser", "is_staff"])
+
     Profile.objects.get_or_create(user=admin_user)
+
 
 # Penting untuk nanti model News (Rafa)
 @receiver(post_migrate)
