@@ -117,9 +117,9 @@ Berikut adalah struktur peran pengguna yang bisa diterapkan, dari yang paling da
     Ini adalah peran untuk tim konten internal kalian. Mereka adalah para "Jurnalis Arena" yang bertugas membuat konten berkualitas dan mempublikasikan artikelnya.
 
 * **Hak Akses & Kemampuan:**
-    * Memiliki semua hak akses seorang **Anggota Arena**.
+    * Memiliki semua hak akses seorang **Anggota Arena/Registered User**.
     * **Membuat dan mempublikasikan (Create)** artikel News.
-    * **Membaca daftar artikel, detail berita, dan kuis**.
+    * **Membaca (Read) daftar artikel, detail berita, dan kuis**.
     * **Mengubah (Update)** artikel berita yang mereka tulis sendiri (selama belum dipublikasikan).
     * **Membuat dan mengelola** set pertanyaan untuk kuis.
     * **Menghapus (Delete)** artikel News ataupun set pertanyaan kuis.
