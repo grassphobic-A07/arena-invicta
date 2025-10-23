@@ -2,6 +2,21 @@
 
 {% block title %}{{ quiz.title }} - Arena Invicta{% endblock %}
 
+{% block extra_head %}
+<style>
+    .dot {
+        transition: transform .3s ease-in-out;
+    }
+    input:checked ~ .dot {
+        transform: translateX(1.5rem); /* 24px */
+    }
+    input:checked ~ .bg-gray-600 {
+        background-color: #3B82F6; /* bg-blue-500 */
+    }
+</style>
+{% endblock %}
+
+
 {% block content %}
 <div class="bg-white p-8 rounded-xl shadow-md">
     <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
@@ -12,19 +27,51 @@
     {% endif %}
 
     {% if quiz.user == request.user %}
-        <form method="post" action="{% url 'quiz:delete_quiz' quiz.id %}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kuis ini? Tindakan ini tidak dapat diurungkan.');">
-            {% csrf_token %}
-            <button type="submit" class="bg-danger hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                Hapus Kuis
-            </button>
-        </form>
+        <div class="border-b pb-6 mb-6">
+            <h3 class="text-lg font-semibold mb-3">Panel Kontrol Pemilik</h3>
+            
+            <form action="{% url 'quiz:toggle_publish' quiz.id %}" method="POST" class="mb-4">
+                {% csrf_token %}
+                <label for="is_published_toggle" class="flex items-center cursor-pointer">
+                    <div class="relative">
+                        <input type="checkbox" id="is_published_toggle" 
+                               class="sr-only peer" 
+                               name="is_published" 
+                               {% if quiz.is_published %}checked{% endif %} 
+                               onchange="this.form.submit()">
+                        
+                        <div class="block w-14 h-8 rounded-full bg-gray-600 peer-checked:bg-blue-600 transition-colors"></div>
+                        
+                        <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-6"></div> 
+                    </div>
+                    <div class="ml-3 text-gray-700 font-medium">
+                        {% if quiz.is_published %}
+                            Status: <span class="text-blue-600">Dipublikasikan</span>
+                        {% else %}
+                            Status: <span class="text-gray-500">Pribadi (Draft)</span>
+                        {% endif %}
+                    </div>
+                </label>
+            </form>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'quiz:edit_quiz' quiz.id %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                    Edit Kuis
+                </a>
+                <form method="post" action="{% url 'quiz:delete_quiz' quiz.id %}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kuis ini? Tindakan ini tidak dapat diurungkan.');">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-danger hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                        Hapus Kuis
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="mt-8 border-t pt-6">
+            <a href="{% url 'quiz:take_quiz' quiz.id %}" class="block w-full text-center bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                Mulai Kuis
+            </a>
+        </div>
     {% endif %}
-
-    <div class="mt-8 border-t pt-6">
-        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="block w-full text-center bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
-            Mulai Kuis
-        </a>
-    </div>
 
     <div class="mt-4 text-center">
         <a href="{% url 'quiz:show_main' %}" class="text-sea hover:underline text-sm">
@@ -32,5 +79,42 @@
         </a>
     </div>
 
-</div>
+    <div class="mt-8 border-t border-gray-200 pt-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">🏆 Leaderboard (Top 10) 🏆</h3>
+        {% if leaderboard %}
+            <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-800 uppercase bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Peringkat</th>
+                            <th scope="col" class="px-6 py-3">Pengguna</th>
+                            <th scope="col" class="px-6 py-3">Skor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in leaderboard %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 font-bold text-gray-900">
+                                    #{{ forloop.counter }}
+                                </td>
+                                <td class="px-6 py-4 font-medium text-gray-900">
+                                    {{ item.user.username }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-primary">
+                                    {{ item.score }} / {{ total_questions }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% if quiz.user == request.user %}
+                <p class="text-center text-gray-500">Belum ada yang mencoba kuis ini.</p>
+            {% else %}
+                <p class="text-center text-gray-500">Belum ada yang mencoba kuis ini. Jadilah yang pertama!</p>
+            {% endif %}
+        {% endif %}
+    </div>
+    </div>
 {% endblock %}

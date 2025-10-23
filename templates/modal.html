@@ -1,0 +1,280 @@
+<div id="addNewsModal" 
+     class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4" 
+     aria-labelledby="addNewsModalTitle" role="dialog" aria-modal="true">
+    
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="hideNewsModal()"></div>
+
+    <div id="addNewsModalContent" 
+         class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col 
+                transform transition-all duration-200 opacity-0 scale-95">
+        
+        <div class="flex items-start justify-between p-4 sm:p-5 border-b border-mist">
+            <div>
+                <h3 id="addNewsModalTitle" class="text-xl font-semibold text-primary">
+                    Create New News
+                </h3>
+                <p class="text-sm text-surface/80 mt-1">Share news and stories with the community.</p>
+            </div>
+            <button type="button" 
+                    class="ml-auto -mr-1 p-1.5 rounded-lg text-surface/60 hover:bg-mist hover:text-primary focus:outline-none focus:ring-2 focus:ring-sea/30" 
+                    onclick="hideNewsModal()"
+                    aria-label="Close modal">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+        </div>
+
+        <div class="p-4 sm:p-4 space-y-4 overflow-y-auto">
+            <form id="addNewsForm" method="POST" action="{% url 'news:add_news_ajax' %}" novalidate>
+                <div>
+                    <label for="modal_title" class="block text-sm font-medium text-surface/90 mb-1">Title <span class="text-danger">*</span></label>
+                    <input type="text" id="modal_title" name="title" 
+                           class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition" 
+                           placeholder="Enter news title" required>
+                    <span class="text-xs text-danger mt-1 empty:hidden error-message-title"></span>
+                </div>
+
+                <div>
+                    <label for="modal_content" class="block text-sm font-medium text-surface/90 mb-1">Content <span class="text-danger">*</span></label>
+                    <textarea id="modal_content" name="content" rows="5" 
+                              class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition resize-y" 
+                              placeholder="Write your news content here..." required></textarea>
+                    <span class="text-xs text-danger mt-1 empty:hidden error-message-content"></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="modal_category" class="block text-sm font-medium text-surface/90 mb-1">Category <span class="text-danger">*</span></label>
+                        <div class="relative">
+                            <select id="modal_category" name="category" 
+                                    class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition appearance-none cursor-pointer" required>
+                                <option value="" disabled selected>Choose a category</option>
+                                {% for value, display in news_form.fields.category.choices %}
+                                    {% if value %}<option value="{{ value }}">{{ display }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-surface/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <span class="text-xs text-danger mt-1 empty:hidden error-message-category"></span>
+                    </div>
+
+                    <div>
+                        <label for="modal_sports" class="block text-sm font-medium text-surface/90 mb-1">Sport <span class="text-danger">*</span></label>
+                        <div class="relative">
+                            <select id="modal_sports" name="sports" 
+                                    class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition appearance-none cursor-pointer" required>
+                               <option value="" disabled selected>Choose a sport</option>
+                                {% for value, display in news_form.fields.sports.choices %}
+                                    {% if value %}<option value="{{ value }}">{{ display }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                                <svg class="w-4 h-4 text-surface/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                         <span class="text-xs text-danger mt-1 empty:hidden error-message-sports"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="modal_thumbnail" class="block text-sm font-medium text-surface/90 mb-1 my-[10px]">Thumbnail URL</label>
+                    <input type="url" id="modal_thumbnail" name="thumbnail" 
+                        class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition" 
+                        placeholder="https://example.com/image.jpg">
+                    <span class="text-xs text-danger mt-1 empty:hidden error-message-thumbnail"></span>
+                </div>
+
+                <div class="flex items-center gap-2 mt-[7px]">
+                    <input id="modal_is_featured" name="is_featured" type="checkbox" 
+                           class="h-4 w-4 rounded border-surface/40 text-primary focus:ring-sea/40 cursor-pointer">
+                    <label for="modal_is_featured" class="text-sm font-medium text-surface/90">Mark as Featured News?</label>
+                     <span class="text-xs text-danger mt-1 empty:hidden error-message-is_featured"></span>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 p-4 sm:p-5 border-t border-mist bg-mist/40">
+            <button type="button" 
+                    class="order-2 sm:order-1 w-full sm:w-auto px-5 py-2.5 rounded-lg border border-surface/30 text-sm font-medium text-surface/90 bg-white hover:bg-mist/60 focus:outline-none focus:ring-2 focus:ring-sea/30 transition" 
+                    onclick="hideNewsModal()">
+                Cancel
+            </button>
+            <button type="submit" form="addNewsForm" {# Links to the form #}
+                    class="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-sea/50 transition disabled:opacity-60 submit-button">
+                 <span class="submit-text">Publish News</span>
+                 <span class="loading-indicator hidden">Processing...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const newsModal = document.getElementById('addNewsModal');
+    const newsModalContent = document.getElementById('addNewsModalContent');
+    const newsForm = document.getElementById('addNewsForm');
+    const newsSubmitButton = newsForm.closest('#addNewsModalContent').querySelector('.submit-button');
+
+    function showNewsModal() {
+        newsForm.reset();
+        clearNewsFormErrors();
+        newsModal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            newsModalContent.classList.remove('opacity-0', 'scale-95');
+            newsModalContent.classList.add('opacity-100', 'scale-100');
+        });
+    }
+
+    function hideNewsModal() {
+        newsModalContent.classList.remove('opacity-100', 'scale-100');
+        newsModalContent.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            newsModal.classList.add('hidden');
+        }, 200);
+    }
+
+    async function submitNewsForm() {
+        clearNewsFormErrors();
+
+        const submitText = newsSubmitButton.querySelector('.submit-text');
+        const loadingIndicator = newsSubmitButton.querySelector('.loading-indicator');
+        newsSubmitButton.disabled = true;
+        submitText.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
+
+        const formData = new FormData(newsForm);
+        try {
+            const response = await fetch(newsForm.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+
+            // --- PERUBAHAN UTAMA ADA DI SINI ---
+            const data = await response.json(); // Coba parse JSON
+
+            if (response.status === 201) { // Sukses
+                hideNewsModal();
+                showToast('News added successfully!', 'success');
+
+                // Panggil fungsi untuk menambahkan kartu baru ke grid
+                prependNewsCard(data);
+
+                // Hapus pesan "No news found" jika ada
+                const noNewsMsg = document.getElementById('no-news-message');
+                if (noNewsMsg) {
+                    noNewsMsg.remove();
+                }
+
+            } else { // Error
+                console.error("Form submission error:", data);
+                if (data.errors) {
+                    displayNewsFormErrors(data.errors); // Tampilkan error form (jika ada)
+                    showToast('Please correct the errors below.', 'error');
+                } else if (data.error) {
+                    showToast(data.error, 'error'); // Tampilkan error string manual
+                } else {
+                    showToast(data.message || `An error occurred (Status: ${response.status}).`, 'error');
+                }
+            }
+            // --- AKHIR PERUBAHAN ---
+
+        } catch (error) {
+            console.error('Network or JS error during submission:', error);
+            showToast('A network error occurred. Please try again.', 'error');
+        } finally {
+            newsSubmitButton.disabled = false;
+            submitText.classList.remove('hidden');
+            loadingIndicator.classList.add('hidden');
+        }
+    }
+
+    function clearNewsFormErrors() {
+        newsForm.querySelectorAll('[class*="border-danger"]').forEach(el => {
+            el.classList.remove('border-danger', 'ring-2', 'ring-danger/20');
+        });
+        newsForm.querySelectorAll('[class^="error-message-"]').forEach(span => {
+            span.textContent = '';
+        });
+    }
+
+    function displayNewsFormErrors(errors) {
+        for (const fieldName in errors) {
+            const errorSpan = newsForm.querySelector(`.error-message-${fieldName}`);
+            const inputElement = newsForm.querySelector(`[name="${fieldName}"]`);
+            if (errorSpan && errors[fieldName].length > 0) {
+                errorSpan.textContent = errors[fieldName][0];
+            }
+            if (inputElement) {
+                inputElement.classList.add('border-danger', 'ring-2', 'ring-danger/20');
+            }
+        }
+    }
+
+    // --- FUNGSI BARU UNTUK MEMBUAT DAN MENAMBAHKAN KARTU ---
+    function prependNewsCard(newsData) {
+        const grid = document.getElementById('news-grid');
+        if (!grid) return;
+
+        // 1. Buat elemen <a> utama
+        const cardLink = document.createElement('a');
+        cardLink.href = newsData.detail_url;
+        cardLink.className = "group block relative overflow-hidden rounded-xl shadow-lg transform transition-transform duration-300 hover:-translate-y-1";
+
+        // 2. Buat div background
+        const backgroundDiv = document.createElement('div');
+        backgroundDiv.className = "relative w-full h-56 transition-transform duration-300 group-hover:scale-105";
+        if (newsData.thumbnail) {
+            backgroundDiv.classList.add('bg-cover', 'bg-center');
+            backgroundDiv.style.backgroundImage = `url('${newsData.thumbnail}')`;
+        } else {
+            backgroundDiv.classList.add('bg-gradient-to-r', 'from-primary', 'to-sea');
+        }
+
+        // 3. Buat div overlay
+        const overlayDiv = document.createElement('div');
+        overlayDiv.className = "absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl";
+
+        // 4. Buat div konten (bawah)
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "absolute bottom-0 left-0 p-4 z-10";
+
+        // 5. Buat span kategori
+        const categorySpan = document.createElement('span');
+        categorySpan.className = "inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md";
+        categorySpan.textContent = newsData.category_display; // Gunakan display name
+
+        // 6. Buat h3 judul
+        const titleHeader = document.createElement('h3');
+        titleHeader.className = "text-white text-lg font-semibold leading-tight line-clamp-2 group-hover:underline mt-1"; // Tambah mt-1 jika perlu jarak
+        titleHeader.textContent = newsData.title.toUpperCase(); // Buat uppercase
+
+        // 7. Susun elemen
+        contentDiv.appendChild(categorySpan);
+        contentDiv.appendChild(titleHeader);
+        backgroundDiv.appendChild(overlayDiv);
+        backgroundDiv.appendChild(contentDiv);
+        cardLink.appendChild(backgroundDiv);
+
+        // 8. Tambahkan ke awal grid
+        grid.prepend(cardLink);
+    }
+    // --- AKHIR FUNGSI BARU ---
+
+    newsForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        submitNewsForm();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !newsModal.classList.contains('hidden')) {
+            hideNewsModal();
+        }
+    });
+</script>

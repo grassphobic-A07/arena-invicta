@@ -5,8 +5,13 @@
 {% block content %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
     <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Buat Kuis Baru</h1>
-        <p class="text-gray-600">Isi detail kuis dan tambahkan pertanyaan sebanyak yang Anda mau.</p>
+        {% if quiz %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Kuis: {{ quiz.title }}</h1>
+            <p class="text-gray-600">Perbarui detail kuis dan pertanyaan di bawah ini.</p>
+        {% else %}
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Buat Kuis Baru</h1>
+            <p class="text-gray-600">Isi detail kuis dan tambahkan pertanyaan sebanyak yang Anda mau.</p>
+        {% endif %}
     </div>
 
     <form method="post" novalidate>
@@ -23,6 +28,11 @@
                 {{ quiz_form.description }}
                 {% if quiz_form.description.errors %}<p class="text-red-600 text-sm mt-1">{{ quiz_form.description.errors.as_text }}</p>{% endif %}
             </div>
+            <div class="flex items-center space-x-3 pt-2">
+                {{ quiz_form.is_published }}
+                <label for="{{ quiz_form.is_published.id_for_label }}" class="font-medium text-gray-700">{{ quiz_form.is_published.label }}</label>
+                <p class="text-sm text-gray-500">(Centang untuk membuat kuis ini bisa dilihat oleh semua orang)</p>
+            </div>
         </fieldset>
 
         <hr class="my-8">
@@ -34,7 +44,7 @@
         <div id="question-forms-container" class="space-y-6">
             {% for form in question_formset %}
                 <div class="question-form p-4 border rounded-lg bg-gray-50 relative">
-                    <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">{{ forloop.counter }}</span></h3>
+                    {{ form.id }} <div style="display: none;">{{ form.DELETE }}</div> <h3 class="font-semibold mb-3">Pertanyaan #<span class="question-number">{{ forloop.counter }}</span></h3>
                     <div class="space-y-3">
                         {{ form.text.label_tag }}
                         {{ form.text }}
@@ -94,10 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('question-forms-container');
     const template = document.getElementById('empty-form-template');
     const totalFormsInput = document.querySelector('input[name="questions-TOTAL_FORMS"]');
+    const formsetPrefix = 'questions'; // Sesuaikan jika prefix Anda berbeda (biasanya nama related_name)
 
     const updateQuestionNumbers = () => {
-        const questionForms = container.querySelectorAll('.question-form');
-        questionForms.forEach((form, index) => {
+        // Hanya hitung form yang terlihat (yang tidak ditandai untuk dihapus)
+        const visibleQuestionForms = container.querySelectorAll('.question-form:not([style*="display: none"])');
+        visibleQuestionForms.forEach((form, index) => {
             const numberSpan = form.querySelector('.question-number');
             if (numberSpan) {
                 numberSpan.textContent = index + 1;
@@ -106,36 +118,47 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     addQuestionBtn.addEventListener('click', () => {
-        // Dapatkan jumlah form saat ini dari management form
         let formNum = parseInt(totalFormsInput.value);
-        
-        // Buat konten baru dari template
         let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
-        
-        // Buat elemen div sementara untuk menampung form baru
+
         const div = document.createElement('div');
         div.innerHTML = newFormHtml;
+        const newFormElement = div.firstElementChild;
         
-        // Tambahkan form baru ke kontainer
-        container.appendChild(div.firstElementChild);
-        
-        // Perbarui nilai TOTAL_FORMS
+        container.appendChild(newFormElement);
         totalFormsInput.value = formNum + 1;
         
-        // Perbarui nomor urut pertanyaan
         updateQuestionNumbers();
     });
 
-    // Tambahkan event listener untuk tombol hapus (menggunakan event delegation)
     container.addEventListener('click', (e) => {
         if (e.target && e.target.classList.contains('remove-question-btn')) {
-            // Dapatkan parent .question-form terdekat dan hapus
-            e.target.closest('.question-form').remove();
-            
-            // Perbarui TOTAL_FORMS
-            totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+            const formElement = e.target.closest('.question-form');
+            if (!formElement) return;
 
-            // Perbarui nomor urut pertanyaan
+            // Cari tahu apakah ini form yang sudah ada (punya ID) atau form baru
+            // Kita cek input 'id' yang tersembunyi, contoh: input[name="questions-0-id"]
+            const idInput = formElement.querySelector(`input[name$="-id"]`);
+
+            if (idInput && idInput.value) {
+                // --- INI FORM YANG SUDAH ADA ---
+                // Jangan hapus elemennya. Cukup centang checkbox DELETE
+                // dan sembunyikan formnya dari tampilan.
+                const deleteInput = formElement.querySelector(`input[name$="-DELETE"]`);
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    formElement.style.display = 'none';
+                }
+            } else {
+                // --- INI FORM BARU (DARI TEMPLATE) ---
+                // Aman untuk menghapus elemennya dari DOM.
+                formElement.remove();
+                
+                // Kurangi TOTAL_FORMS karena kita menghapus form baru
+                totalFormsInput.value = parseInt(totalFormsInput.value) - 1;
+            }
+            
+            // Perbarui nomor urut pertanyaan yang terlihat
             updateQuestionNumbers();
         }
     });

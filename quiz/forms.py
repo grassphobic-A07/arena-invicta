@@ -10,13 +10,13 @@ class QuizForm(forms.ModelForm):
         model = Quiz
         # Tentukan field mana dari model yang ingin ditampilkan di form.
         # 'user' dan 'created_at' diatur secara otomatis, jadi tidak perlu dimasukkan.
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'is_published']
         
         # (Opsional) Menambahkan atribut ke elemen HTML untuk styling.
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
-                'placeholder': 'Contoh: Kuis Pengetahuan Umum'
+                'placeholder': 'Contoh: Kuis Pengetahuan Olahraga'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',

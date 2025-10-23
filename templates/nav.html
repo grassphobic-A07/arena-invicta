@@ -1,137 +1,148 @@
-<header class="px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
-  <div class="mx-auto max-w-3xl">
-    <div class="relative flex items-center justify-between gap-3">
-      {% url 'accounts:home' as home_url %}
-      <a href="{{ home_url }}" class="font-semibold text-primary">Arena Invicta</a>
+{% comment %} nav.html {% endcomment %}
+<header class="sticky top-0 w-full z-50 px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
+  <div class="mx-auto max-w-7xl"> {# Lebarkan max-width agar item tengah muat #}
+    <div class="relative flex items-center justify-between gap-4"> {# justify-between #}
 
+      {% comment %} --- URL Definitions --- {% endcomment %}
+      {% url 'news:show_news' as home_url %}
       {% url 'accounts:login' as login_url %}
       {% url 'accounts:register' as register_url %}
       {% url 'accounts:logout' as logout_url %}
+      {% url 'news:discussions' as discussion_url %} {# GANTI PAKAI URL DISCUSSIONS #}
+      {% url 'news:league' as league_url %}   {# GANTI PAKAI URL LEAGUE #}
+      {% url 'news:quiz' as quiz_url %} {# GANTI PAKAI URL QUIZ #}
 
-      {# ============== DESKTOP NAV (≥ md) ============== #}
-      <nav class="hidden md:flex items-center gap-2">
+      {% comment %} === BAGIAN KIRI === {% endcomment %}
+      <div class="flex-shrink-0">
+        <a href="{{ home_url }}" class="font-semibold text-primary text-lg">Arena Invicta</a>
+      </div>
+
+      {% comment %} === BAGIAN TENGAH (Desktop Nav >= md) === {% endcomment %}
+      <nav class="hidden md:flex flex-grow justify-center items-center gap-2">
+        {# --- HOME --- #}
         <a href="{{ home_url }}"
            class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.path == home_url %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
-           {% if request.path == home_url %}aria-current="page"{% endif %}>
-          <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
+                  {% if request.resolver_match.url_name == 'show_news' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
+           {% if request.resolver_match.url_name == 'show_news' %}aria-current="page"{% endif %}>
+           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
           Home
         </a>
-        {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
-          <a href="{% url 'accounts:admin_dashboard' %}"
-            class="inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 bg-white hover:bg-mist/60">
-            Admin
-          </a>
-        {% endif %}
-        {% if request.user.is_authenticated %}
-          {# ---- Avatar trigger (gabungan Profil + Logout) ---- #}
 
-          {% url 'accounts:profile_detail' request.user.username as profile_url %}
-          <div class="relative">
-            <button id="user-menu-button"
-                    class="relative h-9 w-9 rounded-full border border-surface/20 bg-mist/50
-                          flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-sea/30"
-                    aria-haspopup="menu" aria-expanded="false" aria-controls="user-menu" aria-label="Open user menu">
-              <!-- masker avatar: overflow di sini, BUKAN di tombol -->
-              <span class="absolute inset-0 rounded-full overflow-hidden">
-                {% if request.user.profile.avatar_url %}
-                  <img src="{{ request.user.profile.avatar_url }}" alt=""
-                      class="h-full w-full object-cover"
-                      referrerpolicy="no-referrer"
-                      onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
-                {% endif %}
-                <svg class="absolute inset-0 m-auto w-5 h-5 text-surface/70 {% if request.user.profile.avatar_url %}hidden{% endif %}"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/>
-                </svg>
-              </span>
+        {# --- DISCUSSIONS --- #}
+        <a href="{{ discussion_url }}"
+           class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
+                  {% if request.resolver_match.url_name == 'discussions' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
+           {% if request.resolver_match.url_name == 'discussions' %}aria-current="page"{% endif %}>
+           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+           </svg>
+          Discussions
+        </a>
 
-              <!-- badge chevron: tidak ikut ter-clip -->
-              <span class="pointer-events-none absolute bottom-0 right-0 translate-x-1/6 translate-y-1/6
-                          rounded-full bg-white ring-1 ring-surface/20 shadow flex items-center justify-center"
-                    style="width:14px;height:14px">
-                <svg id="user-chevron" class="w-3 h-3 text-surface/70 transition-transform duration-150"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-width="2" d="M6 9l6 6 6-6"/>
-                </svg>
-              </span>
-            </button>
-
-            <!-- dropdown -->
-            <div id="user-menu"
-                class="hidden absolute right-0 top-full mt-2 w-48 z-[60]
-                        rounded-xl border border-mist bg-white shadow-2xl overflow-hidden"
-                role="menu" aria-labelledby="user-menu-button">
-              <a href="{{ profile_url }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60"
-                role="menuitem" {% if request.path == profile_url %}aria-current="page"{% endif %}>
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/>
-                </svg>
-                <span>My Profile</span>
-              </a>
-              <a href="{{ logout_url }}"
-                class="flex items-center gap-3 px-4 py-3 text-sm text-danger/90 hover:bg-mist/60"
-                role="menuitem">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                  <path stroke-width="2" d="M14 7l5 5-5 5"/>
-                  <path stroke-width="2" d="M19 12H9"/>
-                </svg>
-                <span>Logout</span>
-              </a>
-            </div>
-          </div>
-        {% else %}
-          <a href="{{ login_url }}"
-             class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                    {% if request.path == login_url %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}">
-            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
-            Login
-          </a>
-          <a href="{{ register_url }}"
-             class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                    {% if request.path == register_url %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}">
-            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
-            Sign up
-          </a>
-        {% endif %}
+        {# --- LEAGUE --- #}
+        <a href="{{ league_url }}"
+           class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
+                  {% if request.resolver_match.url_name == 'league' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
+           {% if request.resolver_match.url_name == 'league' %}aria-current="page"{% endif %}>
+           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
+             <path d="M12 12v4m0 4v4m-4 0h8"></path>
+             <path d="M8 12a4 4 0 0 1 8 0"></path>
+           </svg>
+          League
+        </a>
       </nav>
 
-      {# ============== HAMBURGER (mobile) ============== #}
-      <button id="nav-toggle"
-              class="md:hidden inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 text-surface/80 hover:text-sea"
-              aria-controls="mobile-sheet" aria-expanded="false" aria-label="Open navigation">
-        <svg class="w-5 h-5 icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        <svg class="w-5 h-5 icon-close hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M6 6l12 12M6 18L18 6"/></svg>
-      </button>
+      {% comment %} === BAGIAN KANAN (Auth/Profile/Hamburger) === {% endcomment %}
+      <div class="flex-shrink-0 flex items-center gap-2">
+        {# --- Desktop Auth/Profile (>= md) --- #}
+        <div class="hidden md:flex items-center gap-2">
+          {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
+            <a href="{% url 'accounts:admin_dashboard' %}"
+               class="inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 bg-white hover:bg-mist/60">
+              Admin
+            </a>
+          {% endif %}
+          {% if request.user.is_authenticated %}
+            {% url 'accounts:profile_detail' request.user.username as profile_url %}
+            <span class="text-sm text-surface/80 mr-1"> 
+                Hi, <strong>{{ request.user.username }}</strong>
+            </span>
+            <div class="relative">
+              <button id="user-menu-button"
+                      class="relative h-9 w-9 rounded-full border border-surface/20 bg-mist/50 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-sea/30"
+                      aria-haspopup="menu" aria-expanded="false" aria-controls="user-menu" aria-label="Open user menu">
+                <span class="absolute inset-0 rounded-full overflow-hidden">
+                  {% if request.user.profile.avatar_url %}
+                    <img src="{{ request.user.profile.avatar_url }}" alt="" class="h-full w-full object-cover" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+                  {% endif %}
+                  <svg class="absolute inset-0 m-auto w-5 h-5 text-surface/70 {% if request.user.profile.avatar_url %}hidden{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/>
+                  </svg>
+                </span>
+                <span class="pointer-events-none absolute bottom-0 right-0 translate-x-1/6 translate-y-1/6 rounded-full bg-white ring-1 ring-surface/20 shadow flex items-center justify-center" style="width:14px;height:14px">
+                  <svg id="user-chevron" class="w-3 h-3 text-surface/70 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-width="2" d="M6 9l6 6 6-6"/>
+                  </svg>
+                </span>
+              </button>
+              <div id="user-menu" class="hidden absolute right-0 top-full mt-2 w-48 z-[60] rounded-xl border border-mist bg-white shadow-2xl overflow-hidden" role="menu" aria-labelledby="user-menu-button">
+                <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60" role="menuitem" {% if request.resolver_match.view_name == 'accounts:profile_detail' and request.resolver_match.kwargs.username == request.user.username %}aria-current="page"{% endif %}> {# Update active state check for profile #}
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
+                  <span>My Profile</span>
+                </a>
+
+                <a href="{{ quiz_url }}"
+                  class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60"
+                  role="menuitem" {% if request.resolver_match.app_name == 'quiz' %}aria-current="page"{% endif %}> {# <-- Cek app_name #}
+                    {# Contoh Ikon Clipboard List #}
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <span>Quiz</span>
+                </a>
+
+                <a href="{{ logout_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-danger/90 hover:bg-mist/60" role="menuitem">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path stroke-width="2" d="M14 7l5 5-5 5"/><path stroke-width="2" d="M19 12H9"/></svg>
+                  <span>Logout</span>
+                </a>
+              </div>
+            </div>
+          {% else %}
+            <a href="{{ login_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.url_name == 'login' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai resolver_match #}
+              <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
+              Login
+            </a>
+            <a href="{{ register_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.url_name == 'register' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai resolver_match #}
+              <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
+              Sign up
+            </a>
+          {% endif %}
+        </div>
+
+        {# --- Hamburger (mobile < md) --- #}
+        <button id="nav-toggle" class="md:hidden inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 text-surface/80 hover:text-sea" aria-controls="mobile-sheet" aria-expanded="false" aria-label="Open navigation">
+          <svg class="w-5 h-5 icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <svg class="w-5 h-5 icon-close hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M6 6l12 12M6 18L18 6"/></svg>
+        </button>
+      </div>
+
     </div>
   </div>
 </header>
 
-{# --------- Mobile floating sheet (header menampilkan avatar) --------- #}
+{# --------- Mobile floating sheet --------- #}
 <div id="mobile-backdrop" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity md:hidden"></div>
-
-<div id="mobile-sheet"
-     class="fixed left-3 right-3 top-3 z-50 md:hidden
-            translate-y-4 opacity-0 scale-95 pointer-events-none
-            transition-all duration-200">
+<div id="mobile-sheet" class="fixed left-3 right-3 top-3 z-50 md:hidden translate-y-4 opacity-0 scale-95 pointer-events-none transition-all duration-200">
   <div class="rounded-2xl border border-mist bg-white/90 backdrop-blur-xl shadow-2xl overflow-hidden">
     <div class="flex items-center justify-between px-4 py-3 border-b border-mist/60 bg-gradient-to-r from-mist/60 to-white/40">
       <div class="flex items-center gap-3">
         {% if request.user.is_authenticated and request.user.profile.avatar_url %}
-          <img src="{{ request.user.profile.avatar_url }}" alt="" class="h-8 w-8 rounded-full object-cover"
-               referrerpolicy="no-referrer"
-               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
+          <img src="{{ request.user.profile.avatar_url }}" alt="" class="h-8 w-8 rounded-full object-cover" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
           <svg class="hidden w-8 h-8 text-surface/70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
         {% else %}
           <svg class="w-8 h-8 text-surface/70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
         {% endif %}
         <span class="font-semibold text-primary">
-          {% if request.user.is_authenticated %}
-            {{ request.user.get_username }}
-          {% else %}Menu
-          {% endif %}
+          {% if request.user.is_authenticated %}{{ request.user.get_username }}{% else %}Menu{% endif %}
         </span>
       </div>
       <button id="nav-close" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-surface/20 text-surface/80 hover:text-sea" aria-label="Close menu">
@@ -139,17 +150,21 @@
       </button>
     </div>
 
-    {% url 'accounts:home' as home_url %}
-    {% url 'accounts:login' as login_url %}
-    {% url 'accounts:register' as register_url %}
-    {% url 'accounts:logout' as logout_url %}
-
     <nav class="p-3">
       <ul class="space-y-2">
         <li>
-          <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.path == home_url %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
+          <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'show_news' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
             <span>Home</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ discussion_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'discussion' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <span>Discussions</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{ league_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'league' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <span>League</span>
           </a>
         </li>
 
@@ -157,25 +172,17 @@
           {% url 'accounts:profile_detail' request.user.username as profile_url %}
           <li>
             <div class="rounded-xl border border-surface/20">
-              <div class="px-4 pt-3 pb-1 text-xs tracking-wide text-surface/60">
-                AKUN
-              </div>
-              
+              <div class="px-4 pt-3 pb-1 text-xs tracking-wide text-surface/60">AKUN</div>
               <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
                 <span>My Profile</span>
               </a>
-
-              <!-- Khusus User Admin -->
               {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
-                <a href="{% url 'accounts:admin_dashboard' %}"
-                  class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
+                <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
                   <span>Admin</span>
                 </a>
               {% endif %}
-
-
               <a href="{{ logout_url }}" class="flex items-center gap-3 px-4 py-3 text-danger hover:bg-mist/50 border-t border-surface/10">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path stroke-width="2" d="M14 7l5 5-5 5"/><path stroke-width="2" d="M19 12H9"/></svg>
                 <span>Logout</span>
@@ -184,13 +191,13 @@
           </li>
         {% else %}
           <li>
-            <a href="{{ login_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.path == login_url %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}">
+            <a href="{{ login_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'login' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
               <span>Login</span>
             </a>
           </li>
           <li>
-            <a href="{{ register_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.path == register_url %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}">
+            <a href="{{ register_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'register' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
               <span>Sign up</span>
             </a>
@@ -204,6 +211,7 @@
 {# JS (toggle + dropdown) #}
 <script>
   (function () {
+    // ... (Kode JavaScript kamu yang sudah ada tetap di sini) ...
     const navBtn   = document.getElementById('nav-toggle');
     const sheet    = document.getElementById('mobile-sheet');
     const backdrop = document.getElementById('mobile-backdrop');

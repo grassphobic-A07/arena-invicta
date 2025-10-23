@@ -1,6 +1,4 @@
-<!-- Base/basis untuk semua file html yang ada di website Arena Invicta  -->
-{% load static %}  <!-- load static supaya bisa akses file statis seperti css, js, gambar, dll -->
-<!DOCTYPE html>
+{% load static %}  <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -22,59 +20,75 @@
                         },
                         borderRadius: { xl: "14px" }
                     }
-                }                
+                }            
             }
         </script>
+
+        <style>
+            ::-webkit-scrollbar {
+                width: 10px; /* Lebar scrollbar */
+                height: 10px; /* Tinggi scrollbar (untuk horizontal) */
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #FFFFFF; 
+                border-radius: 5px; 
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background-color: #3E4C59;
+                border-radius: 5px; 
+                border: 2px solid #FFFFFF;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background-color: #102A43;
+            }
+
+            html {
+              scrollbar-color: #3E4C59 #FFFFFF; /* Warna thumb (surface), Warna track (putih) */
+              scrollbar-width: thin; /* Membuat scrollbar lebih tipis */
+            }
+        </style>
         
     </head>
 
     <body class="min-h-screen bg-mist text-surface">
         {% include "nav.html" %}        
 
-        <!-- Content -->
-        <main class="mx-auto max-w-3xl px-4 py-10">
+        {% block content %}
+            <main class="mx-auto max-w-3xl px-4 py-10">
+                {% if messages %}
+                    <div id="dj-messages" hidden>
+                        {% for message in messages %}
+                        <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </main>
+        {% endblock %}
 
-            <!-- Khusus untuk render pesan dari Django Messages Framework (Delete Account) -->
-            {% if messages %}
-                <div id="dj-messages" hidden>
-                    {% for message in messages %}
-                    <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
-                    {% endfor %}
-                </div>
-            {% endif %}
 
-            {% block content %}{% endblock %}
-        </main>
-
-        <!-- Footer kecil -->
         <footer class="px-4 py-6 border-t border-surface/20 text-xs text-surface/70">
-            <div class="mx-auto max-w-3xl">
+            <div class="mx-auto max-w-3xl text-center">
                 Arena Invicta • Berita · Analisis · Kuis
             </div>
         </footer>
         
+        <div id="toast-viewport" class="fixed top-4 right-4 space-y-2 z-[100000]"></div>
 
-        <!-- BATAS AMBANG KHUSUS UNTUK NOTIFIKASI TOAST DAN MODAL CONFIRM -->
-
-        <!-- Toast Viewport, setiap berhasil sebuah aksi -->
-        <div id="toast-viewport" class="fixed top-4 right-4 space-y-2 z-50"></div>
-
-        <!-- Confirm Modal untuk Delete Avatar dan Delete Account -->
         <div id="ai-confirm"
-            class="fixed inset-0 z-[10050] hidden"
-            role="dialog" aria-modal="true" aria-labelledby="ai-confirm-title" aria-describedby="ai-confirm-desc">
-            <!-- Backdrop -->
+             class="fixed inset-0 z-[10050] hidden"
+             role="dialog" aria-modal="true" aria-labelledby="ai-confirm-title" aria-describedby="ai-confirm-desc">
             <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-ai-close></div>
 
-            <!-- Sheet -->
             <div class="absolute inset-0 flex items-center justify-center p-4">
                 <div data-ai-card
-                    class="w-full max-w-md rounded-2xl border border-mist bg-white shadow-2xl overflow-hidden
+                     class="w-full max-w-md rounded-2xl border border-mist bg-white shadow-2xl overflow-hidden
                             transform transition-all duration-150 opacity-0 scale-95">
                 <div class="px-5 py-4 flex items-start gap-3">
                     <div id="ai-confirm-badge"
-                        class="h-10 w-10 rounded-full grid place-items-center bg-danger/10 text-danger">
-                    <!-- icon default (warning) -->
+                         class="h-10 w-10 rounded-full grid place-items-center bg-danger/10 text-danger">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path stroke-width="2" d="M12 9v4m0 4h.01"/><path stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
                     </svg>
@@ -99,7 +113,7 @@
                 </div>
             </div>
         </div>
-
+        
         <style>
             @keyframes toast-in {
                 0% {
@@ -178,7 +192,7 @@
 
             const variants = {
                 success:{wrap:"bg-mint/90 text-primary ring-1 ring-mint/40",badge:"bg-white/70 text-primary",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M20 6L9 17l-5-5"/></svg>`},
-                error:{wrap:"bg-danger/95 text-white ring-1 ring-danger/40",badge:"bg-white/20 text-white",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M18 6L6 18M6 6l12 12"/></svg>`},
+                error:{wrap:"bg-danger/95 text-white ring-1 ring-danger/40",badge:"bg-white/20 text-white",icon:``},
                 info:{wrap:"bg-primary/95 text-mist ring-1 ring-primary/40",badge:"bg-white/20 text-mist",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-width="2" d="M12 8v.01M11 12h2v4h-2"/></svg>`},
                 warning:{wrap:"bg-yellow-500 text-black ring-1 ring-yellow-300/40",badge:"bg-black/10 text-black",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M12 9v4m0 4h.01"/><path stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`}
             };
@@ -306,6 +320,8 @@
             return { open };
             })();
         </script>
+        
+        {% block scripts %}{% endblock scripts %}
 
     </body>
 </html>

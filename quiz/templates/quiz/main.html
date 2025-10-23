@@ -16,7 +16,6 @@
 {% endif %}
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
     {% for quiz in quizzes %}
     <div class="group bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col">
         <div class="p-6 flex-grow">
@@ -42,11 +41,18 @@
         </div>
     </div>
     {% empty %}
+    {% if authorized %}
+    <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
+        <h3 class="text-xl font-semibold text-gray-700">Belum ada kuis buatanmu</h3>
+        <p class="text-gray-500 mt-2">Buat kuis pertamamu sekarang!</p>
+    </div>
+    {% else %}
     <div class="md:col-span-2 lg:col-span-3 text-center py-12 px-6 bg-white rounded-xl shadow-sm">
         <h3 class="text-xl font-semibold text-gray-700">Belum Ada Kuis</h3>
         <p class="text-gray-500 mt-2">Jadilah yang pertama untuk membuat kuis baru!</p>
     </div>
+    {% endif %}
     {% endfor %}
-
 </div>
+
 {% endblock %}
