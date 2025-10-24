@@ -2,11 +2,11 @@
 {% block title %}Login • Arena Invicta{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-xl relative">
-  <h1 class="mb-6 text-3xl font-semibold text-primary">Login</h1>
+<section class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 pb-16">
+  <h1 class="mb-8 text-3xl font-semibold text-primary">Login</h1>
 
   <form method="post"
-        class="backdrop-blur-xl bg-white/70 border border-white/40 rounded-2xl shadow-[0_10px_40px_rgba(16,42,67,.12)] p-6 space-y-5">
+        class="backdrop-blur-xl bg-white/70 border border-white/40 rounded-2xl shadow-[0_10px_40px_rgba(16,42,67,.12)] p-8 md:p-10 space-y-6">
     {% csrf_token %}
 
     {% if form.non_field_errors %}
