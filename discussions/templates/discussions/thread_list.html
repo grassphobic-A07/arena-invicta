@@ -85,16 +85,49 @@
         </header>
 
         <div class="space-y-2">
-          <label for="field-news" class="text-sm font-medium text-surface/80">Berita yang dibahas</label>
-          <select id="field-news"
-                  name="news"
-                  required
-                  class="w-full rounded-lg border border-surface/20 bg-white px-3 py-2 text-sm text-surface/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-            <option value="">Pilih berita…</option>
-            {% for news in thread_form.fields.news.queryset %}
-              <option value="{{ news.id }}">{{ news.title }} ({{ news.id }})</option>
-            {% endfor %}
-          </select>
+          <label id="field-news-label"
+                 for="field-news-search"
+                 class="text-sm font-medium text-surface/80">Berita yang dibahas</label>
+          <div class="relative" data-news-combobox>
+            <input type="hidden" name="news" id="field-news" value="">
+            <button type="button"
+                    class="flex w-full items-center justify-between rounded-lg border border-surface/20 bg-white px-3 py-2 text-left text-sm text-surface/60 transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    data-news-toggle
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-labelledby="field-news-label">
+              <span class="line-clamp-1" data-news-toggle-label>Pilih berita...</span>
+              <svg class="ml-2 h-4 w-4 text-surface/40 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-news-toggle-icon>
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.11l3.71-3.88a.75.75 0 1 1 1.08 1.04l-4.25 4.44a.75.75 0 0 1-1.08 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div class="absolute left-0 right-0 z-30 mt-2 hidden overflow-hidden rounded-xl border border-surface/20 bg-white shadow-xl" data-news-panel>
+              <div class="flex items-center gap-2 border-b border-surface/10 px-3 py-2">
+                <svg class="h-4 w-4 text-surface/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input id="field-news-search"
+                       type="text"
+                       autocomplete="off"
+                       placeholder="Cari berita..."
+                       class="w-full border-none bg-transparent text-sm text-surface/80 focus:outline-none"
+                       data-news-search>
+              </div>
+              <ul class="max-h-60 overflow-y-auto py-1" role="listbox" aria-labelledby="field-news-label" data-news-options>
+                {% for news in thread_form.fields.news.queryset %}
+                  <li role="option"
+                      tabindex="-1"
+                      data-news-option
+                      data-value="{{ news.id }}"
+                      class="cursor-pointer px-3 py-2 text-sm text-surface/70 transition hover:bg-mist">
+                    {{ news.title }} ({{ news.id }})
+                  </li>
+                {% endfor %}
+              </ul>
+              <p class="hidden px-3 py-3 text-xs text-surface/50" data-news-empty>Tidak ada berita yang cocok.</p>
+            </div>
+          </div>
           <p class="text-xs text-danger empty:hidden" data-field-error="news"></p>
         </div>
 
@@ -157,6 +190,17 @@
     const form = document.getElementById("thread-form");
     const spinner = form ? form.querySelector("[data-submit-spinner]") : null;
     const submitText = form ? form.querySelector("[data-submit-text]") : null;
+    const newsCombobox = form ? form.querySelector("[data-news-combobox]") : null;
+    const newsHiddenInput = form ? form.querySelector("#field-news") : null;
+    const newsToggle = newsCombobox ? newsCombobox.querySelector("[data-news-toggle]") : null;
+    const newsToggleLabel = newsCombobox ? newsCombobox.querySelector("[data-news-toggle-label]") : null;
+    const newsToggleIcon = newsCombobox ? newsCombobox.querySelector("[data-news-toggle-icon]") : null;
+    const newsPanel = newsCombobox ? newsCombobox.querySelector("[data-news-panel]") : null;
+    const newsSearchInput = newsCombobox ? newsCombobox.querySelector("[data-news-search]") : null;
+    const newsEmptyState = newsCombobox ? newsCombobox.querySelector("[data-news-empty]") : null;
+    const newsOptions = newsCombobox ? Array.from(newsCombobox.querySelectorAll("[data-news-option]")) : [];
+    const newsPlaceholder = "Pilih berita...";
+    let isNewsPanelOpen = false;
 
     function escapeHTML(value) {
       if (!value) {
@@ -185,6 +229,229 @@
       } catch {
         return isoString;
       }
+    }
+
+    function updateNewsLabel(labelText, isPlaceholder = false) {
+      if (!newsToggleLabel) return;
+      newsToggleLabel.textContent = labelText;
+      if (newsToggle) {
+        newsToggle.classList.toggle("text-surface/60", isPlaceholder);
+        newsToggle.classList.toggle("text-surface/80", !isPlaceholder);
+      }
+    }
+
+    function getVisibleNewsOptions() {
+      return newsOptions.filter((option) => !option.classList.contains("hidden"));
+    }
+
+    function filterNewsOptions(term) {
+      if (!newsOptions.length) return 0;
+      const query = term.trim().toLowerCase();
+      let visible = 0;
+      newsOptions.forEach((option) => {
+        const matches = option.textContent.toLowerCase().includes(query);
+        option.classList.toggle("hidden", !matches);
+        if (matches) {
+          option.removeAttribute("aria-hidden");
+        } else {
+          option.setAttribute("aria-hidden", "true");
+        }
+        if (matches) {
+          visible += 1;
+        }
+      });
+      if (newsEmptyState) {
+        newsEmptyState.classList.toggle("hidden", visible !== 0);
+      }
+      return visible;
+    }
+
+    function focusVisibleOption(position) {
+      const visible = getVisibleNewsOptions();
+      if (!visible.length) return;
+      const target = position === "last" ? visible[visible.length - 1] : visible[0];
+      target?.focus();
+    }
+
+    function focusRelativeOption(currentOption, delta) {
+      const visible = getVisibleNewsOptions();
+      if (!visible.length) return;
+      const currentIndex = visible.indexOf(currentOption);
+      if (currentIndex === -1) {
+        (delta > 0 ? visible[0] : visible[visible.length - 1])?.focus();
+        return;
+      }
+      const nextIndex = (currentIndex + delta + visible.length) % visible.length;
+      visible[nextIndex]?.focus();
+    }
+
+    function closeNewsPanel() {
+      if (!isNewsPanelOpen) return;
+      isNewsPanelOpen = false;
+      newsPanel?.classList.add("hidden");
+      newsToggle?.setAttribute("aria-expanded", "false");
+      newsToggleIcon?.classList.remove("rotate-180");
+      document.removeEventListener("click", handleOutsideClick);
+      document.removeEventListener("keydown", handleGlobalKeydown);
+    }
+
+    function openNewsPanel(options = {}) {
+      if (isNewsPanelOpen) return;
+      const { focusSearch = true } = options;
+      isNewsPanelOpen = true;
+      newsPanel?.classList.remove("hidden");
+      newsToggle?.setAttribute("aria-expanded", "true");
+      newsToggleIcon?.classList.add("rotate-180");
+      if (newsSearchInput) {
+        newsSearchInput.value = "";
+        filterNewsOptions("");
+        if (focusSearch) {
+          requestAnimationFrame(() => newsSearchInput.focus());
+        }
+      } else {
+        filterNewsOptions("");
+      }
+      const selectedOption = newsOptions.find((option) => option.getAttribute("aria-selected") === "true");
+      if (selectedOption) {
+        requestAnimationFrame(() => selectedOption.scrollIntoView({ block: "nearest" }));
+      }
+      document.addEventListener("click", handleOutsideClick);
+      document.addEventListener("keydown", handleGlobalKeydown);
+    }
+
+    function handleOutsideClick(event) {
+      if (!isNewsPanelOpen || !newsCombobox) return;
+      if (!newsCombobox.contains(event.target)) {
+        closeNewsPanel();
+      }
+    }
+
+    function handleGlobalKeydown(event) {
+      if (!isNewsPanelOpen) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeNewsPanel();
+        newsToggle?.focus();
+      }
+    }
+
+    function selectNewsOption(option, { silent = false } = {}) {
+      if (!option) return;
+      const value = option.dataset.value || "";
+      if (newsHiddenInput) {
+        newsHiddenInput.value = value;
+      }
+      newsOptions.forEach((item) => {
+        item.classList.remove("bg-primary/5", "text-primary");
+        item.removeAttribute("aria-selected");
+      });
+      option.classList.add("bg-primary/5", "text-primary");
+      option.setAttribute("aria-selected", "true");
+      updateNewsLabel(option.textContent.trim() || newsPlaceholder, !value);
+      if (!silent) {
+        closeNewsPanel();
+        newsToggle?.focus();
+      }
+    }
+
+    function resetNewsCombobox() {
+      if (!newsCombobox) return;
+      if (newsHiddenInput) {
+        newsHiddenInput.value = "";
+      }
+      updateNewsLabel(newsPlaceholder, true);
+      newsOptions.forEach((option) => {
+        option.classList.remove("bg-primary/5", "text-primary");
+        option.removeAttribute("aria-selected");
+        option.classList.remove("hidden");
+        option.removeAttribute("aria-hidden");
+      });
+      if (newsEmptyState) {
+        newsEmptyState.classList.add("hidden");
+      }
+      if (newsSearchInput) {
+        newsSearchInput.value = "";
+      }
+      closeNewsPanel();
+    }
+
+    if (newsCombobox) {
+      updateNewsLabel(newsPlaceholder, true);
+      const initialValue = newsHiddenInput?.value?.trim();
+      if (initialValue) {
+        const initialOption = newsOptions.find((option) => option.dataset.value === initialValue);
+        if (initialOption) {
+          selectNewsOption(initialOption, { silent: true });
+        } else if (newsHiddenInput) {
+          newsHiddenInput.value = "";
+        }
+      }
+
+      newsToggle?.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (isNewsPanelOpen) {
+          closeNewsPanel();
+        } else {
+          openNewsPanel();
+        }
+      });
+
+      newsToggle?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (isNewsPanelOpen) {
+            closeNewsPanel();
+          } else {
+            openNewsPanel();
+          }
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          if (!isNewsPanelOpen) {
+            openNewsPanel({ focusSearch: false });
+          }
+          focusVisibleOption("first");
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          if (!isNewsPanelOpen) {
+            openNewsPanel({ focusSearch: false });
+          }
+          focusVisibleOption("last");
+        }
+      });
+
+      newsSearchInput?.addEventListener("input", (event) => {
+        filterNewsOptions(event.target.value);
+      });
+
+      newsSearchInput?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const [firstOption] = getVisibleNewsOptions();
+          selectNewsOption(firstOption);
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          focusVisibleOption("first");
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          focusVisibleOption("last");
+        }
+      });
+
+      newsOptions.forEach((option) => {
+        option.addEventListener("click", () => selectNewsOption(option));
+        option.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectNewsOption(option);
+          } else if (event.key === "ArrowDown") {
+            event.preventDefault();
+            focusRelativeOption(option, 1);
+          } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            focusRelativeOption(option, -1);
+          }
+        });
+      });
     }
 
     function renderThreadCard(thread) {
@@ -326,6 +593,7 @@
         if (form) {
           form.reset();
           clearFieldErrors();
+          resetNewsCombobox();
         }
       }
     }
@@ -355,7 +623,10 @@
         if (errorContainer) {
           errorContainer.textContent = messages[0];
         }
-        if (input) {
+        if (field === "news" && newsToggle) {
+          newsToggle.classList.add("border-danger", "focus:border-danger", "focus:ring-danger/30");
+          newsToggle.focus();
+        } else if (input) {
           input.classList.add("border-danger", "focus:border-danger", "focus:ring-danger/30");
         }
       });
