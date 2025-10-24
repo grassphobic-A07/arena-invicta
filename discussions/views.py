@@ -25,7 +25,6 @@ def thread_list(request):
             or thread.author.get_full_name()
             or thread.author.get_username()
         )
-        thread.news_excerpt = _news_excerpt(thread.news)
     context = {
         'threads': threads,
         'search_query': query,
@@ -48,7 +47,6 @@ def thread_detail(request, pk):
     thread = get_object_or_404(_thread_queryset(), pk=pk)
     DiscussionThread.objects.filter(pk=thread.pk).update(views_count=F('views_count') + 1)
     thread.views_count = (thread.views_count or 0) + 1
-    thread.news_excerpt = _news_excerpt(thread.news)
     comments_qs = thread.comments.filter(is_removed=False).select_related('author', 'author__profile', 'parent', 'parent__author', 'parent__author__profile')
     comments = list(comments_qs)
     for comment in comments:
@@ -192,14 +190,27 @@ def comment_edit(request, pk):
     comment = get_object_or_404(DiscussionComment.objects.select_related('thread'), pk=pk)
     if not _can_manage_comment(request.user, comment):
         raise PermissionDenied
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('accept', '').startswith('application/json')
 
-    if request.method == 'POST':
-        form = CommentForm(request.POST, instance=comment)
-        if form.is_valid():
-            form.save()
-            return redirect('discussions:thread-detail', pk=comment.thread.pk)
-    else:
+    if request.method == 'GET':
         form = CommentForm(instance=comment)
+        if is_ajax:
+            return JsonResponse({'ok': True, 'content': comment.content})
+        return render(
+            request,
+            'discussions/comment_form.html',
+            {'form': form, 'thread': comment.thread, 'comment': comment},
+        )
+
+    form = CommentForm(request.POST, instance=comment)
+    if form.is_valid():
+        form.save()
+        if is_ajax:
+            return JsonResponse({'ok': True, 'content': comment.content})
+        return redirect('discussions:thread-detail', pk=comment.thread.pk)
+
+    if is_ajax:
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
     return render(
         request,
@@ -281,9 +292,6 @@ def _serialize_thread(thread):
     avatar_url = getattr(profile, 'avatar_url', '') or None
     display_name = getattr(profile, 'display_name', '') or ''
     news = thread.news
-    upvote_count = getattr(thread, 'upvote_count', None)
-    if upvote_count is None:
-        upvote_count = thread.upvotes.count()
 
     return {
         'id': thread.pk,
@@ -293,7 +301,7 @@ def _serialize_thread(thread):
         'is_locked': thread.is_locked,
         'is_pinned': thread.is_pinned,
         'views_count': getattr(thread, 'views_count', 0),
-        'upvote_count': upvote_count,
+        'upvote_count': getattr(thread, 'upvote_count', thread.upvotes.count() if hasattr(thread, 'upvotes') else 0),
         'comment_count': getattr(thread, 'comment_count', 0),
         'detail_url': reverse('discussions:thread-detail', args=[thread.pk]),
         'news': {
@@ -313,7 +321,7 @@ def _serialize_thread(thread):
 def _news_excerpt(news, word_limit=24):
     if not news or not getattr(news, 'content', None):
         return ''
-    text = news.content.strip()
+    text = (news.content or '').strip()
     if not text:
         return ''
     words = text.split()
