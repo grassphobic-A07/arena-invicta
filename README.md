@@ -39,8 +39,8 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     - **Update:** Mengedit profil. ✅
     - **Delete:** Menghapus atau menonaktifkan akun. ✅
 
-2. **News** - Rafasya Muhammad Subhan\
-    Fitur ini menyediakan artikel sepak bola dengan publish dan publish.
+2. **News** - Rafasya Muhammad Subhan ✅\
+    Fitur ini menyediakan artikel sepak bola dengan publish dan publish. ✅
 
     **CRUD:**
     - **Create:** Membuat artikel baru. ✅
@@ -48,32 +48,32 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     - **Update:** Mengedit isi/artikel.✅
     - **Delete:** Menghapus atau men-unpublish artikel oleh editor.✅
 
-3. **Quiz** - Hannan Afif Darmawan\
+3. **Quiz** - Hannan Afif Darmawan ✅\
     Fitur kuis interaktif tentang sepak bola. Content Staff dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
 
     **CRUD:**
-    - **Create:** Membuat kuis dan pertanyaan.
-    - **Read:** Menampilkan daftar kuis dan leaderboard.
-    - **Update:** Mengubah pertanyaan atau status publish.
-    - **Delete:** Menghapus kuis atau pertanyaan.
+    - **Create:** Membuat kuis dan pertanyaan. ✅
+    - **Read:** Menampilkan daftar kuis dan leaderboard. ✅
+    - **Update:** Mengubah pertanyaan atau status publish. ✅
+    - **Delete:** Menghapus kuis atau pertanyaan. ✅
 
-4. **Discussions (atau Comment)** - Adam Rayyan Aryasatya\
-    Fitur Forum atau kolom komentar untuk berdiskusi dan menanggapi konten.
-
-    **CRUD:**
-    - **Create:** Membuat thread atau komentar.
-    - **Read:** Melihat thread dan balasan.
-    - **Update:** Mengedit komentar sendiri.
-    - **Delete:** Menghapus komentar sendiri.
-
-5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki\
-    Fitur ini menampilkan data liga, tim, jadwal pertandingan, hasil, dan informasi terkait lainnya.
+4. **Discussions (atau Comment)** - Adam Rayyan Aryasatya ✅\
+    Fitur Forum atau kolom komentar untuk berdiskusi dan menanggapi konten. ✅
 
     **CRUD:**
-    - **Create:** Menambahkan liga, tim, atau jadwal pertandingan.
-    - **Read:** Menampilkan informasi liga dan pertandingan.
-    - **Update:** Memperbarui skor dan klasemen/standing.
-    - **Delete:** Menghapus data tim atau pertandingan.
+    - **Create:** Membuat thread atau komentar. ✅
+    - **Read:** Melihat thread dan balasan. ✅
+    - **Update:** Mengedit komentar sendiri. ✅
+    - **Delete:** Menghapus komentar sendiri. ✅
+
+5. **Leagues (Informasi tentang klub yang sedang bertanding)** - Muhammad Naufal Muzaki ✅\
+    Fitur ini menampilkan data liga, tim, jadwal pertandingan, hasil, dan informasi terkait lainnya. ✅
+
+    **CRUD:**
+    - **Create:** Menambahkan liga, tim, atau jadwal pertandingan. ✅
+    - **Read:** Menampilkan informasi liga dan pertandingan. ✅
+    - **Update:** Memperbarui skor dan klasemen/standing. ✅
+    - **Delete:** Menghapus data tim atau pertandingan. ✅
 
 iv. Sumber Initial Dataset Kategori Utama Produk 
 
