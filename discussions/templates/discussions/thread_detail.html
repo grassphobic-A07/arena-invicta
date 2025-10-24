@@ -133,8 +133,26 @@
               {% if user.is_authenticated %}
                 {% if comment.author == user or user.is_staff %}
                   <div class="flex gap-3 text-xs">
-                    <a href="{% url 'discussions:comment-edit' comment.pk %}" class="text-primary transition hover:text-primary/80">Edit</a>
-                    <a href="{% url 'discussions:comment-delete' comment.pk %}" class="text-danger transition hover:text-danger/80">Hapus</a>
+                    <button type="button"
+                            class="inline-flex items-center gap-1 text-danger transition hover:text-danger/80 focus:outline-none focus:ring-2 focus:ring-danger/30 rounded-md px-2 py-1"
+                            data-comment-delete-trigger
+                            data-comment-id="{{ comment.pk }}"
+                            data-comment-snippet="{{ comment.content|truncatechars:80|default_if_none:''|escape }}">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                      </svg>
+                      Hapus
+                    </button>
+                    <form id="comment-delete-form-{{ comment.pk }}"
+                          method="post"
+                          action="{% url 'discussions:comment-delete' comment.pk %}"
+                          class="hidden"
+                          data-comment-delete-form="{{ comment.pk }}">
+                      {% csrf_token %}
+                    </form>
                   </div>
                 {% endif %}
               {% endif %}
@@ -176,26 +194,66 @@
 {{ block.super }}
 <script>
   (function () {
-    const trigger = document.getElementById("thread-delete-trigger");
-    const form = document.getElementById("thread-delete-form");
-    if (!trigger || !form) return;
+    const threadDeleteTrigger = document.getElementById("thread-delete-trigger");
+    const threadDeleteForm = document.getElementById("thread-delete-form");
 
-    trigger.addEventListener("click", async () => {
-      try {
-        if (window.Confirm && typeof window.Confirm.open === "function") {
-          const ok = await window.Confirm.open({
-            titleText: "Hapus Diskusi?",
-            messageText: "Tindakan ini akan menghapus diskusi beserta seluruh komentar terkait. Lanjutkan?",
-            confirmText: "Ya, hapus",
-            tone: "danger",
-          });
-          if (ok) form.submit();
-        } else if (window.confirm("Hapus diskusi beserta seluruh komentar?")) {
-          form.submit();
+    if (threadDeleteTrigger && threadDeleteForm) {
+      threadDeleteTrigger.addEventListener("click", async () => {
+        try {
+          if (window.Confirm && typeof window.Confirm.open === "function") {
+            const ok = await window.Confirm.open({
+              titleText: "Hapus Diskusi?",
+              messageText: "Tindakan ini akan menghapus diskusi beserta seluruh komentar terkait. Lanjutkan?",
+              confirmText: "Ya, hapus",
+              tone: "danger",
+            });
+            if (ok) threadDeleteForm.submit();
+          } else if (window.confirm("Hapus diskusi beserta seluruh komentar?")) {
+            threadDeleteForm.submit();
+          }
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
-      }
+      });
+    }
+
+    const commentDeleteTriggers = document.querySelectorAll("[data-comment-delete-trigger]");
+
+    commentDeleteTriggers.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const commentId = button.dataset.commentId;
+        const form = document.querySelector(`[data-comment-delete-form="${commentId}"]`);
+        if (!commentId || !form) return;
+
+        const snippet = button.dataset.commentSnippet || "";
+        const messageText = snippet
+          ? `Komentar berikut akan dihapus:\n\n"${snippet}"`
+          : "Komentar ini akan dihapus secara permanen.";
+
+        try {
+          let confirmed = false;
+          if (window.Confirm && typeof window.Confirm.open === "function") {
+            confirmed = await window.Confirm.open({
+              titleText: "Hapus Komentar?",
+              messageText,
+              confirmText: "Ya, hapus",
+              tone: "danger",
+            });
+          } else {
+            confirmed = window.confirm(
+              snippet
+                ? `Hapus komentar berikut?\n\n"${snippet}"`
+                : "Hapus komentar ini secara permanen?"
+            );
+          }
+
+          if (confirmed) {
+            form.submit();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
     });
   })();
 </script>
