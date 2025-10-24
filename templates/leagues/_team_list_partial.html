@@ -1,0 +1,12 @@
+<div class="divide-y divide-mist">
+  {% for t in teams %}
+    <a href="{% url 'leagues:team_detail' t.pk %}" 
+       class="block px-5 py-3.5 text-primary font-medium hover:bg-mist/60 transition-colors">
+      {{ t.name }}
+    </a>
+  {% empty %}
+    <div class="px-5 py-6 text-center text-surface/50">
+      Tidak ada tim yang ditemukan.
+    </div>
+  {% endfor %}
+</div>

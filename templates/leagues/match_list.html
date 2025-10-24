@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Daftar Pertandingan • Premier League{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-7xl px-4"> 
+  
+    <h1 class="text-3xl font-semibold text-primary mb-2">Premier League — Daftar Pertandingan</h1>
+
+    {% include 'leagues/_league_nav.html' with league=league current_nav='matches' %}
+
+    <div class="flex items-center gap-2 mb-4" role="tablist" aria-label="Filter Pertandingan">
+      {% with base_path=request.path %}
+        <a href="{{ base_path }}?tab=all"
+           class="inline-flex items-center h-9 px-3 rounded-full border
+                  {% if active_tab == 'all' %} bg-white text-primary border-mist {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+          Semua
+        </a>
+        <a href="{{ base_path }}?tab=finished"
+           class="inline-flex items-center h-9 px-3 rounded-full border
+                  {% if active_tab == 'finished' %} bg-white text-primary border-mist {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+          Selesai
+        </a>
+        <a href="{{ base_path }}?tab=upcoming"
+           class="inline-flex items-center h-9 px-3 rounded-full border
+                  {% if active_tab == 'upcoming' %} bg-white text-primary border-mist {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+          Mendatang
+        </a>
+      {% endwith %}
+    </div>
+
+    <form class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-4 flex flex-wrap items-center gap-3" method="get" action="">
+      <input type="hidden" name="tab" value="{{ active_tab }}">
+      <input type="text" name="team" value="{{ team_q }}" placeholder="Cari tim (mis. Arsenal)"
+             class="h-10 rounded-lg border border-surface/20 px-3 bg-white flex-1 min-w-[150px]">
+      <input type="date" name="from" value="{{ from_q }}" aria-label="Tanggal mulai"
+             class="h-10 rounded-lg border border-surface/20 px-3 bg-white text-surface/70">
+      <input type="date" name="to" value="{{ to_q }}" aria-label="Tanggal akhir"
+             class="h-10 rounded-lg border border-surface/20 px-3 bg-white text-surface/70">
+      <button type="submit"
+              class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">
+        Terapkan
+      </button>
+      <a href="?tab={{ active_tab }}"
+         class="h-10 inline-flex items-center px-3 text-sm text-surface/70 hover:text-primary">
+        Reset
+      </a>
+    </form>
+
+    {% if request.user.is_authenticated and request.user.profile.is_content_staff %}
+      <div class="mb-4">
+        <a href="{% url 'leagues:match_create' pk=league.pk %}"
+           class="inline-flex items-center h-9 px-4 rounded-lg bg-sea text-white hover:brightness-105 shadow-sm">
+          + Tambah Pertandingan
+        </a>
+      </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl border border-mist shadow-sm overflow-hidden">
+      <table class="w-full text-sm" aria-label="Daftar Pertandingan">
+        <thead class="bg-mist/60 text-surface/70">
+          <tr>
+            <th class="text-left px-4 py-3">Tanggal</th>
+            <th class="text-left px-4 py-3">Home</th>
+            <th class="text-left px-4 py-3">Skor</th>
+            <th class="text-left px-4 py-3">Away</th>
+            <th class="text-left px-4 py-3">Status</th>
+            {% if request.user.is_authenticated and request.user.profile.is_content_staff %}
+              <th class="text-right px-4 py-3">Aksi</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-mist">
+        {% for m in matches %}
+            <tr class="hover:bg-mist/50">
+
+            <td class="px-4 py-2 text-surface/80">
+                <a href="{% url 'leagues:match_detail' match_id=m.pk %}" class="hover:underline hover:text-sea">
+                {{ m.date|date:"d/m/Y H:i" }}
+                </a>
+            </td>
+            <td class="px-4 py-2 font-medium">
+                {% if m.home_team_id %}
+                <a href="{% url 'leagues:team_detail' team_id=m.home_team_id %}" class="hover:underline hover:text-sea">{{ m.home_team.name }}</a>
+                {% else %}
+                <span class="text-surface/50">{{ m.home_team.name|default:"(Tim tidak dikenal)" }}</span>
+                {% endif %}
+            </td>
+            <td class="px-4 py-2 font-bold text-primary">
+                {% if m.status == "FINISHED" %}
+                <strong>{{ m.home_score }}</strong> : <strong>{{ m.away_score }}</strong>
+                {% else %}
+                <span class="font-normal text-surface/50">—</span>
+                {% endif %}
+            </td>
+            <td class="px-4 py-2 font-medium">
+                {% if m.away_team_id %}
+                <a href="{% url 'leagues:team_detail' team_id=m.away_team_id %}" class="hover:underline hover:text-sea">{{ m.away_team.name }}</a>
+                {% else %}
+                <span class="text-surface/50">{{ m.away_team.name|default:"(Tim tidak dikenal)" }}</span>
+                {% endif %}
+            </td>
+            <td class="px-4 py-2 text-surface/70">{{ m.status|title }}</td>
+
+            {% if request.user.is_authenticated and request.user.profile.is_content_staff %}
+              <td class="px-4 py-2 text-right">
+                <a href="{% url 'leagues:match_update' match_id=m.pk %}" class="text-primary hover:text-sea underline">Edit</a>
+              </td>
+            {% endif %}
+
+            </tr>
+        {% empty %}
+            <tr>
+              {% if request.user.is_authenticated and request.user.profile.is_content_staff %}
+                <td colspan="6" class="px-4 py-6 text-center text-surface/50">
+                  Tidak ada pertandingan untuk filter yang dipilih.
+                </td>
+              {% else %}
+                <td colspan="5" class="px-4 py-6 text-center text-surface/50">
+                  Tidak ada pertandingan untuk filter yang dipilih.
+                </td>
+              {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between text-sm">
+      <div class="text-surface/70">
+        Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}.
+      </div>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?tab={{ active_tab }}&team={{ team_q }}&from={{ from_q }}&to={{ to_q }}&page={{ page_obj.previous_page_number }}"
+             class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
+            ← Sebelumnya
+          </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?tab={{ active_tab }}&team={{ team_q }}&from={{ from_q }}&to={{ to_q }}&page={{ page_obj.next_page_number }}"
+             class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
+            Berikutnya →
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    
+  </div> 
+{% endblock %}

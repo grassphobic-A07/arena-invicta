@@ -97,7 +97,7 @@ def home(request):
 
     role_label = None
     if request.user.is_authenticated:
-        if request.user.username == admin_username:
+        if request.user.is_superuser:
             role_label = "Admin"
         elif getattr(getattr(request.user, "profile", None), "role", "") == "content_staff":
             role_label = "Content Staff"
@@ -115,8 +115,10 @@ def home(request):
 
 # Admin dashboard view
 def is_arena_admin(user) -> bool:
-    """Admin statis: username cocok ENV"""
-    return user.is_authenticated and user.username == os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    """Admin dashboard: boleh semua superuser, dan tetap kompat untuk arena_admin (root)."""
+    return user.is_authenticated and (
+        user.is_superuser or user.username == os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    )
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -133,41 +135,91 @@ def admin_dashboard(request):
             if op == "create_user":
                 uname = (request.POST.get("username") or "").strip()
                 pwd   = (request.POST.get("password") or "").strip()
-                role  = (request.POST.get("role") or "registered").strip()
+                role  = (request.POST.get("role") or "registered").strip().lower()
+
                 if not uname or not pwd:
                     messages.error(request, "Username & password wajib diisi.")
-                elif User.objects.filter(username=uname).exists():
+                    return redirect(request.path + "?tab=users")
+                if User.objects.filter(username=uname).exists():
                     messages.error(request, "Username sudah dipakai.")
-                else:
-                    u = User.objects.create_user(username=uname, password=pwd, is_active=True)
-                    p, _ = Profile.objects.get_or_create(user=u)
-                    p.role = "content_staff" if role == "content_staff" else "registered"
+                    return redirect(request.path + "?tab=users")
+
+                u = User.objects.create_user(username=uname, password=pwd, is_active=True)
+                p, _ = Profile.objects.get_or_create(user=u)
+
+                if role == "admin":
+                    if request.user.username != os.getenv("ARENA_ADMIN_USER", "arena_admin"):
+                        messages.error(request, "Hanya admin induk yang bisa membuat Admin baru.")
+                        return redirect(request.path + "?tab=users")
+                    
+                    u.is_active = True
+                    u.is_superuser = True
+                    u.is_staff = False
+                    u.save(update_fields=["is_active", "is_superuser", "is_staff"])
+                    u.groups.filter(name="Content Staff").delete()
+
+                elif role == "content_staff":
+                    p.role = "content_staff"; 
                     p.save(update_fields=["role"])
-                    messages.success(request, f"User {uname} dibuat.")
+                    Group.objects.get_or_create(name="Content Staff")[0].user_set.add(u)
+
+                else:
+                    p.role = "registered"; p.save(update_fields=["role"])
+                    u.groups.filter(name="Content Staff").delete()
+
+                messages.success(request, f"User {uname} dibuat.")
                 return redirect(request.path + "?tab=users")
 
             elif op == "set_role":
                 uid  = int(request.POST["user_id"])
-                role = (request.POST.get("role") or "registered").strip()
+                role = (request.POST.get("role") or "registered").strip().lower()
                 u = User.objects.select_related("profile").get(pk=uid)
-                if is_arena_admin(u) and role != "registered":
-                    # admin tetap admin (role konten jangan diutak-atik)
-                    messages.error(request, "Akun admin tidak diubah role kontennya.")
-                else:
-                    u.profile.role = "content_staff" if role == "content_staff" else "registered"
-                    u.profile.save(update_fields=["role"])
-                    if role == "content_staff":
-                        Group.objects.get_or_create(name="Content Staff")[0].user_set.add(u)
-                    else:
-                        u.groups.filter(name="Content Staff").delete()
-                    messages.success(request, f"Role {u.username} → {u.profile.role}.")
+
+                # Jangan turunkan admin terakhir
+                if (u.is_superuser or u.username == os.getenv("ARENA_ADMIN_USER", "arena_admin")) and role != "admin":
+                    other_admins = User.objects.filter(is_superuser=True, is_active=True).exclude(id=u.id).count()
+                    if other_admins == 0:
+                        messages.error(request, "Tidak bisa menurunkan Admin terakhir.")
+                        return redirect(request.path + "?tab=users")
+
+                if role == "admin":
+                    if request.user.username != os.getenv("ARENA_ADMIN_USER", "arena_admin"):
+                        messages.error(request, "Hanya admin induk yang bisa mempromosikan ke Admin.")
+                        return redirect(request.path + "?tab=users")
+                    u.is_superuser = True
+                    u.is_staff = False
+                    u.save(update_fields=["is_superuser", "is_staff"])
+                    # role konten biarkan apa adanya
+                    messages.success(request, f"{u.username} dipromosikan menjadi Admin.")
+
+                elif role == "content_staff":
+                    if u.is_superuser:
+                        u.is_superuser = False
+                        u.is_staff = False
+                        u.save(update_fields=["is_superuser", "is_staff"])
+                    u.profile.role = "content_staff"; u.profile.save(update_fields=["role"])
+                    Group.objects.get_or_create(name="Content Staff")[0].user_set.add(u)
+                    messages.success(request, f"Role {u.username} → Content Staff.")
+
+                else:  # registered
+                    if u.is_superuser:
+                        u.is_superuser = False
+                        u.is_staff = False
+                        u.save(update_fields=["is_superuser", "is_staff"])
+                    u.profile.role = "registered"; u.profile.save(update_fields=["role"])
+                    u.groups.filter(name="Content Staff").delete()
+                    messages.success(request, f"Role {u.username} → Registered.")
+
                 return redirect(request.path + "?tab=users")
+
 
             elif op == "toggle_active":
                 uid = int(request.POST["user_id"])
                 u = User.objects.get(pk=uid)
-                if is_arena_admin(u):
-                    messages.error(request, "Tidak boleh menonaktifkan akun admin.")
+                if u.is_superuser or u.username == os.getenv("ARENA_ADMIN_USER", "arena_admin"):
+                    messages.error(request, "Tidak boleh mengubah status/menghapus akun Admin.")
+                    return redirect(request.path + "?tab=users")
+
                 else:
                     u.is_active = not u.is_active
                     u.save(update_fields=["is_active"])
@@ -177,11 +229,12 @@ def admin_dashboard(request):
             elif op == "delete_user":
                 uid = int(request.POST["user_id"])
                 u = User.objects.get(pk=uid)
-                if is_arena_admin(u):
-                    messages.error(request, "Tidak boleh menghapus akun admin.")
-                else:
-                    u.delete()
-                    messages.success(request, "Akun dihapus.")
+                # if u.is_superuser or u.username == os.getenv("ARENA_ADMIN_USER", "arena_admin"):
+                #     messages.error(request, "Tidak boleh mengubah status/menghapus akun Admin.")
+                #     return redirect(request.path + "?tab=users")
+                # else:
+                u.delete()
+                messages.success(request, "Akun berhasil dihapus.")
                 return redirect(request.path + "?tab=users")
 
         except Exception as e:

@@ -40,6 +40,9 @@
           <select name="role" class="w-full h-10 rounded-lg border border-surface/20 px-3 bg-white">
             <option value="registered">Registered</option>
             <option value="content_staff">Content Staff</option>
+            {% if request.user.username == admin_username %}
+              <option value="admin">Admin</option>
+            {% endif %}
           </select>
         </div>
         <div class="flex items-end"><button class="w-full h-10 rounded-lg bg-primary text-white hover:bg-sea">Create</button></div>
@@ -81,23 +84,24 @@
             </td>
             
             <td class="px-4 py-2">
-                {% if user.username == admin_username %}
-                    <span class="inline-flex items-center rounded-full px-3 h-8
-                                border border-primary/20 text-primary bg-primary/10">
-                    Admin
-                    </span>
-                {% else %}
-                    <form method="post" class="inline-flex items-center gap-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="op" value="set_role">
-                        <input type="hidden" name="user_id" value="{{ user.id }}">
-                        <select name="role" class="h-9 rounded-lg border border-surface/20 bg-white px-2">
-                            <option value="registered"    {% if user.profile.role == 'registered' %}selected{% endif %}>Registered</option>
-                            <option value="content_staff" {% if user.profile.role == 'content_staff' %}selected{% endif %}>Content Staff</option>
-                        </select>
-                        <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">Save</button>
-                    </form>
-                {% endif %}
+              {% if user.is_superuser or user.username == admin_username %}
+                <span class="inline-flex items-center rounded-full px-3 h-8
+                            border border-primary/20 text-primary bg-primary/10">Admin</span>
+              {% else %}
+                <form method="post" class="inline-flex items-center gap-2">
+                  {% csrf_token %}
+                  <input type="hidden" name="op" value="set_role">
+                  <input type="hidden" name="user_id" value="{{ user.id }}">
+                  <select name="role" class="h-9 rounded-lg border border-surface/20 bg-white px-2">
+                    <option value="registered"    {% if user.profile.role == 'registered' %}selected{% endif %}>Registered</option>
+                    <option value="content_staff" {% if user.profile.role == 'content_staff' %}selected{% endif %}>Content Staff</option>
+                    {% if request.user.username == admin_username %}
+                      <option value="admin">Admin</option>
+                    {% endif %}
+                  </select>
+                  <button class="h-9 px-3 rounded-lg border border-surface/20 hover:bg-mist/60">Save</button>
+                </form>
+              {% endif %}
             </td>
 
             <td class="px-4 py-2">
@@ -110,7 +114,7 @@
 
             <td class="px-4 py-2">
               <div class="flex justify-end gap-2">
-                {% if user.username == admin_username %}
+                {% if user.is_superuser or user.username == admin_username %}
                     <span class="h-9 inline-flex items-center px-3 rounded-lg border border-surface/20 text-surface/50 cursor-not-allowed">
                         Protected
                     </span>

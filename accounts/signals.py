@@ -9,8 +9,6 @@ from .models import Profile
 # Khusus Admin
 @receiver(post_migrate)
 def ensure_static_admin(sender, **kwargs):
-    # jalan saat migrate app apa pun; batasi hanya sekali untuk project
-    # (check label 'accounts' aman, tapi kalau tak pasti—biarkan saja, kodenya idempotent)
     if getattr(sender, "name", "") not in {"accounts"}:
         return
 
@@ -20,12 +18,14 @@ def ensure_static_admin(sender, **kwargs):
     admin_user, created = User.objects.get_or_create(username=username, defaults={"is_active": True})
     if created or not admin_user.has_usable_password():
         admin_user.set_password(password)
-    admin_user.is_active = True
-    # Tidak pakai Django Admin UI → tak perlu is_staff/is_superuser
-    admin_user.save()
 
-    # pastikan profile ada, role kontennya biarkan 'registered' (admin ≠ content_staff)
+    admin_user.is_active = True
+    admin_user.is_superuser = True   # ← penting: admin sungguhan
+    admin_user.is_staff = False      # ← tetap blok /admin Django bawaan
+    admin_user.save(update_fields=["is_active", "is_superuser", "is_staff"])
+
     Profile.objects.get_or_create(user=admin_user)
+
 
 # Penting untuk nanti model News (Rafa)
 @receiver(post_migrate)
@@ -48,6 +48,33 @@ def ensure_groups_and_bind_news_perms(sender, **kwargs):
     perms = list(Permission.objects.filter(content_type=ct, codename__in=want))
     if perms:
         staff.permissions.add(*perms)
+
+# Penting untuk permission model leagues (Naufal)
+@receiver(post_migrate)
+def ensure_groups_and_bind_leagues_perms(sender, **kwargs):
+    # pastikan grup ada
+    staff, _ = Group.objects.get_or_create(name="Content Staff")
+    registered, _ = Group.objects.get_or_create(name="Registered")
+
+    # ambil content types untuk app 'leagues'
+    for model_name in ["league", "team", "match", "standing"]:
+        try:
+            ct = ContentType.objects.get(app_label="leagues", model=model_name)
+        except ContentType.DoesNotExist:
+            continue
+
+        # berikan semua model perms ke Content Staff (CRUD + view)
+        want_staff = [f"add_{model_name}", f"change_{model_name}", f"delete_{model_name}", f"view_{model_name}"]
+        perms_staff = list(Permission.objects.filter(content_type=ct, codename__in=want_staff))
+        if perms_staff:
+            staff.permissions.add(*perms_staff)
+
+        # Registered: hanya view
+        want_reg = [f"view_{model_name}"]
+        perms_reg = list(Permission.objects.filter(content_type=ct, codename__in=want_reg))
+        if perms_reg:
+            registered.permissions.add(*perms_reg)
+
 
 @receiver(post_save, sender=User)
 def create_profile_and_register(sender, instance, created, **kwargs):
