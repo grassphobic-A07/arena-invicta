@@ -13,7 +13,7 @@ from .models import Quiz, Question, Score
 def is_ajax(request):
     return request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-
+@login_required
 def show_main(request):
     quizzes = Quiz.objects.all()
     roles = []
@@ -257,7 +257,7 @@ def toggle_publish(request, quiz_id):
             if quiz.is_published:
                 message_text = f"Quiz '{quiz.title}' has been published."
             else:
-                message_text = f"Quiz '{quiz.title}' has been set to private (draft)."
+                message_text = f"Quiz '{quiz.title}' has been set to private."
             
             return JsonResponse({
                 'success': True,

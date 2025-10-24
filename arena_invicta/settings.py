@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'quiz',
     'news',
+    'discussions',
 ]
 
 MIDDLEWARE = [

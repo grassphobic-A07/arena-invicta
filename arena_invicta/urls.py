@@ -25,5 +25,6 @@ urlpatterns = [
     # namespace 'accounts' supaya di template bisa pakai 'accounts:nama_path' dan tidak ambigu di aplikasi selain 'accounts'
     path('', include(('news.urls', 'news'), namespace='news')),
     path('quiz/', include(('quiz.urls'))),
+    path('discussions/',include(('discussions.urls', 'discussions'), namespace='discussions') ),
     path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
 ]
