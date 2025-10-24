@@ -1,0 +1,7 @@
+<h1>{% if form.instance.pk %}Edit Komentar{% else %}Komentar Baru{% endif %}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Simpan</button>
+</form>
+<a href="{% url 'discussions:thread-detail' thread.pk %}">Batal</a>

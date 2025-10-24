@@ -62,7 +62,7 @@ def login_user(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
-            next_url = request.GET.get('next') or reverse('accounts:home')
+            next_url = request.GET.get('next') or reverse('news:show_news')
 
             response = HttpResponseRedirect(next_url)
             response.set_cookie('last_login', str(datetime.datetime.now()))
@@ -83,7 +83,7 @@ def logout_user(request):
     Logout dan hapus cookie last_login (biar bersih), lalu kembali ke login.
     """
     logout(request)
-    response = redirect('accounts:home')
+    response = redirect('news:show_news')
     response.delete_cookie('last_login')
     return response
 
@@ -347,14 +347,14 @@ def delete_account(request):
                 status=409
             )
         # fallback non-AJAX
-        return redirect("accounts:home")
+        return redirect("news:show_news")
 
     if _is_ajax(request):
         return JsonResponse({
             "Ok": True, 
-            "redirect_url": reverse("accounts:home"),
+            "redirect_url": reverse("news:show_news"),
             "message": "Akun berhasil dihapus."
         })
     
     messages.success(request, "Akun berhasil dihapus.")
-    return redirect("accounts:home")
+    return redirect("news:show_news")

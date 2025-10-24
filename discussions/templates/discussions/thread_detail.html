@@ -1,0 +1,570 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ thread.title }} · Diskusi{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-4xl px-4 py-8 space-y-8">
+  <div class="flex items-center gap-2 text-sm text-surface/60">
+    <a href="{% url 'discussions:thread-list' %}" class="inline-flex items-center gap-1 text-primary transition hover:text-primary/70">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Kembali ke daftar diskusi
+    </a>
+  </div>
+
+  <article class="rounded-2xl border border-surface/15 bg-white/95 p-6 shadow-sm space-y-6">
+    <header class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+      <div class="flex items-start gap-3">
+        {% if thread_author_profile and thread_author_profile.avatar_url %}
+          <img src="{{ thread_author_profile.avatar_url }}" alt="{{ thread_author_display }}" class="h-12 w-12 rounded-full object-cover ring-2 ring-mist/80">
+        {% else %}
+          <div class="grid h-12 w-12 place-items-center rounded-full bg-mint/40 text-sm font-semibold uppercase text-primary ring-2 ring-mist/80">
+            {{ thread_author_display|slice:":2" }}
+          </div>
+        {% endif %}
+        <div>
+          <p class="text-sm font-medium text-surface/70">
+            {{ thread_author_display }}
+          </p>
+          <p class="text-xs text-surface/50">
+            Dibuat {{ thread.created_at|date:"j F Y · H.i" }}
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if thread.is_pinned %}
+          <span class="inline-flex items-center gap-1 rounded-full bg-mint/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 17V3"></path>
+              <path d="m5 11 7 6 7-6"></path>
+            </svg>
+            Pinned
+          </span>
+        {% endif %}
+        {% if thread.is_locked %}
+          <span class="inline-flex items-center gap-1 rounded-full bg-danger/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-danger">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 10V8a6 6 0 1 1 12 0v2"></path>
+              <rect width="18" height="12" x="3" y="10" rx="2"></rect>
+            </svg>
+            Dikunci
+          </span>
+        {% endif %}
+      </div>
+  </header>
+
+    <div class="flex flex-wrap items-center gap-3 text-sm text-surface/60">
+      {% if user.is_authenticated %}
+        <button type="button"
+                class="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 transition focus:outline-none focus:ring-2 focus:ring-primary/30 border-surface/30 text-surface/70"
+                data-upvote-button
+                data-upvote-url="{% url 'discussions:thread-upvote' thread.pk %}"
+                data-upvoted="{{ user_has_upvoted|yesno:'true,false' }}"
+                data-upvote-count="{{ upvote_count }}">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-upvote-icon>
+            <path d="M5 15l7-12 7 12"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+          <span data-upvote-label>{{ user_has_upvoted|yesno:"Upvoted,Upvote" }}</span>
+          <span class="text-xs font-semibold" data-upvote-count>{{ upvote_count }}</span>
+        </button>
+      {% else %}
+        <a href="{% url 'accounts:login' %}?next={% url 'discussions:thread-detail' thread.pk %}"
+           class="inline-flex items-center gap-2 rounded-lg border border-surface/30 px-3 py-1.5 text-sm text-surface/70 transition hover:border-primary/40 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 15l7-12 7 12"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+          Upvote
+          <span class="text-xs font-semibold">{{ upvote_count }}</span>
+        </a>
+      {% endif %}
+      <span class="inline-flex items-center gap-1 rounded-lg bg-mist px-2 py-1 text-xs font-semibold text-surface/60">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span data-thread-views>{{ thread.views_count }}</span> views
+      </span>
+      <span class="inline-flex items-center gap-1 rounded-lg bg-mist px-2 py-1 text-xs font-semibold text-surface/60">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        {{ comments|length }} komentar
+      </span>
+    </div>
+
+    <div class="space-y-3">
+      <h1 class="text-2xl font-semibold text-primary">{{ thread.title }}</h1>
+      <div class="prose max-w-none text-surface/80">
+        <p>{{ thread.body|default:"Belum ada deskripsi untuk diskusi ini." }}</p>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-surface/20 bg-mist/30 p-4">
+      <p class="text-xs font-semibold uppercase tracking-wide text-surface/60">Diskusi untuk berita</p>
+      {% if thread.news %}
+        <a href="{% url 'news:detail_news' thread.news_id %}" class="mt-2 block rounded-lg border border-surface/20 bg-white px-4 py-3 text-sm font-medium text-primary transition hover:border-primary/40 hover:text-primary/80">
+          <span class="block">{{ thread.news.title }}</span>
+          <span class="mt-1 block text-xs font-normal text-surface/50">UUID: {{ thread.news_id }}</span>
+          {% with snippet=thread.news.content %}
+            {% if snippet %}
+              <span class="mt-2 block text-xs text-surface/60 line-clamp-3">{{ snippet|truncatewords:24 }}</span>
+            {% endif %}
+          {% endwith %}
+        </a>
+      {% else %}
+        <p class="mt-2 text-sm text-surface/60">Berita terkait tidak ditemukan.</p>
+      {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+      {% if user == thread.author or user.is_staff %}
+        <div class="flex flex-wrap gap-2">
+          <a href="{% url 'discussions:thread-edit' thread.pk %}" class="inline-flex items-center gap-2 rounded-lg border border-surface/20 bg-white px-3 py-1.5 text-sm text-primary transition hover:border-primary/50 hover:text-primary/80">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+            </svg>
+            Edit Thread
+          </a>
+          <button type="button" id="thread-delete-trigger" class="inline-flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/10 px-3 py-1.5 text-sm font-medium text-danger transition hover:border-danger hover:bg-danger/20 focus:outline-none focus:ring-2 focus:ring-danger/30">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+            </svg>
+            Hapus Thread
+          </button>
+        </div>
+      {% endif %}
+      {% if user.is_authenticated %}
+        {% if user == thread.author or user.is_staff %}
+          <form id="thread-delete-form" method="post" action="{% url 'discussions:thread-delete' thread.pk %}" class="hidden">
+            {% csrf_token %}
+          </form>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </article>
+
+  <section class="space-y-5">
+    <header>
+      <h2 class="text-xl font-semibold text-primary">Komentar</h2>
+      <p class="text-sm text-surface/60">Bagikan tanggapan Anda dan lanjutkan percakapan.</p>
+    </header>
+
+    <div class="space-y-4">
+        {% for comment in comments %}
+        <article class="rounded-2xl border border-surface/15 bg-white/95 p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            {% with c_profile=comment.author_profile %}
+              {% if c_profile and c_profile.avatar_url %}
+                <img src="{{ c_profile.avatar_url }}" alt="{{ comment.author_display }}" class="h-10 w-10 rounded-full object-cover ring-2 ring-mist/80">
+              {% else %}
+                <div class="grid h-10 w-10 place-items-center rounded-full bg-sea/20 text-xs font-semibold uppercase text-primary ring-2 ring-mist/80">
+                  {{ comment.author_display|slice:":2" }}
+                </div>
+              {% endif %}
+            {% endwith %}
+            <div class="flex-1 space-y-2">
+              <div class="flex flex-wrap items-center gap-2 text-xs text-surface/60">
+                <span class="font-medium text-surface/80">{{ comment.author_display }}</span>
+                <span>·</span>
+                <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j M Y · H.i" }}</time>
+              </div>
+              <p class="text-sm text-surface/80" data-comment-content="{{ comment.pk }}">{{ comment.content }}</p>
+              {% if user.is_authenticated %}
+                {% if comment.author == user or user.is_staff %}
+                  <div class="flex gap-3 text-xs">
+                    <button type="button"
+                            class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-primary transition hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            data-comment-edit-trigger
+                            data-comment-id="{{ comment.pk }}"
+                            data-comment-edit-url="{% url 'discussions:comment-edit' comment.pk %}"
+                            data-comment-body="{{ comment.content|escapejs }}">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                      </svg>
+                      Edit
+                    </button>
+                    <button type="button"
+                            class="inline-flex items-center gap-1 text-danger transition hover:text-danger/80 focus:outline-none focus:ring-2 focus:ring-danger/30 rounded-md px-2 py-1"
+                            data-comment-delete-trigger
+                            data-comment-id="{{ comment.pk }}"
+                            data-comment-snippet="{{ comment.content|truncatechars:80|default_if_none:''|escape }}">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                      </svg>
+                      Hapus
+                    </button>
+                    <form id="comment-delete-form-{{ comment.pk }}"
+                          method="post"
+                          action="{% url 'discussions:comment-delete' comment.pk %}"
+                          class="hidden"
+                          data-comment-delete-form="{{ comment.pk }}">
+                      {% csrf_token %}
+                    </form>
+                  </div>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="rounded-xl border border-dashed border-surface/30 bg-white/70 px-4 py-6 text-center text-sm text-surface/60">
+          Belum ada komentar. Jadilah yang pertama memulai percakapan!
+        </p>
+      {% endfor %}
+    </div>
+
+    {% if user.is_authenticated and not thread.is_locked %}
+      <form method="post" action="{% url 'discussions:comment-create' thread.pk %}" class="space-y-3 rounded-2xl border border-surface/15 bg-white/95 p-5 shadow-sm">
+        {% csrf_token %}
+        <div>
+          <label for="id_content" class="text-sm font-medium text-surface/80">Tambahkan komentar</label>
+          {{ comment_form.content }}
+        </div>
+        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30">
+          Kirim Komentar
+        </button>
+      </form>
+    {% elif thread.is_locked %}
+      <p class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+        Thread ini dikunci. Komentar baru tidak dapat ditambahkan.
+      </p>
+    {% else %}
+      <p class="rounded-xl border border-surface/20 bg-white px-4 py-3 text-sm text-surface/70">
+        Silakan <a href="{% url 'accounts:login' %}" class="font-semibold text-primary hover:text-primary/80">masuk</a> untuk memberikan komentar.
+      </p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<div id="comment-edit-modal"
+     class="fixed inset-0 z-[1250] hidden items-center justify-center p-4"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="comment-edit-modal-title">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-comment-edit-close></div>
+  <div id="comment-edit-modal-content"
+       class="relative w-full max-w-lg transform rounded-2xl bg-white shadow-2xl transition-all duration-200 opacity-0 scale-95">
+    <form id="comment-edit-form" class="flex flex-col gap-4 p-5">
+      {% csrf_token %}
+      <header class="flex items-start justify-between">
+        <div>
+          <h3 id="comment-edit-modal-title" class="text-lg font-semibold text-primary">Edit Komentar</h3>
+          <p class="text-xs text-surface/60">Perbarui isi komentar Anda.</p>
+        </div>
+        <button type="button"
+                class="rounded-lg p-1.5 text-surface/50 transition hover:bg-mist hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                data-comment-edit-close
+                aria-label="Tutup modal">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </header>
+      <div class="space-y-2">
+        <label for="comment-edit-body" class="text-sm font-medium text-surface/80">Isi komentar</label>
+        <textarea id="comment-edit-body"
+                  name="content"
+                  rows="4"
+                  required
+                  class="w-full rounded-lg border border-surface/30 bg-white px-3 py-2 text-sm text-surface/80 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></textarea>
+        <p class="text-xs text-danger min-h-[1.1rem]" data-comment-edit-error></p>
+      </div>
+      <footer class="flex items-center justify-end gap-3">
+        <button type="button"
+                class="rounded-lg border border-surface/30 px-4 py-2 text-sm text-surface/70 transition hover:bg-mist focus:outline-none focus:ring-2 focus:ring-primary/20"
+                data-comment-edit-close>
+          Batal
+        </button>
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30">
+          Simpan perubahan
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+{{ block.super }}
+<script>
+  (function () {
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) {
+        return parts.pop().split(";").shift();
+      }
+      return "";
+    }
+
+    function syncUpvoteState(button, count, isActive) {
+      const label = button.querySelector("[data-upvote-label]");
+      const countNode = button.querySelector("[data-upvote-count]");
+      const icon = button.querySelector("[data-upvote-icon]");
+      button.dataset.upvoted = isActive ? "true" : "false";
+      button.classList.toggle("border-primary", isActive);
+      button.classList.toggle("bg-primary/10", isActive);
+      button.classList.toggle("text-primary", isActive);
+      button.classList.toggle("border-surface/30", !isActive);
+      button.classList.toggle("text-surface/70", !isActive);
+      if (icon) {
+        icon.setAttribute("fill", isActive ? "currentColor" : "none");
+      }
+      if (label) {
+        label.textContent = isActive ? "Upvoted" : "Upvote";
+      }
+      if (countNode) {
+        countNode.textContent = count;
+      }
+    }
+
+    const upvoteButton = document.querySelector("[data-upvote-button]");
+    if (upvoteButton) {
+      const initialCount = parseInt(upvoteButton.dataset.upvoteCount || "0", 10);
+      const isActive = upvoteButton.dataset.upvoted === "true";
+      syncUpvoteState(upvoteButton, initialCount, isActive);
+
+      upvoteButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+        const url = upvoteButton.dataset.upvoteUrl;
+        if (!url) return;
+        const formInput = document.querySelector("input[name='csrfmiddlewaretoken']");
+        const token = formInput ? formInput.value : getCookie("csrftoken");
+        if (!token) {
+          console.warn("CSRF token tidak ditemukan.");
+          return;
+        }
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": token,
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
+          if (!response.ok) throw new Error("Gagal memperbarui upvote.");
+          const data = await response.json();
+          if (!data.ok) throw new Error(data.error || "Gagal memperbarui upvote.");
+          const active = data.state === "added";
+          syncUpvoteState(upvoteButton, data.upvote_count ?? 0, active);
+        } catch (error) {
+          console.error(error);
+          window.showToast?.("Tidak dapat memperbarui upvote. Coba lagi.", "error");
+        }
+      });
+    }
+
+    const threadDeleteTrigger = document.getElementById("thread-delete-trigger");
+    const threadDeleteForm = document.getElementById("thread-delete-form");
+
+    if (threadDeleteTrigger && threadDeleteForm) {
+      threadDeleteTrigger.addEventListener("click", async () => {
+        try {
+          if (window.Confirm && typeof window.Confirm.open === "function") {
+            const ok = await window.Confirm.open({
+              titleText: "Hapus Diskusi?",
+              messageText: "Tindakan ini akan menghapus diskusi beserta seluruh komentar terkait. Lanjutkan?",
+              confirmText: "Ya, hapus",
+              tone: "danger",
+            });
+            if (ok) threadDeleteForm.submit();
+          } else if (window.confirm("Hapus diskusi beserta seluruh komentar?")) {
+            threadDeleteForm.submit();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    }
+
+    const commentDeleteTriggers = document.querySelectorAll("[data-comment-delete-trigger]");
+
+    commentDeleteTriggers.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const commentId = button.dataset.commentId;
+        const form = document.querySelector(`[data-comment-delete-form="${commentId}"]`);
+        if (!commentId || !form) return;
+
+        const snippet = button.dataset.commentSnippet || "";
+        const messageText = snippet
+          ? `Komentar berikut akan dihapus:\n\n"${snippet}"`
+          : "Komentar ini akan dihapus secara permanen.";
+
+        try {
+          let confirmed = false;
+          if (window.Confirm && typeof window.Confirm.open === "function") {
+            confirmed = await window.Confirm.open({
+              titleText: "Hapus Komentar?",
+              messageText,
+              confirmText: "Ya, hapus",
+              tone: "danger",
+            });
+          } else {
+            confirmed = window.confirm(
+              snippet
+                ? `Hapus komentar berikut?\n\n"${snippet}"`
+                : "Hapus komentar ini secara permanen?"
+            );
+          }
+
+          if (confirmed) {
+            form.submit();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+    });
+
+    const commentEditModal = document.getElementById("comment-edit-modal");
+    const commentEditModalContent = document.getElementById("comment-edit-modal-content");
+    const commentEditForm = document.getElementById("comment-edit-form");
+    const commentEditTextarea = document.getElementById("comment-edit-body");
+    const commentEditError = commentEditForm ? commentEditForm.querySelector("[data-comment-edit-error]") : null;
+    let activeCommentEdit = null;
+
+    function setCommentEditError(message = "") {
+      if (!commentEditError) return;
+      commentEditError.textContent = message;
+    }
+
+    function truncateSnippet(text, maxLength = 80) {
+      if (!text) return "";
+      return text.length <= maxLength ? text : `${text.slice(0, maxLength)}…`;
+    }
+
+    function openCommentEditModal(config) {
+      if (!commentEditModal || !commentEditModalContent || !commentEditForm || !commentEditTextarea) return;
+      activeCommentEdit = config;
+      commentEditTextarea.value = config.body || "";
+      setCommentEditError("");
+      commentEditModal.classList.remove("hidden");
+      commentEditModal.classList.add("flex");
+      requestAnimationFrame(() => {
+        commentEditModalContent.classList.remove("opacity-0", "scale-95");
+        commentEditModalContent.classList.add("opacity-100", "scale-100");
+        commentEditTextarea.focus();
+        commentEditTextarea.setSelectionRange(commentEditTextarea.value.length, commentEditTextarea.value.length);
+      });
+    }
+
+    function closeCommentEditModal() {
+      if (!commentEditModal || !commentEditModalContent) return;
+      commentEditModalContent.classList.add("opacity-0", "scale-95");
+      commentEditModalContent.classList.remove("opacity-100", "scale-100");
+      setTimeout(() => {
+        commentEditModal.classList.add("hidden");
+        commentEditModal.classList.remove("flex");
+        commentEditTextarea.value = "";
+        setCommentEditError("");
+        activeCommentEdit = null;
+      }, 160);
+    }
+
+    commentEditModal?.querySelectorAll("[data-comment-edit-close]").forEach((button) => {
+      button.addEventListener("click", () => closeCommentEditModal());
+    });
+
+    const commentEditTriggers = document.querySelectorAll("[data-comment-edit-trigger]");
+    commentEditTriggers.forEach((button) => {
+      button.addEventListener("click", () => {
+        const id = button.dataset.commentId;
+        const url = button.dataset.commentEditUrl;
+        const body = button.dataset.commentBody || "";
+        const contentNode = document.querySelector(`[data-comment-content="${id}"]`);
+        if (!id || !url || !contentNode) return;
+        openCommentEditModal({
+          id,
+          url,
+          body,
+          button,
+          contentNode,
+        });
+      });
+    });
+
+    commentEditForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!activeCommentEdit) return;
+      const rawValue = commentEditTextarea.value;
+      const value = rawValue.trim();
+      if (!value) {
+        setCommentEditError("Isi komentar tidak boleh kosong.");
+        commentEditTextarea.focus();
+        return;
+      }
+      const formInput = commentEditForm.querySelector("input[name='csrfmiddlewaretoken']");
+      const token = formInput ? formInput.value : getCookie("csrftoken");
+      if (!token) {
+        setCommentEditError("CSRF token tidak ditemukan.");
+        return;
+      }
+      setCommentEditError("");
+      const submitButton = commentEditForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      try {
+        const response = await fetch(activeCommentEdit.url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": token,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: new URLSearchParams({ content: rawValue }),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const errorMessage = data.errors?.content?.[0] || data.error || "Gagal memperbarui komentar.";
+          throw new Error(errorMessage);
+        }
+        const data = await response.json();
+        if (!data.ok) {
+          const errorMessage = data.errors?.content?.[0] || data.error || "Gagal memperbarui komentar.";
+          throw new Error(errorMessage);
+        }
+        const updatedContent = data.content || rawValue;
+        activeCommentEdit.contentNode.textContent = updatedContent;
+        if (activeCommentEdit.button) {
+          activeCommentEdit.button.dataset.commentBody = updatedContent;
+        }
+        const deleteButton = document.querySelector(`[data-comment-delete-trigger][data-comment-id="${activeCommentEdit.id}"]`);
+        if (deleteButton) {
+          deleteButton.dataset.commentSnippet = truncateSnippet(updatedContent);
+        }
+        window.showToast?.("Komentar berhasil diperbarui.", "success");
+        closeCommentEditModal();
+      } catch (error) {
+        console.error(error);
+        setCommentEditError(error.message || "Gagal memperbarui komentar.");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+
+    if (commentEditModal) {
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !commentEditModal.classList.contains("hidden")) {
+          closeCommentEditModal();
+        }
+      });
+    }
+
+  })();
+</script>
+{% endblock %}

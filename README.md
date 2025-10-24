@@ -41,10 +41,10 @@ Modul yang akan diimplementasikan pada Arena Invicta yaitu:
     Fitur ini menyediakan artikel sepak bola dengan publish dan publish.
 
     **CRUD:**
-    - **Create:** Membuat dan mempublikasikan artikel baru.
-    - **Read:** Membaca daftar artikel dan detail berita.
-    - **Update:** Mengedit isi/artikel.
-    - **Delete:** Menghapus atau men-unpublish artikel.
+    - **Create:** Membuat artikel baru. ✅
+    - **Read:** Membaca daftar artikel dan detail berita. ✅
+    - **Update:** Mengedit isi/artikel.✅
+    - **Delete:** Menghapus atau men-unpublish artikel oleh editor.✅
 
 3. **Quiz** - Hannan Afif Darmawan\
     Fitur kuis interaktif tentang sepak bola. Content Staff dapat membuat kuis dan pertanyaan, sementara pengguna dapat mengikuti kuis dan memperoleh skor.
