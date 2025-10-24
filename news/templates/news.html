@@ -13,7 +13,7 @@
                         {% if news_item.thumbnail %}
                         <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-cover bg-center" style="background-image: url('{{ news_item.thumbnail }}');">
                         {% else %}
-                        <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-surface">
+                        <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-gradient-to-r from-primary to-sea">
                         {% endif %}
                             <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/40 to-transparent"></div>
                             <div class="relative z-10 mx-auto max-w-7xl w-full px-4">
@@ -25,7 +25,7 @@
                     {% endfor %}
                 {% else %}
                     <div class="slide min-w-full">
-                        <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-surface">
+                        <div class="relative aspect-video sm:aspect-[7/2] w-full flex flex-col justify-end p-5 sm:p-8 text-white bg-gradient-to-r from-primary to-sea">
                             <div class="relative z-10 mx-auto max-w-7xl w-full px-4">
                                 <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize mb-2 px-2 py-1 rounded-md">Info</span>
                                 <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">NO HOT NEWS AVAILABLE</h1>
@@ -83,7 +83,7 @@
                     {% if news.thumbnail %}
                     <div class="relative w-full h-56 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" style="background-image: url('{{ news.thumbnail }}');">
                     {% else %}
-                    <div class="relative w-full h-56 bg-gradient-to-r from-primary to-sea transition-transform duration-300 group-hover:scale-105">
+                    <div class="relative w-full h-56 transition-transform duration-300 group-hover:scale-105">
                     {% endif %}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl"></div>
                         
