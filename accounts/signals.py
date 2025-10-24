@@ -1,30 +1,40 @@
 # accounts/signals.py
 import os
-from django.db.models.signals import post_save, post_migrate
+from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from .models import Profile
 
-# Khusus Admin
+User = get_user_model()
+
 @receiver(post_migrate)
 def ensure_static_admin(sender, **kwargs):
-    if getattr(sender, "name", "") not in {"accounts"}:
+    # hanya saat app 'accounts' diproses
+    if getattr(sender, "name", "") != "accounts":
         return
 
-    username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
-    password = os.getenv("ARENA_ADMIN_PASS", "ArenaAdmin123!")
+    User = get_user_model()
 
-    admin_user, created = User.objects.get_or_create(username=username, defaults={"is_active": True})
-    if created or not admin_user.has_usable_password():
-        admin_user.set_password(password)
+    admin_login = os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    admin_pass  = os.getenv("ARENA_ADMIN_PASS", "ArenaAdmin123!")
+    admin_email = os.getenv("ARENA_ADMIN_EMAIL", "admin@example.com")
 
-    admin_user.is_active = True
-    admin_user.is_superuser = True   # ← penting: admin sungguhan
-    admin_user.is_staff = False      # ← tetap blok /admin Django bawaan
-    admin_user.save(update_fields=["is_active", "is_superuser", "is_staff"])
+    # Respect USERNAME_FIELD (bisa 'username' atau 'email')
+    lookup = {User.USERNAME_FIELD: admin_login}
+    user, _ = User.objects.get_or_create(
+        **lookup,
+        defaults={"email": admin_email, "is_active": True, "is_staff": True, "is_superuser": True},
+    )
 
-    Profile.objects.get_or_create(user=admin_user)
+    changed = False
+    if not user.check_password(admin_pass):
+        user.set_password(admin_pass); changed = True
+    if not (user.is_active and user.is_staff and user.is_superuser):
+        user.is_active = user.is_staff = user.is_superuser = True; changed = True
+    if changed:
+        user.save()
 
 
 # Penting untuk nanti model News (Rafa)
