@@ -471,7 +471,8 @@
              </svg>
              <span class="line-clamp-1">${escapeHTML(news.title)}</span>
            </a>
-           <span class="text-[11px] text-surface/40">UUID: ${escapeHTML(news.uuid || "")}</span>`
+           <span class="text-[11px] text-surface/40">UUID: ${escapeHTML(news.uuid || "")}</span>
+           ${news.summary ? `<p class="text-[11px] text-surface/50 line-clamp-2 mt-1">${escapeHTML(news.summary)}</p>` : ""}`
         : `<span class="text-xs text-surface/50 italic">Berita tidak tersedia</span>`;
 
       const badge = thread.is_pinned

@@ -72,6 +72,7 @@ class DiscussionAPITests(TestCase):
         self.assertEqual(data['threads'][0]['news']['uuid'], str(self.news.id))
         self.assertIn('views_count', data['threads'][0])
         self.assertIn('upvote_count', data['threads'][0])
+        self.assertEqual(data['threads'][0]['news']['summary'], self.news.content)
 
     def test_list_api_filters_by_news_uuid(self):
         url = reverse('discussions:thread-list-api')
@@ -107,6 +108,7 @@ class DiscussionAPITests(TestCase):
         self.assertTrue(DiscussionThread.objects.filter(title='Match MVP Predictions').exists())
         self.assertEqual(data['thread']['upvote_count'], 0)
         self.assertEqual(data['thread']['views_count'], 0)
+        self.assertEqual(data['thread']['news']['summary'], self.news.content)
 
 
 class DiscussionViewIntegrationTests(TestCase):
@@ -172,6 +174,7 @@ class DiscussionViewIntegrationTests(TestCase):
         self.assertIn('upvote_count', response.context)
         self.assertEqual(response.context['upvote_count'], 0)
         self.assertFalse(response.context['user_has_upvoted'])
+        self.assertEqual(response.context['thread'].news_excerpt, self.news.content)
 
     def test_thread_create_get_and_invalid_post(self):
         self.client.force_login(self.author)

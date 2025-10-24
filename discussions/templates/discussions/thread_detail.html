@@ -108,6 +108,9 @@
         <a href="{% url 'news:detail_news' thread.news_id %}" class="mt-2 block rounded-lg border border-surface/20 bg-white px-4 py-3 text-sm font-medium text-primary transition hover:border-primary/40 hover:text-primary/80">
           <span class="block">{{ thread.news.title }}</span>
           <span class="mt-1 block text-xs font-normal text-surface/50">UUID: {{ thread.news_id }}</span>
+          {% if thread.news_excerpt %}
+            <span class="mt-2 block text-xs text-surface/60 line-clamp-3">{{ thread.news_excerpt }}</span>
+          {% endif %}
         </a>
       {% else %}
         <p class="mt-2 text-sm text-surface/60">Berita terkait tidak ditemukan.</p>

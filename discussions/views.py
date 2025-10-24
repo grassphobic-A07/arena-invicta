@@ -25,6 +25,7 @@ def thread_list(request):
             or thread.author.get_full_name()
             or thread.author.get_username()
         )
+        thread.news_excerpt = _news_excerpt(thread.news)
     context = {
         'threads': threads,
         'search_query': query,
@@ -47,6 +48,7 @@ def thread_detail(request, pk):
     thread = get_object_or_404(_thread_queryset(), pk=pk)
     DiscussionThread.objects.filter(pk=thread.pk).update(views_count=F('views_count') + 1)
     thread.views_count = (thread.views_count or 0) + 1
+    thread.news_excerpt = _news_excerpt(thread.news)
     comments_qs = thread.comments.filter(is_removed=False).select_related('author', 'author__profile', 'parent', 'parent__author', 'parent__author__profile')
     comments = list(comments_qs)
     for comment in comments:
@@ -298,6 +300,7 @@ def _serialize_thread(thread):
             'uuid': str(news.id) if news else None,
             'title': news.title if news else None,
             'detail_url': reverse('news:detail_news', kwargs={'news_id': news.id}) if news else None,
+            'summary': _news_excerpt(news),
         } if news else None,
         'author': {
             'username': thread.author.get_username(),
@@ -305,3 +308,15 @@ def _serialize_thread(thread):
             'avatar_url': avatar_url,
         },
     }
+
+
+def _news_excerpt(news, word_limit=24):
+    if not news or not getattr(news, 'content', None):
+        return ''
+    text = news.content.strip()
+    if not text:
+        return ''
+    words = text.split()
+    if len(words) <= word_limit:
+        return text
+    return ' '.join(words[:word_limit]) + '…'

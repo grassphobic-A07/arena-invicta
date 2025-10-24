@@ -54,6 +54,9 @@
           <span class="line-clamp-1">{{ thread.news.title }}</span>
         </a>
         <span class="text-[11px] text-surface/40">UUID: {{ thread.news_id }}</span>
+        {% if thread.news_excerpt %}
+          <p class="text-[11px] text-surface/50 line-clamp-2">{{ thread.news_excerpt }}</p>
+        {% endif %}
       {% else %}
         <span class="text-xs italic text-surface/50">Berita terkait tidak ditemukan.</span>
       {% endif %}
