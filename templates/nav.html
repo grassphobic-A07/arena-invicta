@@ -1,7 +1,7 @@
 {% comment %} nav.html {% endcomment %}
-<header class="sticky top-0 w-full z-50 px-4 py-3 border-b border-surface/20 bg-white/80 backdrop-blur">
-  <div class="mx-auto max-w-7xl"> {# Lebarkan max-width agar item tengah muat #}
-    <div class="relative flex items-center justify-between gap-4"> {# justify-between #}
+<header class="sticky top-0 z-50 w-full border-b border-surface/20 bg-white/80 backdrop-blur">
+  <div class="mx-auto max-w-7xl px-6 md:px-8">
+    <div class="grid grid-cols-[auto_1fr_auto] items-center gap-x-6 md:gap-x-8 py-3 md:py-4">
 
       {% comment %} --- URL Definitions --- {% endcomment %}
       {% url 'news:show_news' as home_url %}
@@ -17,7 +17,7 @@
       </div>
 
       {% comment %} === BAGIAN TENGAH (Desktop Nav >= md) === {% endcomment %}
-      <nav class="hidden md:flex flex-grow justify-center items-center gap-2">
+      <nav class="hidden md:flex justify-center items-center gap-5 lg:gap-8">
         {# --- HOME --- #}
         <a href="{{ home_url }}"
            class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
@@ -53,7 +53,7 @@
       </nav>
 
       {% comment %} === BAGIAN KANAN (Auth/Profile/Hamburger) === {% endcomment %}
-      <div class="flex-shrink-0 flex items-center gap-2">
+      <div class="flex-shrink-0 flex items-center gap-3 md:gap-4">
         {# --- Desktop Auth/Profile (>= md) --- #}
         <div class="hidden md:flex items-center gap-2">
           {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
