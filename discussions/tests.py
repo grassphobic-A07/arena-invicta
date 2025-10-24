@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from news.models import News
 
-from .models import DiscussionThread, DiscussionComment
+from .models import DiscussionThread, DiscussionComment, DiscussionThreadUpvote
 
 
 class DiscussionThreadModelTests(TestCase):
@@ -70,6 +70,8 @@ class DiscussionAPITests(TestCase):
         data = response.json()
         self.assertEqual(len(data.get('threads', [])), 1)
         self.assertEqual(data['threads'][0]['news']['uuid'], str(self.news.id))
+        self.assertIn('views_count', data['threads'][0])
+        self.assertIn('upvote_count', data['threads'][0])
 
     def test_list_api_filters_by_news_uuid(self):
         url = reverse('discussions:thread-list-api')
@@ -103,6 +105,8 @@ class DiscussionAPITests(TestCase):
         self.assertTrue(data.get('ok'))
         self.assertEqual(data['thread']['news']['uuid'], str(self.news.id))
         self.assertTrue(DiscussionThread.objects.filter(title='Match MVP Predictions').exists())
+        self.assertEqual(data['thread']['upvote_count'], 0)
+        self.assertEqual(data['thread']['views_count'], 0)
 
 
 class DiscussionViewIntegrationTests(TestCase):
@@ -165,6 +169,9 @@ class DiscussionViewIntegrationTests(TestCase):
         self.assertIn('comment_form', response.context)
         comment_context = response.context['comments'][0]
         self.assertTrue(hasattr(comment_context, 'author_display'))
+        self.assertIn('upvote_count', response.context)
+        self.assertEqual(response.context['upvote_count'], 0)
+        self.assertFalse(response.context['user_has_upvoted'])
 
     def test_thread_create_get_and_invalid_post(self):
         self.client.force_login(self.author)
@@ -192,6 +199,8 @@ class DiscussionViewIntegrationTests(TestCase):
         )
         latest_thread = DiscussionThread.objects.order_by('-id').first()
         self.assertRedirects(response, reverse('discussions:thread-detail', args=[latest_thread.pk]))
+        self.assertEqual(latest_thread.views_count, 0)
+        self.assertEqual(latest_thread.upvotes.count(), 0)
 
     def test_thread_edit_requires_owner_or_staff(self):
         self.client.force_login(self.other_user)
@@ -243,6 +252,15 @@ class DiscussionViewIntegrationTests(TestCase):
         response = self.client.post(reverse('discussions:thread-delete', args=[thread.pk]))
         self.assertEqual(response.status_code, 403)
 
+    def test_thread_detail_increments_views(self):
+        self.assertEqual(self.thread.views_count, 0)
+        self.client.get(reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.thread.refresh_from_db()
+        self.assertEqual(self.thread.views_count, 1)
+        self.client.get(reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.thread.refresh_from_db()
+        self.assertEqual(self.thread.views_count, 2)
+
     def test_thread_create_api_handles_invalid_payloads(self):
         self.client.force_login(self.author)
         url = reverse('discussions:thread-create-api')
@@ -269,6 +287,7 @@ class DiscussionViewIntegrationTests(TestCase):
         payload = response.json()['threads']
         thread_data = next(item for item in payload if item['id'] == self.thread_without_news.pk)
         self.assertIsNone(thread_data['news'])
+        self.assertIn('views_count', thread_data)
 
     def test_comment_create_flow(self):
         self.client.force_login(self.other_user)
@@ -329,3 +348,26 @@ class DiscussionViewIntegrationTests(TestCase):
         self.client.force_login(self.other_user)
         response = self.client.post(reverse('discussions:comment-delete', args=[comment.pk]))
         self.assertEqual(response.status_code, 403)
+
+    def test_thread_upvote_toggle_adds_and_removes(self):
+        self.client.force_login(self.other_user)
+        url = reverse('discussions:thread-upvote', args=[self.thread.pk])
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['state'], 'added')
+        self.assertEqual(data['upvote_count'], 1)
+        self.assertTrue(DiscussionThreadUpvote.objects.filter(thread=self.thread, user=self.other_user).exists())
+
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['state'], 'removed')
+        self.assertEqual(data['upvote_count'], 0)
+        self.assertFalse(DiscussionThreadUpvote.objects.filter(thread=self.thread, user=self.other_user).exists())
+
+    def test_thread_upvote_requires_login(self):
+        url = reverse('discussions:thread-upvote', args=[self.thread.pk])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('accounts:login')))

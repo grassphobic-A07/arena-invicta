@@ -19,6 +19,7 @@ class DiscussionThread(models.Model):
     )
     is_locked = models.BooleanField(default=False)
     is_pinned = models.BooleanField(default=False)
+    views_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -61,3 +62,28 @@ class DiscussionComment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author} on {self.thread}'
+
+
+class DiscussionThreadUpvote(models.Model):
+    thread = models.ForeignKey(
+        DiscussionThread,
+        on_delete=models.CASCADE,
+        related_name='upvotes',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='discussion_thread_upvotes',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['thread', 'user'], name='unique_thread_upvote'),
+        ]
+        indexes = [
+            models.Index(fields=['thread', 'user']),
+        ]
+
+    def __str__(self):
+        return f'Upvote by {self.user} on {self.thread}'

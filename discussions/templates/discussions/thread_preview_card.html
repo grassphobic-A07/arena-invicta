@@ -58,12 +58,26 @@
         <span class="text-xs italic text-surface/50">Berita terkait tidak ditemukan.</span>
       {% endif %}
     </div>
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-surface/60">
       <span class="inline-flex items-center gap-1">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
         {{ thread.comment_count|default:thread.comments.count }} komentar
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 15l7-12 7 12"></path>
+          <path d="M5 21h14"></path>
+        </svg>
+        {{ thread.upvote_count|default:thread.upvotes.count }} upvote
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        {{ thread.views_count }} views
       </span>
     </div>
   </footer>
