@@ -8,6 +8,8 @@ i. Nama-nama Anggota Kelompok:
 
 ii. Deskripsi Aplikasi (Cerita & Manfaat Aplikasi)
 ### Arena Invicta
+[LINK WEBSITE ARENA INVICTA 💻💻](https://neal-guarddin-arenainvicta.pbp.cs.ui.ac.id/)
+
 **Arena Invicta** adalah platform digital komprehensif yang dirancang khusus untuk para penggemar sepak bola sejati. Aplikasi ini menyajikan dua pilar utama: **berita terkini** dengan analisis mendalam (fitur utama) dan **kuis interaktif** yang menantang. Sebagai "Arena yang Tak Terkalahkan", kami bertujuan menjadi sumber informasi tepercaya yang membedah taktik, melaporkan fakta, dan menjauhkan diri dari gosip murahan. Di sisi lain, kami menyediakan panggung bagi para suporter untuk menguji dan membuktikan pengetahuan mereka, mengubah passion pasif menjadi sebuah pencapaian yang membanggakan. Arena Invicta adalah tempat di mana pecinta olahraga tidak hanya membaca, tetapi juga berpartisipasi dan berkompetisi.
 
 Kebermanfaatan Arena Invicta
