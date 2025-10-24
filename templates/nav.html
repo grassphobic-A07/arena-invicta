@@ -8,8 +8,8 @@
       {% url 'accounts:login' as login_url %}
       {% url 'accounts:register' as register_url %}
       {% url 'accounts:logout' as logout_url %}
-      {% url 'news:league' as league_url %}   {# GANTI PAKAI URL LEAGUE #}
-      {% url 'news:quiz' as quiz_url %} {# GANTI PAKAI URL QUIZ #}
+      {% url 'leagues:league_list' as league_url %}   {# <<< GANTI INI #}
+      {% url 'quiz:show_main' as quiz_url %} 
 
       {% comment %} === BAGIAN KIRI === {% endcomment %}
       <div class="flex-shrink-0">
@@ -21,8 +21,8 @@
         {# --- HOME --- #}
         <a href="{{ home_url }}"
            class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.url_name == 'show_news' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
-           {% if request.resolver_match.url_name == 'show_news' %}aria-current="page"{% endif %}>
+                  {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Perbaiki kondisi aktif #}
+           {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}aria-current="page"{% endif %}>
            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
           Home
         </a>
@@ -30,8 +30,8 @@
         {# --- DISCUSSIONS --- #}
         <a href="{% url 'discussions:thread-list' %}"
            class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.url_name == 'thread-list' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
-           {% if request.resolver_match.url_name == 'thread-list' %}aria-current="page"{% endif %}>
+                  {% if request.resolver_match.app_name == 'discussions' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Cek app_name #}
+           {% if request.resolver_match.app_name == 'discussions' %}aria-current="page"{% endif %}>
            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
            </svg>
@@ -41,8 +41,8 @@
         {# --- LEAGUE --- #}
         <a href="{{ league_url }}"
            class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.url_name == 'league' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"
-           {% if request.resolver_match.url_name == 'league' %}aria-current="page"{% endif %}>
+                  {% if request.resolver_match.app_name == 'leagues' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Cek app_name #}
+           {% if request.resolver_match.app_name == 'leagues' %}aria-current="page"{% endif %}>
            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
              <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
              <path d="M12 12v4m0 4v4m-4 0h8"></path>
@@ -86,7 +86,7 @@
                 </span>
               </button>
               <div id="user-menu" class="hidden absolute right-0 top-full mt-2 w-48 z-[60] rounded-xl border border-mist bg-white shadow-2xl overflow-hidden" role="menu" aria-labelledby="user-menu-button">
-                <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60" role="menuitem" {% if request.resolver_match.view_name == 'accounts:profile_detail' and request.resolver_match.kwargs.username == request.user.username %}aria-current="page"{% endif %}> {# Update active state check for profile #}
+                <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60" role="menuitem" {% if request.resolver_match.view_name == 'profile_detail' and request.resolver_match.kwargs.username == request.user.username %}aria-current="page"{% endif %}> {# Update active state check for profile #}
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
                   <span>My Profile</span>
                 </a>
@@ -106,11 +106,11 @@
               </div>
             </div>
           {% else %}
-            <a href="{{ login_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.url_name == 'login' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai resolver_match #}
+            <a href="{{ login_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.view_name == 'login_user' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai view_name #}
               <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
               Login
             </a>
-            <a href="{{ register_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.url_name == 'register' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai resolver_match #}
+            <a href="{{ register_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.view_name == 'register' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai view_name #}
               <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
               Sign up
             </a>
@@ -152,13 +152,13 @@
     <nav class="p-3">
       <ul class="space-y-2">
         <li>
-          <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'show_news' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+          <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Perbaiki kondisi aktif #}
           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
             <span>Home</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'discussions:thread-list' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'thread-list' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+          <a href="{% url 'discussions:thread-list' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'discussions' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Cek app_name #}
             <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
            </svg>
@@ -166,7 +166,7 @@
           </a>
         </li>
         <li>
-          <a href="{{ league_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'league' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+          <a href="{{ league_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'leagues' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Cek app_name #}
             <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
              <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
              <path d="M12 12v4m0 4v4m-4 0h8"></path>
@@ -199,13 +199,13 @@
           </li>
         {% else %}
           <li>
-            <a href="{{ login_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'login' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <a href="{{ login_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.view_name == 'login_user' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai view_name #}
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
               <span>Login</span>
             </a>
           </li>
           <li>
-            <a href="{{ register_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.url_name == 'register' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai resolver_match #}
+            <a href="{{ register_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.view_name == 'register' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai view_name #}
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
               <span>Sign up</span>
             </a>

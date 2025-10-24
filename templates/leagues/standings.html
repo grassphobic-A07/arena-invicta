@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Klasemen • Premier League{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-7xl px-4"> 
+
+    <h1 class="text-3xl font-semibold text-primary mb-2">Premier League — Klasemen</h1>
+
+    {% include 'leagues/_league_nav.html' with league=league current_nav='standings' %}
+
+    <form class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-4 flex items-center gap-3" method="get" action="">
+      <label for="season" class="text-sm font-medium text-surface/80">Musim:</label>
+      <select id="season" name="season" onchange="this.form.submit()"
+              class="h-10 rounded-lg border border-surface/20 px-3 bg-white text-base font-medium text-primary">
+        {% for s in seasons %}
+          <option value="{{ s }}" {% if s == selected_season %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit" class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">Tampilkan</button></noscript>
+    </form>
+
+    <h2 class="text-xl font-semibold text-primary mb-4">Musim {{ selected_season }}</h2>
+    
+    <div class="bg-white rounded-xl border border-mist shadow-sm overflow-hidden">
+      <table class="w-full text-sm" aria-label="Tabel Klasemen">
+        <thead class="bg-mist/60 text-surface/70">
+          <tr>
+            <th scope="col" class="px-4 py-3 text-center font-medium">#</th>
+            <th scope="col" class="px-4 py-3 text-left font-medium">Tim</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Played">P</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Win">M</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Draw">S</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Loss">K</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Goals For">GM</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Goals Against">GA</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium" title="Goal Difference">SG</th>
+            <th scope="col" class="px-4 py-3 text-center font-medium">Poin</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-mist">
+          {% for s in standings %}
+          <tr class="hover:bg-mist/50">
+            <td class="px-4 py-2 text-center text-surface/70 font-medium">{{ forloop.counter }}</td>
+            <td class="px-4 py-2 text-left font-medium">
+              <a href="{% url 'leagues:team_detail' team_id=s.team.id %}" class="hover:underline hover:text-sea">
+                {{ s.team.name }}
+              </a>
+            </td>
+            <td class="px-4 py-2 text-center">{{ s.played }}</td>
+            <td class="px-4 py-2 text-center">{{ s.win }}</td>
+            <td class="px-4 py-2 text-center">{{ s.draw }}</td>
+            <td class="px-4 py-2 text-center">{{ s.loss }}</td>
+            <td class="px-4 py-2 text-center">{{ s.gf }}</td>
+            <td class="px-4 py-2 text-center">{{ s.ga }}</td>
+            <td class="px-4 py-2 text-center">{{ s.gd }}</td>
+            <td class="px-4 py-2 text-center font-bold text-primary">{{ s.points }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="px-4 py-6 text-center text-surface/50">
+              Belum ada data klasemen untuk musim ini.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+  </div>
+{% endblock %}

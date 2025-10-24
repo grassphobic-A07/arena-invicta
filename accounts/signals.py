@@ -49,6 +49,33 @@ def ensure_groups_and_bind_news_perms(sender, **kwargs):
     if perms:
         staff.permissions.add(*perms)
 
+# Penting untuk permission model leagues (Naufal)
+@receiver(post_migrate)
+def ensure_groups_and_bind_leagues_perms(sender, **kwargs):
+    # pastikan grup ada
+    staff, _ = Group.objects.get_or_create(name="Content Staff")
+    registered, _ = Group.objects.get_or_create(name="Registered")
+
+    # ambil content types untuk app 'leagues'
+    for model_name in ["league", "team", "match", "standing"]:
+        try:
+            ct = ContentType.objects.get(app_label="leagues", model=model_name)
+        except ContentType.DoesNotExist:
+            continue
+
+        # berikan semua model perms ke Content Staff (CRUD + view)
+        want_staff = [f"add_{model_name}", f"change_{model_name}", f"delete_{model_name}", f"view_{model_name}"]
+        perms_staff = list(Permission.objects.filter(content_type=ct, codename__in=want_staff))
+        if perms_staff:
+            staff.permissions.add(*perms_staff)
+
+        # Registered: hanya view
+        want_reg = [f"view_{model_name}"]
+        perms_reg = list(Permission.objects.filter(content_type=ct, codename__in=want_reg))
+        if perms_reg:
+            registered.permissions.add(*perms_reg)
+
+
 @receiver(post_save, sender=User)
 def create_profile_and_register(sender, instance, created, **kwargs):
     if created:

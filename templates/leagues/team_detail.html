@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ team.name }} — Profil Tim{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-7xl px-4"> 
+
+    <h1 class="text-3xl font-semibold text-primary mb-1">{{ team.name }}</h1>
+    <p class="text-surface/70 mb-4">
+      Liga: <a href="{% url 'leagues:league_dashboard' league.pk %}" class="text-primary hover:text-sea underline">Premier League</a>
+    </p>
+
+    <form method="get" action="" class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-6 flex items-center gap-3">
+      <label for="season" class="text-sm font-medium text-surface/80">Musim:</label>
+      <select id="season" name="season" onchange="this.form.submit()"
+              class="h-10 rounded-lg border border-surface/20 px-3 bg-white text-base font-medium text-primary">
+        {% for s in seasons %}
+          <option value="{{ s }}" {% if s == selected_season %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit" class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">Tampilkan</button></noscript>
+    </form>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section class="bg-white rounded-xl border border-mist shadow-sm">
+        <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">Posisi di Klasemen ({{ selected_season }})</h2>
+        <div class="p-5">
+        {% if standing %}
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Main</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.played }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Menang</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.win }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Seri</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.draw }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Kalah</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.loss }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Gol Masuk (GM)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.gf }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Gol Kebobolan (GA)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.ga }}</span></div>
+            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Selisih Gol (SG)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.gd }}</span></div>
+            <div class="flex justify-between items-center pt-3 mt-2">
+              <span class="text-base font-semibold text-primary">Poin</span>
+              <span class="font-bold text-primary text-xl tabular-nums">{{ standing.points }}</span>
+            </div>
+          </div>
+        {% else %}
+          <p class="text-surface/50 italic">Belum ada data klasemen untuk musim ini.</p>
+        {% endif %}
+        </div>
+      </section>
+
+      <section class="bg-white rounded-xl border border-mist shadow-sm">
+        <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">Pertandingan Berikutnya</h2>
+        <div class="p-5">
+        {% if next_match %}
+          <p class="text-sm text-surface/70">{{ next_match.date|date:"d/m/Y H:i" }}</p>
+          <p class="text-lg font-medium mt-1">
+            {{ next_match.home_team.name }} vs {{ next_match.away_team.name }}
+          </p>
+        {% else %}
+          <p class="text-surface/50 italic">Tidak ada jadwal mendatang.</p>
+        {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <section class="bg-white rounded-xl border border-mist shadow-sm mt-6">
+      <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
+        5 Pertandingan Terakhir (Musim {{ selected_season }})
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-mist/60 text-surface/70">
+            <tr>
+              <th class="text-left px-4 py-3 font-medium">Tanggal</th>
+              <th class="text-left px-4 py-3 font-medium">Home</th>
+              <th class="text-left px-4 py-3 font-medium">Skor</th>
+              <th class="text-left px-4 py-3 font-medium">Away</th>
+              <th class="text-left px-4 py-3 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-mist">
+            {% for m in recent_matches %}
+              <tr class="hover:bg-mist/50">
+                <td class="px-4 py-2 text-surface/80">{{ m.date|date:"d/m/Y H:i" }}</td>
+                <td class="px-4 py-2 font-medium">{{ m.home_team.name }}</td>
+                <td class="px-4 py-2 font-bold text-primary"><strong>{{ m.home_score }}</strong> : <strong>{{ m.away_score }}</strong></td>
+                <td class="px-4 py-2 font-medium">{{ m.away_team.name }}</td>
+                <td class="px-4 py-2 text-surface/70">{{ m.status|title }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="px-4 py-6 text-center text-surface/50">Belum ada pertandingan pada musim ini.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="mt-6">
+      <a href="{% url 'leagues:team_list' league.pk %}" class="text-primary hover:text-sea underline">
+        ← Kembali ke Daftar Tim
+      </a>
+    </p>
+
+  </div>
+{% endblock %}
