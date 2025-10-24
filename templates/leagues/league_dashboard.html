@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Premier League — Ringkasan Liga{% endblock %}
+
+{% block content %}
+  <!-- Wrapper div 'max-w-7xl' -->
+  <div class="mx-auto max-w-7xl">
+  
+    <h1 class="text-3xl font-semibold text-primary mb-1">Premier League</h1>
+    {% if league.country %}<p class="text-surface/70 mb-6">Negara: {{ league.country }}</p>{% endif %}
+
+    {% include 'leagues/_league_nav.html' with league=league current_nav='dashboard' %}
+
+    {% if latest_season %}
+      <!-- Layout grid 2-kolom -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Kolom Kiri: Klasemen (Tabel Lengkap) -->
+        <section class="bg-white rounded-xl border border-mist shadow-sm flex flex-col">
+          <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
+            Klasemen (Musim {{ latest_season }})
+          </h2>
+          
+          <div class="overflow-x-auto">
+            <table aria-label="Tabel Klasemen" class="w-full text-sm">
+              <thead class="bg-mist/60 text-surface/70">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-center font-medium">#</th>
+                  <th scope="col" class="px-4 py-3 text-left font-medium">Tim</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Played">P</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Win">M</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Draw">S</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Loss">K</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Goals For">GM</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Goals Against">GA</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium" title="Goal Difference">SG</th>
+                  <th scope="col" class="px-4 py-3 text-center font-medium">Poin</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-mist">
+                {% for s in standings %}
+                  <tr class="hover:bg-mist/50">
+                    <td class="px-4 py-2 text-center text-surface/70 font-medium">{{ forloop.counter }}</td>
+                    <td class="px-4 py-2 text-left font-medium">
+                      {% if s.team_id %}
+                          <a href="{% url 'leagues:team_detail' team_id=s.team.id %}" class="hover:underline hover:text-sea">{{ s.team.name }}</a>
+                      {% else %}
+                          <span class="text-surface/50">{{ s.team.name|default:"(Tim tidak dikenal)" }}</span>
+                      {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-center">{{ s.played }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.win }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.draw }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.loss }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.gf }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.ga }}</td>
+                    <td class="px-4 py-2 text-center">{{ s.gd }}</td>
+                    <td class="px-4 py-2 text-center font-bold text-primary">{{ s.points }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="10" class="px-4 py-6 text-center text-surface/50">Belum ada data klasemen.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mt-auto px-5 py-3 bg-mist/50 border-t border-mist">
+              <a href="{% url 'leagues:standings' league.pk %}" class="text-sm text-primary hover:text-sea hover:underline font-medium">
+                Lihat klasemen lengkap per musim →
+              </a>
+          </div>
+        </section>
+
+        <!-- Kolom Kanan: Ringkasan Pertandingan -->
+        <section class="bg-white rounded-xl border border-mist shadow-sm flex flex-col">
+          <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
+            Ringkasan Pertandingan
+          </h2>
+          
+          <div class="p-5 space-y-4">
+              <h3 class="text-sm font-semibold text-surface/70 uppercase tracking-wider">Pertandingan Selesai Terbaru</h3>
+              <ul class="space-y-2 text-sm">
+                {% for m in finished_recent %}
+                  <li>
+                  <a href="{% url 'leagues:match_detail' match_id=m.pk %}" class="block p-2.5 rounded-lg hover:bg-mist/60 transition-colors">
+                      <span class="text-xs text-surface/70">{{ m.date|date:"d/m/Y H:i" }}</span>
+                      <div class="flex items-center justify-between gap-2 mt-0.5">
+                          <span class="font-medium truncate">{{ m.home_team.name }}</span>
+                          <strong class="text-primary text-base flex-shrink-0">{{ m.home_score }} : {{ m.away_score }}</strong>
+                          <span class="font-medium truncate text-right">{{ m.away_team.name }}</span>
+                      </div>
+                  </a>
+                  </li>
+                {% empty %}
+                  <li class="text-surface/50 italic px-2.5">Belum ada pertandingan selesai.</li>
+                {% endfor %}
+              </ul>
+
+              <h3 class="text-sm font-semibold text-surface/70 uppercase tracking-wider pt-4 border-t border-mist/80">Pertandingan Mendatang</h3>
+              <ul class="space-y-2 text-sm">
+                {% for m in upcoming %}
+                  <li class="p-2.5 rounded-lg hover:bg-mist/60 transition-colors">
+                    <span class="text-xs text-surface/70">{{ m.date|date:"d/m/Y H:i" }}</span>
+                    <div class="font-medium">{{ m.home_team.name }} vs {{ m.away_team.name }}</div>
+                  </li>
+                {% empty %}
+                  <li class="text-surface/50 italic px-2.5">Tidak ada jadwal mendatang.</li>
+                {% endfor %}
+              </ul>
+          </div>
+
+          <div class="mt-auto px-5 py-3 bg-mist/50 border-t border-mist">
+              <a href="{% url 'leagues:match_list' league.pk %}" class="text-sm text-primary hover:text-sea hover:underline font-medium">
+                Lihat semua pertandingan →
+              </a>
+          </div>
+        </section>
+      </div>
+      
+    {% else %}
+      <div class="bg-white rounded-xl border border-mist shadow-sm p-6 text-center text-surface/60">
+          Belum ditemukan pertandingan untuk liga ini.
+      </div>
+    {% endif %}
+    
+  </div> 
+{% endblock %}

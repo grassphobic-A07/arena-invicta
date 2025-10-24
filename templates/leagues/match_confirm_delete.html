@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Hapus Pertandingan{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-lg">
+  
+    <h1 class="text-3xl font-semibold text-primary mb-6">Hapus Pertandingan</h1>
+
+    <div class="bg-white rounded-xl border border-mist shadow-sm">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="p-5">
+          <p class="text-surface/80">Anda yakin ingin menghapus permanen pertandingan ini?</p>
+          
+          <div class="my-4 rounded-xl bg-mist/60 p-4 text-center">
+            <p class="font-semibold text-primary">{{ object.home_team.name }} vs {{ object.away_team.name }}</p>
+            <p class="text-sm text-surface/70">{{ object.date|date:"d/m/Y H:i" }}</p>
+          </div>
+        </div>
+
+        <div class="bg-mist/60 px-5 py-3 border-t border-mist flex items-center gap-3">
+          <button type="submit"
+                  class="inline-flex items-center h-9 px-4 rounded-lg bg-danger text-white hover:brightness-90">
+            Ya, Hapus
+          </button>
+          <a href="{% url 'leagues:match_detail' match_id=object.pk %}"
+             class="inline-flex items-center h-9 px-4 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
+            Batal
+          </a>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+{% endblock %}

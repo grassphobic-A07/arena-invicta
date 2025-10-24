@@ -1,0 +1,26 @@
+<nav class="flex flex-wrap items-center gap-2 mb-6" role="tablist" aria-label="Navigasi Liga">
+  
+  <a href="{% url 'leagues:league_dashboard' league.pk %}"
+     class="inline-flex items-center h-9 px-3 rounded-full border
+            {% if current_nav == 'dashboard' %} bg-white text-primary border-mist font-medium {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+    Ringkasan
+  </a>
+  
+  <a href="{% url 'leagues:match_list' league.pk %}"
+     class="inline-flex items-center h-9 px-3 rounded-full border
+            {% if current_nav == 'matches' %} bg-white text-primary border-mist font-medium {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+    Pertandingan
+  </a>
+
+  <a href="{% url 'leagues:standings' league.pk %}"
+     class="inline-flex items-center h-9 px-3 rounded-full border
+            {% if current_nav == 'standings' %} bg-white text-primary border-mist font-medium {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+    Klasemen
+  </a>
+
+  <a href="{% url 'leagues:team_list' league.pk %}"
+     class="inline-flex items-center h-9 px-3 rounded-full border
+            {% if current_nav == 'teams' %} bg-white text-primary border-mist font-medium {% else %} bg-white/60 text-surface/80 border-surface/20 hover:bg-white {% endif %}">
+    Tim
+  </a>
+</nav>

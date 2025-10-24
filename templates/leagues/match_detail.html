@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Detail Pertandingan • Arena Invicta{% endblock %}
+
+{% block content %}
+  <p class="mb-4">
+    <a href="{% url 'leagues:league_dashboard' league.pk %}" class="text-primary hover:text-sea underline">
+      ← Kembali ke Ringkasan Liga
+    </a>
+  </p>
+
+  <h1 class="text-3xl font-semibold text-primary mb-2 text-center">{{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
+  <p class="text-surface/70 mb-4 text-center">
+    {{ match.date|date:"d/m/Y H:i" }} · Status: {{ match.status|title }} · Liga: Premier League
+  </p>
+
+  <div class="flex items-center justify-center gap-4 my-6 text-center">
+    <span class="flex-1 text-2xl font-semibold text-primary text-right">{{ match.home_team.name }}</span>
+    <span class="flex-none text-4xl font-bold text-primary tabular-nums">
+      {{ match.home_score }} : {{ match.away_score }}
+    </span>
+    <span class="flex-1 text-2xl font-semibold text-primary text-left">{{ match.away_team.name }}</span>
+  </div>
+
+  {% if request.user.is_authenticated and request.user.profile.is_content_staff %}
+    <div class="flex items-center justify-center gap-3 mb-6">
+      <a href="{% url 'leagues:match_update' match_id=match.pk %}" 
+         class="inline-flex items-center h-9 px-4 rounded-lg bg-sea text-white hover:brightness-105 shadow-sm">
+        Edit Skor
+      </a>
+      <a href="{% url 'leagues:match_delete' match_id=match.pk %}"
+         class="inline-flex items-center h-9 px-4 rounded-lg border border-danger/30 text-danger bg-white hover:bg-mist">
+        Hapus Pertandingan
+      </a>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    
+    <div class="bg-white rounded-xl border border-mist shadow-sm">
+      <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
+        Statistik Tim Kandang
+      </h2>
+      <div class="p-5 space-y-3 text-sm">
+        {% for label, val in home_stats.items %}
+        <div class="flex justify-between items-center border-b border-mist/70 pb-3 last:border-b-0 last:pb-0">
+          <span class="text-surface/80">{{ label }}</span>
+          <span class="font-semibold text-primary text-base tabular-nums">{{ val }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-mist shadow-sm">
+      <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
+        Statistik Tim Tamu
+      </h2>
+      <div class="p-5 space-y-3 text-sm">
+        {% for label, val in away_stats.items %}
+        <div class="flex justify-between items-center border-b border-mist/70 pb-3 last:border-b-0 last:pb-0">
+          <span class="text-surface/80">{{ label }}</span>
+          <span class="font-semibold text-primary text-base tabular-nums">{{ val }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+{% endblock %}
