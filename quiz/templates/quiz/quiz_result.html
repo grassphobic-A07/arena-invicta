@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results: {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl mt-3 mb-3">
+    {% include "quiz/_quiz_result_partial.html" %}
+</div>
+{% endblock %}

@@ -2,53 +2,108 @@
 {% block title %}Daftar Tim • Premier League{% endblock %}
 
 {% block content %}
-  <h1 class="text-3xl font-semibold text-primary mb-2">Premier League — Daftar Tim</h1>
+  <div class="mx-auto max-w-7xl px-4"> 
 
-  {% include 'leagues/_league_nav.html' with league=league current_nav='teams' %}
+    <h1 class="text-3xl font-semibold text-primary mb-2">Premier League — Daftar Tim</h1>
 
-  <form class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-6 flex items-center gap-3" method="get" action="">
-    <input type="text" name="q" value="{{ q }}" placeholder="Cari tim (mis. Arsenal)"
-           class="h-10 rounded-lg border border-surface/20 px-3 bg-white flex-1 min-w-[150px]">
-    <button type="submit"
-            class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">
-      Cari
-    </button>
-  </form>
+    {% include 'leagues/_league_nav.html' with league=league current_nav='teams' %}
 
-  <div class="bg-white rounded-xl border border-mist shadow-sm overflow-hidden">
-    <div class="divide-y divide-mist">
-      {% for t in teams %}
-        <a href="{% url 'leagues:team_detail' t.pk %}" 
-           class="block px-5 py-3.5 text-primary font-medium hover:bg-mist/60 transition-colors">
-          {{ t.name }}
-        </a>
-      {% empty %}
-        <div class="px-5 py-6 text-center text-surface/50">
-          Tidak ada tim yang ditemukan.
+    <form id="teamSearchForm" class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-6 flex items-center gap-3" method="get" action="{% url 'leagues:team_list' league.pk %}"> 
+      <input type="text" name="q" value="{{ q }}" placeholder="Cari tim (mis. Arsenal)"
+             class="h-10 rounded-lg border border-surface/20 px-3 bg-white flex-1 min-w-[150px]">
+      <button type="submit"
+              class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">
+        Cari
+      </button>
+      <a href="{% url 'leagues:team_list' league.pk %}" class="h-10 inline-flex items-center px-3 text-sm text-surface/70 hover:text-primary">Reset</a>
+    </form>
+
+    <div id="teamListContainer" class="bg-white rounded-xl border border-mist shadow-sm overflow-hidden">
+      {% include 'leagues/_team_list_partial.html' with teams=teams %} 
+    </div>
+
+    {% if page_obj.has_previous or page_obj.has_next %}
+      <div class="mt-6 flex items-center justify-between text-sm">
+        <div class="text-surface/70">
+          Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}.
         </div>
-      {% endfor %}
-    </div>
-  </div>
+        <div class="flex items-center gap-2">
+          {% if page_obj.has_previous %}
+            <a href="?q={{ q }}&page={{ page_obj.previous_page_number }}"
+               class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
+              ← Sebelumnya
+            </a>
+          {% endif %}
+          {% if page_obj.has_next %}
+            <a href="?q={{ q }}&page={{ page_obj.next_page_number }}"
+               class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
+              Berikutnya →
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
 
-  {% if page_obj.has_previous or page_obj.has_next %}
-    <div class="mt-6 flex items-center justify-between text-sm">
-      <div class="text-surface/70">
-        Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}.
-      </div>
-      <div class="flex items-center gap-2">
-        {% if page_obj.has_previous %}
-          <a href="?q={{ q }}&page={{ page_obj.previous_page_number }}"
-             class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
-            ← Sebelumnya
-          </a>
-        {% endif %}
-        {% if page_obj.has_next %}
-          <a href="?q={{ q }}&page={{ page_obj.next_page_number }}"
-             class="inline-flex items-center h-8 px-3 rounded-lg border border-surface/20 bg-white hover:bg-mist/60">
-            Berikutnya →
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  {% endif %}
+    {# --- SCRIPT AJAX UNTUK SEARCH (Tetap sama) --- #}
+    <script>
+    (function () {
+      const form = document.getElementById('teamSearchForm');
+      const input = form.querySelector('input[name="q"]');
+      const container = document.getElementById('teamListContainer');
+      let searchTimer; // Untuk debounce (menunda request saat user mengetik)
+
+      const performSearch = async () => {
+        const query = input.value;
+        
+        // Buat URL dengan query params 'q'
+        const url = new URL(form.action); // Ambil action URL dari form
+        url.searchParams.set('q', query); // Set atau update parameter 'q'
+        
+        container.innerHTML = '<div class="px-5 py-6 text-center text-surface/50 animate-pulse">Memuat...</div>';
+
+        try {
+          const resp = await fetch(url.href, { 
+            method: "GET",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest" 
+            }
+          });
+
+          if (resp.ok) {
+            const htmlResult = await resp.text(); 
+            container.innerHTML = htmlResult; 
+          } else {
+            container.innerHTML = '<div class="px-5 py-6 text-center text-danger">Gagal memuat daftar tim. Coba lagi.</div>';
+            console.error("AJAX Error:", resp.status, resp.statusText);
+          }
+        } catch (err) {
+          container.innerHTML = '<div class="px-5 py-6 text-center text-danger">Terjadi kesalahan jaringan. Periksa koneksi Anda.</div>';
+          console.error("Network Error:", err);
+        }
+        
+        history.pushState({ q: query }, '', url.href); 
+      };
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault(); 
+        clearTimeout(searchTimer); 
+        performSearch(); 
+      });
+
+      input.addEventListener('input', (e) => { 
+        clearTimeout(searchTimer); 
+        searchTimer = setTimeout(performSearch, 300); 
+      });
+
+      window.addEventListener('popstate', (event) => {
+        const params = new URLSearchParams(window.location.search);
+        const queryFromUrl = params.get('q') || '';
+        input.value = queryFromUrl; 
+        performSearch(); 
+      });
+
+    })();
+    </script>
+    
+  </div>
 {% endblock %}

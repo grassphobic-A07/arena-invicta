@@ -3,16 +3,16 @@
 
 {% block content %}
   <div class="mx-auto max-w-lg">
-  
+
     <h1 class="text-3xl font-semibold text-primary mb-6">Hapus Pertandingan</h1>
 
     <div class="bg-white rounded-xl border border-mist shadow-sm">
-      <form method="post" novalidate>
+      <form id="deleteMatchForm" method="post" action="{% url 'leagues:match_delete' match_id=object.pk %}" novalidate>
         {% csrf_token %}
-        
+
         <div class="p-5">
           <p class="text-surface/80">Anda yakin ingin menghapus permanen pertandingan ini?</p>
-          
+
           <div class="my-4 rounded-xl bg-mist/60 p-4 text-center">
             <p class="font-semibold text-primary">{{ object.home_team.name }} vs {{ object.away_team.name }}</p>
             <p class="text-sm text-surface/70">{{ object.date|date:"d/m/Y H:i" }}</p>
@@ -29,8 +29,65 @@
             Batal
           </a>
         </div>
-        
+
       </form>
     </div>
   </div>
+
+  <script>
+  (function () {
+    // Helper untuk mendapatkan CSRF token (wajib untuk POST)
+    function getCookie(name){let v=null;if(!document.cookie)return v;for(const c of document.cookie.split(";")){const s=c.trim();if(s.startsWith(name+"=")){v=decodeURIComponent(s.slice(name.length+1));break;}}return v;}
+    const CSRF = getCookie("csrftoken");
+
+    const delForm = document.getElementById("deleteMatchForm");
+
+    delForm?.addEventListener("submit", async (e) => {
+      e.preventDefault(); // Hentikan submit form standar
+
+      const btn = delForm.querySelector('button[type="submit"]');
+      if (btn.disabled) return; // Hindari double submit
+
+      // (Opsional) Nonaktifkan tombol saat proses
+      btn.setAttribute("disabled", "disabled");
+      btn.textContent = "Menghapus..."; // Beri feedback visual
+
+      try {
+        const resp = await fetch(delForm.action, { // Gunakan action dari form
+          method: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest", // Tandai sebagai request AJAX
+            "X-CSRFToken": CSRF // Kirim CSRF token
+            // Tidak perlu body jika hanya konfirmasi (tergantung view)
+            // Jika perlu data: body: new FormData(delForm)
+          },
+        });
+
+        const data = await resp.json().catch(() => ({})); // Tangkap jika response bukan JSON
+
+        if (resp.ok && data.Ok) {
+          // Sukses: Gunakan toast dari base.html via localStorage untuk pesan setelah redirect
+          localStorage.setItem("ai_toast", JSON.stringify({
+            text: data.message || "Pertandingan berhasil dihapus.",
+            level: "success" // Tipe pesan (success, error, info, warning)
+          }));
+          // Redirect menggunakan JavaScript ke URL dari respons
+          window.location.assign(data.redirect_url || "/"); // Fallback ke home jika URL tidak ada
+        } else {
+          // Gagal: Tampilkan error menggunakan toast
+          window.showToast(data.message || "Gagal menghapus pertandingan. Coba lagi.", "error");
+          // Aktifkan kembali tombol jika gagal
+          btn.removeAttribute("disabled");
+          btn.textContent = "Ya, Hapus";
+        }
+      } catch (err) {
+        // Tangani error jaringan
+        window.showToast("Terjadi kesalahan jaringan. Periksa koneksi Anda.", "error");
+        // Aktifkan kembali tombol
+        btn.removeAttribute("disabled");
+        btn.textContent = "Ya, Hapus";
+      }
+    });
+  })();
+  </script>
 {% endblock %}

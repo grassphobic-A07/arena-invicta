@@ -1,0 +1,79 @@
+<div class="bg-white p-8 rounded-xl shadow-md text-center">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Quiz Results: {{ quiz.title }}</h1>
+    <p class="text-gray-600 mb-6">Here's how you did on this quiz.</p>
+    
+    <div class="bg-mint/20 p-6 rounded-lg inline-block">
+        <p class="text-lg text-primary">Your Score:</p>
+        <p class="text-6xl font-bold text-primary my-2">{{ score }} / {{ total_questions }}</p>
+        <p class="text-2xl font-semibold text-sea">{{ percentage }}%</p>
+    </div>
+    
+    <div class="mt-8">
+        {% if percentage == 100 %}
+        <p class="text-xl text-gray-800">Perfect! Excellent work! 🎉</p>
+        {% elif percentage >= 75 %}
+        <p class="text-xl text-gray-800">Great job! You've got this. 👍</p>
+        {% elif percentage >= 50 %}
+        <p class="text-xl text-gray-800">Not bad — keep practicing!</p>
+        {% else %}
+        <p class="text-xl text-gray-800">Don't give up — try again and improve your score!</p>
+        {% endif %}
+    </div>
+    
+    <div class="mt-8 flex justify-center space-x-4">
+        <a href="{% url 'quiz:take_quiz' quiz.id %}" class="px-6 py-2 border border-primary text-primary font-semibold rounded-lg hover:bg-primary hover:text-white transition-colors">
+            Try Again
+        </a>
+        <a href="{% url 'quiz:show_main' %}" class="px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-sea transition-colors">
+            Back to Quizzes
+        </a>
+    </div>
+</div>
+
+<div class="bg-white p-8 rounded-xl shadow-md mt-6">
+    <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">🏆 Leaderboard (Top 10) 🏆</h3>
+    {% if leaderboard %}
+    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table class="w-full text-sm text-left text-gray-700">
+            <thead class="text-xs text-gray-800 uppercase bg-gray-100">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Rank</th>
+                    <th scope="col" class="px-6 py-3">User</th>
+                    <th scope="col" class="px-6 py-3">Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in leaderboard %}
+                {% if item.user == request.user %}
+                <tr class="bg-gray-200 border-b hover:bg-gray-300">
+                    <td class="px-6 py-4 font-bold text-gray-900">
+                        #{{ forloop.counter }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ item.user.username }}
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-primary">
+                        {{ item.score }} / {{ total_questions }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 font-bold text-gray-900">
+                        #{{ forloop.counter }}
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">
+                        {{ item.user.username }}
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-primary">
+                        {{ item.score }} / {{ total_questions }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500">No one has taken this quiz yet.</p>
+    {% endif %}
+</div>

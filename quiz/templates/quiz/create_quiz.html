@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if quiz_form.instance.pk %}
+        Edit Quiz - Arena Invicta
+    {% else %}
+        Create New Quiz - Arena Invicta
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-2xl mt-3 mb-3">    
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
+        {% include "quiz/_quiz_form_partial.html" %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Fungsi untuk menginisialisasi logika formset (add/remove)
+function initializeFormset(formContainer) {
+    const container = formContainer.querySelector('#question-forms-container');
+    if (!container) return;
+    
+    const addQuestionBtn = formContainer.querySelector('#add-question-btn');
+    const template = formContainer.querySelector('#empty-form-template');
+    const totalFormsInput = formContainer.querySelector('input[name$="-TOTAL_FORMS"]');
+    if (!addQuestionBtn || !template || !totalFormsInput) return;
+
+    const formsetPrefix = totalFormsInput.name.split('-')[0]; // e.g., 'questions'
+
+    const updateQuestionNumbers = () => {
+        const visibleQuestionForms = container.querySelectorAll('.question-form:not([style*="display: none"])');
+        visibleQuestionForms.forEach((form, index) => {
+            const numberSpan = form.querySelector('.question-number');
+            if (numberSpan) {
+                numberSpan.textContent = index + 1;
+            }
+        });
+    };
+
+    addQuestionBtn.addEventListener('click', () => {
+        let formNum = parseInt(totalFormsInput.value);
+        let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
+        
+        // Ganti juga name attribute untuk radio button
+        newFormHtml = newFormHtml.replace(new RegExp(formsetPrefix + '-__prefix__-correct_answer', 'g'), formsetPrefix + '-' + formNum + '-correct_answer');
+
+        const div = document.createElement('div');
+        div.innerHTML = newFormHtml;
+        const newFormElement = div.firstElementChild;
+        
+        container.appendChild(newFormElement);
+        totalFormsInput.value = formNum + 1;
+        
+        updateQuestionNumbers();
+    });
+
+    container.addEventListener('click', (e) => {
+        let targetButton = e.target.closest('.remove-question-btn');
+        if (targetButton) {
+            const formElement = targetButton.closest('.question-form');
+            if (!formElement) return;
+
+            const idInput = formElement.querySelector(`input[name$="-id"]`);
+
+            if (idInput && idInput.value) {
+                // This is an existing form, mark it for deletion
+                const deleteInput = formElement.querySelector(`input[name$="-DELETE"]`);
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    formElement.style.display = 'none';
+                }
+            } else {
+                // This is a new form, just remove it
+                formElement.remove();
+                // We must update TOTAL_FORMS when removing a *new* form
+                // Note: This simple decrement can be buggy if forms are removed out of order.
+                // A safer way is to re-count forms, but this matches original logic.
+                // totalFormsInput.value = parseInt(totalFormsInput.value) - 1; 
+                // Biarkan TOTAL_FORMS, Django bisa menangani form kosong.
+            }
+            
+            updateQuestionNumbers();
+        }
+    });
+
+    updateQuestionNumbers();
+}
+
+// Inisialisasi untuk halaman ini
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('quiz-form');
+    if (form) {
+        initializeFormset(form.parentElement);
+    }
+});
+</script>
+{% endblock %}
