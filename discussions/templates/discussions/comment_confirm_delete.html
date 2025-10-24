@@ -1,0 +1,8 @@
+<h1>Hapus Komentar</h1>
+<p>Apakah Anda yakin ingin menghapus komentar ini?</p>
+<p>{{ object.content }}</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Ya, hapus</button>
+</form>
+<a href="{% url 'discussions:thread-detail' thread.pk %}">Batal</a>
