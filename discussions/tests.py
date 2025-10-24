@@ -103,3 +103,229 @@ class DiscussionAPITests(TestCase):
         self.assertTrue(data.get('ok'))
         self.assertEqual(data['thread']['news']['uuid'], str(self.news.id))
         self.assertTrue(DiscussionThread.objects.filter(title='Match MVP Predictions').exists())
+
+
+class DiscussionViewIntegrationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User = get_user_model()
+        cls.author = User.objects.create_user(username='thread_owner', password='password123')
+        cls.other_user = User.objects.create_user(username='other_user', password='password123')
+        cls.staff_user = User.objects.create_user(username='staff_user', password='password123', is_staff=True)
+
+        cls.news = News.objects.create(
+            title='Derby Day',
+            content='Preview content',
+            category='update',
+            sports='football',
+        )
+        cls.other_news = News.objects.create(
+            title='Training Camp',
+            content='Training updates',
+            category='analysis',
+            sports='basketball',
+        )
+
+        cls.thread = DiscussionThread.objects.create(
+            title='Opening Thoughts',
+            body='Initial analysis.',
+            author=cls.author,
+            news=cls.news,
+        )
+        cls.other_thread = DiscussionThread.objects.create(
+            title='Secondary Thread',
+            body='Different topic.',
+            author=cls.author,
+            news=cls.other_news,
+        )
+        cls.thread_without_news = DiscussionThread.objects.create(
+            title='General Chat',
+            body='No news attached.',
+            author=cls.author,
+        )
+        cls.comment = DiscussionComment.objects.create(
+            thread=cls.thread,
+            author=cls.author,
+            content='First comment.',
+        )
+
+    def test_thread_list_filters_by_news_query(self):
+        url = reverse('discussions:thread-list')
+        response = self.client.get(url, {'q': 'Derby'})
+        self.assertEqual(response.status_code, 200)
+        threads = list(response.context['threads'])
+        self.assertEqual(len(threads), 1)
+        self.assertEqual(threads[0].pk, self.thread.pk)
+        self.assertIn('thread_form', response.context)
+
+    def test_thread_detail_includes_comments_and_form(self):
+        response = self.client.get(reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.comment, response.context['comments'])
+        self.assertIn('comment_form', response.context)
+        comment_context = response.context['comments'][0]
+        self.assertTrue(hasattr(comment_context, 'author_display'))
+
+    def test_thread_create_get_and_invalid_post(self):
+        self.client.force_login(self.author)
+        get_response = self.client.get(reverse('discussions:thread-create'))
+        self.assertEqual(get_response.status_code, 200)
+
+        post_response = self.client.post(reverse('discussions:thread-create'), {
+            'news': self.news.pk,
+            'title': '',
+            'body': 'Missing title should fail',
+        })
+        self.assertEqual(post_response.status_code, 200)
+        form = post_response.context['form']
+        self.assertFormError(form, 'title', 'This field is required.')
+
+    def test_thread_create_successful_post(self):
+        self.client.force_login(self.author)
+        response = self.client.post(
+            reverse('discussions:thread-create'),
+            {
+                'news': self.news.pk,
+                'title': 'New Thread',
+                'body': "Let's discuss!",
+            },
+        )
+        latest_thread = DiscussionThread.objects.order_by('-id').first()
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[latest_thread.pk]))
+
+    def test_thread_edit_requires_owner_or_staff(self):
+        self.client.force_login(self.other_user)
+        response = self.client.post(reverse('discussions:thread-edit', args=[self.thread.pk]), {
+            'news': self.news.pk,
+            'title': 'Attempted Update',
+            'body': 'Should be blocked.',
+        })
+        self.assertEqual(response.status_code, 403)
+
+        self.client.force_login(self.staff_user)
+        response = self.client.post(reverse('discussions:thread-edit', args=[self.thread.pk]), {
+            'news': self.news.pk,
+            'title': 'Staff Update',
+            'body': 'Updated by staff.',
+        })
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.thread.refresh_from_db()
+        self.assertEqual(self.thread.title, 'Staff Update')
+
+    def test_thread_edit_owner_updates_thread(self):
+        self.client.force_login(self.author)
+        response = self.client.post(reverse('discussions:thread-edit', args=[self.other_thread.pk]), {
+            'news': self.other_news.pk,
+            'title': 'Edited Title',
+            'body': 'Updated body.',
+        })
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[self.other_thread.pk]))
+        self.other_thread.refresh_from_db()
+        self.assertEqual(self.other_thread.title, 'Edited Title')
+
+    def test_thread_delete_flow(self):
+        self.client.force_login(self.author)
+        get_response = self.client.get(reverse('discussions:thread-delete', args=[self.other_thread.pk]))
+        self.assertEqual(get_response.status_code, 200)
+
+        post_response = self.client.post(reverse('discussions:thread-delete', args=[self.other_thread.pk]))
+        self.assertRedirects(post_response, reverse('discussions:thread-list'))
+        self.assertFalse(DiscussionThread.objects.filter(pk=self.other_thread.pk).exists())
+
+    def test_thread_delete_forbidden_for_other_user(self):
+        thread = DiscussionThread.objects.create(
+            title='To Delete',
+            body='Thread to be deleted',
+            author=self.author,
+            news=self.news,
+        )
+        self.client.force_login(self.other_user)
+        response = self.client.post(reverse('discussions:thread-delete', args=[thread.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_thread_create_api_handles_invalid_payloads(self):
+        self.client.force_login(self.author)
+        url = reverse('discussions:thread-create-api')
+
+        invalid_json = self.client.post(url, data='{"title":', content_type='application/json')
+        self.assertEqual(invalid_json.status_code, 400)
+        self.assertFalse(invalid_json.json().get('ok', True))
+
+        invalid_form = self.client.post(url, data=json.dumps({'title': ''}), content_type='application/json')
+        self.assertEqual(invalid_form.status_code, 400)
+        self.assertIn('errors', invalid_form.json())
+
+        form_response = self.client.post(url, data={
+            'news': self.news.pk,
+            'title': 'Form Encoded Thread',
+            'body': 'Created via form data.',
+        })
+        self.assertEqual(form_response.status_code, 201)
+        self.assertTrue(DiscussionThread.objects.filter(title='Form Encoded Thread').exists())
+
+    def test_thread_list_api_handles_threads_without_news(self):
+        response = self.client.get(reverse('discussions:thread-list-api'))
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()['threads']
+        thread_data = next(item for item in payload if item['id'] == self.thread_without_news.pk)
+        self.assertIsNone(thread_data['news'])
+
+    def test_comment_create_flow(self):
+        self.client.force_login(self.other_user)
+        url = reverse('discussions:comment-create', args=[self.thread.pk])
+        response = self.client.post(url, {'content': 'A new comment'})
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.assertTrue(DiscussionComment.objects.filter(content='A new comment').exists())
+
+    def test_comment_create_with_parent_and_invalid_data(self):
+        parent = DiscussionComment.objects.create(
+            thread=self.thread,
+            author=self.author,
+            content='Parent comment',
+        )
+        self.client.force_login(self.other_user)
+        url = reverse('discussions:comment-create', args=[self.thread.pk])
+        response = self.client.post(url, {'content': 'Reply', 'parent': parent.pk})
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[self.thread.pk]))
+        reply = DiscussionComment.objects.get(content='Reply')
+        self.assertEqual(reply.parent, parent)
+
+        invalid_response = self.client.post(url, {'content': ''})
+        self.assertEqual(invalid_response.status_code, 200)
+        self.assertTemplateUsed(invalid_response, 'discussions/comment_form.html')
+
+    def test_comment_edit_permissions_and_updates(self):
+        self.client.force_login(self.other_user)
+        response = self.client.get(reverse('discussions:comment-edit', args=[self.comment.pk]))
+        self.assertEqual(response.status_code, 403)
+
+        self.client.force_login(self.author)
+        response = self.client.post(reverse('discussions:comment-edit', args=[self.comment.pk]), {'content': 'Updated comment'})
+        self.assertRedirects(response, reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.content, 'Updated comment')
+
+    def test_comment_delete_access(self):
+        comment = DiscussionComment.objects.create(
+            thread=self.thread,
+            author=self.other_user,
+            content='To be removed',
+        )
+
+        self.client.force_login(self.staff_user)
+        get_response = self.client.get(reverse('discussions:comment-delete', args=[comment.pk]))
+        self.assertEqual(get_response.status_code, 200)
+
+        post_response = self.client.post(reverse('discussions:comment-delete', args=[comment.pk]))
+        self.assertRedirects(post_response, reverse('discussions:thread-detail', args=[self.thread.pk]))
+        self.assertFalse(DiscussionComment.objects.filter(pk=comment.pk).exists())
+
+    def test_comment_delete_forbidden_for_unrelated_user(self):
+        comment = DiscussionComment.objects.create(
+            thread=self.thread,
+            author=self.author,
+            content='Protected comment',
+        )
+        self.client.force_login(self.other_user)
+        response = self.client.post(reverse('discussions:comment-delete', args=[comment.pk]))
+        self.assertEqual(response.status_code, 403)
