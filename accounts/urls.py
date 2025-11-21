@@ -1,15 +1,22 @@
 # accounts/urls.py
 from django.urls import path
-from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar, admin_dashboard
+from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar, admin_dashboard, login_api, register_api
 
 app_name = 'accounts'
 
 urlpatterns = [
     path('', home, name='home'),
+
+    # Untuk mengarahkan ke bagian web 
     path('register/', register, name='register'),
     path('login/', login_user, name='login'),
     path('logout/', logout_user, name='logout'),
     path('delete/', delete_account, name='delete'),
+
+    # Untuk mengarahkan ke mobile/JSON Response/API
+    # path("api/register/", register, name="api_register"),
+    path('api/login/', login_api, name='login_api'),
+    path('api/register/', register_api, name='register_api'),
 
     # >>> statis lebih dulu
     path('profile/edit/', profile_edit, name='profile_edit'),

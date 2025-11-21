@@ -1,5 +1,7 @@
+import json
 import datetime, os
-from django.contrib.auth import login, logout
+from sqlite3 import IntegrityError
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -14,6 +16,8 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.apps import apps
 from django.db.models.deletion import ProtectedError
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.password_validation import validate_password
 
 from .forms import LoginForm, RegisterWithRoleForm
 
@@ -411,3 +415,136 @@ def delete_account(request):
     
     messages.success(request, "Akun berhasil dihapus.")
     return redirect("news:show_news")
+
+
+# Khusus API untuk via mobile app
+@csrf_exempt
+def login_api(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": False, "message": "Metode tidak diizinkan, gunakan POST"}, status=405)
+
+    username = ""
+    password = ""
+
+    # --- PERBAIKAN DI SINI ---
+
+    # Prioritas 1: Cek apakah data dikirim sebagai Form Data standar (request.POST)
+    # Ini adalah cara default pbp_django_auth mengirim data.
+    if request.POST:
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+    
+    # Prioritas 2: Jika request.POST kosong, coba baca sebagai JSON Body
+    # Ini sebagai fallback jika cara pengiriman di Flutter diubah menjadi JSON eksplisit di masa depan.
+    else:
+        try:
+            # Cek apakah body tidak kosong sebelum mencoba loads
+            if request.body:
+                data = json.loads(request.body)
+                username = data.get('username')
+                password = data.get('password')
+            else:
+                 return JsonResponse({"status": False, "message": "Data login tidak ditemukan"}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"status": False, "message": "Format data tidak valid (Gunakan Form Data atau JSON)"}, status=400)
+
+    # --- AKHIR PERBAIKAN ---
+
+
+    # Coba autentikasi user
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        # Jika berhasil, login-kan user untuk membuat session/cookie
+        if request.user.is_authenticated:
+             # Jika user sudah terautentikasi di sesi ini, tidak perlu login lagi
+             pass
+        else:
+             login(request, user)
+        
+        # Kembalikan respons JSON sukses
+        return JsonResponse({
+            "status": True,
+            "message": "Login Berhasil!",
+            "username": user.username,
+            # Kamu bisa tambahkan data lain di sini, misal role user, avatar_url, dll.
+             "role": getattr(getattr(user, "profile", None), "role", "registered"),
+        }, status=200)
+    else:
+        # Jika gagal (username/password salah)
+        return JsonResponse({
+            "status": False,
+            "message": "Username atau password salah."
+        }, status=401) # 401 Unauthorized
+
+@csrf_exempt
+def register_api(request):
+    if request.method != 'POST':
+         return JsonResponse({"status": False, "message": "Metode tidak diizinkan, gunakan POST"}, status=405)
+
+    try:
+        # --- PERBAIKAN DI SINI: Prioritaskan request.POST (Form Data) ---
+        if request.POST:
+            data = request.POST
+        elif request.body:
+             # Fallback ke JSON jika perlu
+            data = json.loads(request.body)
+        else:
+             return JsonResponse({"status": False, "message": "Data registrasi tidak ditemukan"}, status=400)
+        # ----------------------------------------------------------------
+
+        # Ambil data menggunakan .get() dari dictionary 'data'
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        confirm_password = data.get('confirmPassword', '')
+        role_input = data.get('role', 'registered').strip().lower() # 'content_staff' atau 'registered'
+
+        # --- SISA LOGIKA SAMA SEPERTI SEBELUMNYA ---
+        
+        # 2. Validasi Input Dasar
+        if not username or not password:
+            return JsonResponse({"status": False, "message": "Username dan password wajib diisi."}, status=400)
+
+        if password != confirm_password:
+            return JsonResponse({"status": False, "message": "Password dan konfirmasi password tidak cocok."}, status=400)
+
+        # 3. Cek apakah username sudah ada
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"status": False, "message": "Username sudah digunakan."}, status=409)
+
+        # 4. Validasi kekuatan password (Opsional tapi disarankan)
+        # try: validate_password(password) ...
+
+        # 5. Proses Pembuatan Akun
+        user = User.objects.create_user(username=username, password=password)
+        
+        # Tentukan role final
+        final_role = 'content_staff' if role_input == 'content_staff' else 'registered'
+        
+        # Buat/Update Profile
+        profile, _ = Profile.objects.get_or_create(user=user)
+        profile.role = final_role
+        profile.save(update_fields=["role"])
+
+        # Atur Grup Content Staff
+        content_staff_group, _ = Group.objects.get_or_create(name="Content Staff")
+        if final_role == "content_staff":
+            content_staff_group.user_set.add(user)
+        else:
+            content_staff_group.user_set.remove(user) # Hapus jika ada
+
+        # 6. Berhasil
+        return JsonResponse({
+            "status": True,
+            "message": "Registrasi berhasil! Silakan login.",
+            "username": user.username,
+            "role": final_role
+        }, status=201)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": False, "message": "Format data tidak valid."}, status=400)
+    except IntegrityError:
+         return JsonResponse({"status": False, "message": "Terjadi kesalahan database."}, status=409)
+    except Exception as e:
+        print(f"Register API Error: {e}")
+        return JsonResponse({"status": False, "message": f"Error server: {str(e)}"}, status=500)
