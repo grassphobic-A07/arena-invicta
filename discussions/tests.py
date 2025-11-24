@@ -1,4 +1,5 @@
 import json
+import xml.etree.ElementTree as ET
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -111,6 +112,28 @@ class DiscussionAPITests(TestCase):
         self.assertEqual(data['thread']['views_count'], 0)
         self.assertIn('summary', data['thread']['news'])
         self.assertTrue(data['thread']['news']['summary'])
+
+    def test_list_api_can_return_xml_via_query_param(self):
+        url = reverse('discussions:thread-list-api')
+        response = self.client.get(url, {'format': 'xml'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['Content-Type'].startswith('application/xml'))
+        root = ET.fromstring(response.content)
+        threads = {elem.find('id').text: elem for elem in root.findall('thread')}
+        target = threads.get(str(self.thread.id))
+        self.assertIsNotNone(target)
+        self.assertEqual(target.find('title').text, self.thread.title)
+        author = target.find('author')
+        self.assertIsNotNone(author)
+        self.assertEqual(author.find('username').text, self.user.username)
+
+    def test_list_api_respects_accept_header_for_xml(self):
+        url = reverse('discussions:thread-list-api')
+        response = self.client.get(url, HTTP_ACCEPT='application/xml')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['Content-Type'].startswith('application/xml'))
+        root = ET.fromstring(response.content)
+        self.assertGreaterEqual(len(root.findall('thread')), 1)
 
 
 class DiscussionViewIntegrationTests(TestCase):
