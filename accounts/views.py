@@ -459,12 +459,22 @@ def login_api(request):
         # Selalu lakukan login() agar session lama (jika ada) diganti dengan yang baru
         login(request, user) 
         # -------------------------
+
+        if user.is_superuser:
+            role_str = "admin"
+        else:
+            profile = getattr(user, "profile", None)
+            role_str = profile.role if profile else "registered"
         
+        profile = getattr(user, "profile", None)
+        avatar_url = profile.avatar_url if profile else ""
+
         return JsonResponse({
             "status": True,
             "message": "Login Berhasil!",
             "username": user.username,
-             "role": getattr(getattr(user, "profile", None), "role", "registered"),
+             "role": role_str,
+             "avatar_url": avatar_url,
         }, status=200)
     else:
         return JsonResponse({
@@ -472,6 +482,7 @@ def login_api(request):
             "message": "Username atau password salah."
         }, status=401)
     
+
 @csrf_exempt
 def register_api(request):
     if request.method != 'POST':
@@ -555,6 +566,7 @@ def logout_api(request):
     response.delete_cookie('last_login')
     return response
 
+
 @login_required
 def user_profile_api_json(request):
     """
@@ -562,13 +574,18 @@ def user_profile_api_json(request):
     """
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
+    if request.user.is_superuser:
+        role_label = "admin"
+    else:
+        role_label = profile.role
+
     return JsonResponse({
         "username": request.user.username,
         "display_name": profile.display_name or "",
         "favourite_team": profile.favorite_team or "",
         "avatar_url": profile.avatar_url or "",
         "bio": profile.bio or "",
-        "role": profile.role ,
+        "role": role_label,
     })
 
 @csrf_exempt
@@ -617,3 +634,165 @@ def edit_profile_api(request):
 
     except Exception as e:
         return JsonResponse({"status": False, "message": f"Error: {str(e)}"}, status=500)
+    
+@csrf_exempt
+def admin_dashboard_api(request):
+    """
+    API untuk Admin Dashboard di Flutter.
+    Mengembalikan statistik dan daftar user dalam format JSON.
+    Juga menangani aksi (POST) seperti set_role, toggle_active, delete.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": False, "message": "Unauthorized"}, status=401)
+    
+    if not (request.user.is_superuser or request.user.username == os.getenv("ARENA_ADMIN_USER", "arena_admin")):
+        return JsonResponse({"status": False, "message": "Forbidden. Admin only"}, status=403)
+    
+    if request.method == "POST":
+        try:
+            data = request.POST
+            if not data and request.body:
+                data = json.loads(request.body)
+
+            op = data.get("op", "")
+
+            if op == "set_role":
+                uid = int(data.get("user_id"))
+                new_role = data.get("role", "registered").strip().lower()
+
+                target_user = User.objects.select_related('profile').get(pk=uid)
+
+                if target_user.is_superuser:
+                    return JsonResponse({
+                        "status": False,
+                        "message": f"Tidak diizinkan. {target_user.username} adalah Admin."
+                    })
+                # DEBUG PRINT (Cek terminal kita saat klik tombol di HP)
+                print(f"DEBUG: Mengubah {target_user.username} menjadi {new_role}")
+
+                # Siapkan Grup Content Staff (Ambil objeknya)
+                content_group, _ = Group.objects.get_or_create(name="Content Staff")
+
+                if new_role == "admin":
+                    target_user.is_superuser = True
+                    target_user.is_staff = False
+                    target_user.save()
+                    target_user.groups.remove(content_group)
+
+                elif new_role == "content_staff":
+                    if target_user.is_superuser:
+                        target_user.is_superuser = False
+                        target_user.is_staff = False
+                        target_user.save()
+
+                    p = target_user.profile
+                    p.role = "content_staff"
+                    p.save()
+
+                    target_user.groups.add(content_group)                    
+                
+                else: # registered
+                    if target_user.is_superuser:
+                        target_user.is_superuser = False
+                        target_user.is_staff = False
+                        target_user.save()
+
+                    p = target_user.profile
+                    p.role = "registered"
+                    p.save()
+                    target_user.groups.remove(content_group)
+
+                return JsonResponse({"status": True, "message": f"Role {target_user.username.capitalize()} diubah ke {new_role.replace('_', ' ').title()}"}, status=200)
+
+            # --- Aksi: Toggle Active ---
+            elif op == "toggle_active":
+                uid = int(data.get("user_id"))
+                target_user = User.objects.get(pk=uid)
+                # Jangan nonaktifkan admin
+                if target_user.is_superuser:
+                     return JsonResponse({"status": False, "message": "Tidak bisa menonaktifkan Admin."})
+
+                target_user.is_active = not target_user.is_active
+                target_user.save()
+                status = "Aktif" if target_user.is_active else "Non-aktif"
+                return JsonResponse({"status": True, "message": f"User {target_user.username} sekarang {status}"})
+            
+            # --- Aksi: Delete User ---
+            elif op == "delete_user":
+                uid = int(data.get("user_id"))
+                target_user = User.objects.get(pk=uid)
+                if target_user.is_superuser:
+                     return JsonResponse({"status": False, "message": "Tidak bisa menghapus Admin."})
+                
+                target_user.delete()
+                return JsonResponse({"status": True, "message": "User berhasil dihapus"})
+
+        except Exception as e:
+            return JsonResponse({"status": False, "message": str(e)}, status=500)
+        
+    
+    admin_username = os.getenv("ARENA_ADMIN_USER", "arena_admin")
+    counts = {
+        "total": User.objects.count(),
+        "registered": Profile.objects.filter(role="registered").exclude(user__username=admin_username).count(),
+        "content_staff": Profile.objects.filter(role="content_staff").count(),
+    }
+
+    # Ambil List User
+    users_qs = User.objects.select_related("profile").all().order_by("username")
+    
+    # Serialisasi manual ke List of Dict agar bisa jadi JSON
+    users_data = []
+    for u in users_qs:
+        # Tentukan role label untuk dikirim ke flutter
+        role_str = "registered"
+        if u.is_superuser: 
+            role_str = "admin"
+        elif hasattr(u, 'profile') and u.profile.role == "content_staff": 
+            role_str = "content_staff"
+
+        users_data.append({
+            "id": u.id,
+            "username": u.username,
+            "display_name": u.profile.display_name if hasattr(u, 'profile') else "-",
+            "role": role_str,
+            "is_active": u.is_active,
+            "avatar_url": u.profile.avatar_url if hasattr(u, 'profile') else "",
+        })
+
+    return JsonResponse({
+        "status": True,
+        "counts": counts,
+        "users": users_data
+    })
+
+@csrf_exempt
+def delete_account_api(request):
+    """
+    API untuk user menghapus akunnya sendiri via mobile app.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": False, "message": "Method not allowed"}, status=405)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": False, "message": "Belum login"}, status=401)
+    
+    try:
+        user = request.user
+        # Simpan username untuk pesan sukses sebelum dihapus
+        username = user.username
+
+        # Hapus user dari database
+        user.delete()
+
+        # Logout (Hapus session)
+        logout(request)
+
+        return JsonResponse({
+            "status": True,
+            "message": f"Akun {username} berhasil dihapus."
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": False, "message": f"Gagal menghapus akun: {str(e)}"}, status=500)
+    
