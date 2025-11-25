@@ -655,8 +655,53 @@ def admin_dashboard_api(request):
                 data = json.loads(request.body)
 
             op = data.get("op", "")
+            
+            # === LOGIKA BARU: CREATE USER ===
+            if op == "create_user":
+                username = data.get("username", "").strip()
+                password = data.get("password", "").strip()
+                role = data.get("role", "registered").strip().lower()
 
-            if op == "set_role":
+                # 1. Validasi Input
+                if not username or not password:
+                    return JsonResponse({"status": False, "message": "Username dan Password wajib diisi."})
+                
+                if User.objects.filter(username=username).exists():
+                    return JsonResponse({"status": False, "message": "Username sudah digunakan."})
+
+                # 2. Buat User Baru
+                new_user = User.objects.create_user(username=username, password=password)
+                
+                # 3. Set Role Awal
+                content_group, _ = Group.objects.get_or_create(name="Content Staff")
+                
+                # Inisialisasi profile (jika belum otomatis dibuat oleh signals)
+                profile, _ = Profile.objects.get_or_create(user=new_user)
+
+                if role == "admin":
+                    # Hanya admin induk yang boleh bikin admin lain (Opsional, tapi aman)
+                    if request.user.username != os.getenv("ARENA_ADMIN_USER", "arena_admin"):
+                         new_user.delete() # Batalkan pembuatan
+                         return JsonResponse({"status": False, "message": "Hanya Super Admin yang bisa membuat Admin baru."})
+
+                    new_user.is_superuser = True
+                    new_user.is_staff = True
+                    new_user.save()
+                
+                elif role == "content_staff":
+                    profile.role = "content_staff"
+                    profile.save()
+                    new_user.groups.add(content_group)
+                
+                else: # Registered
+                    profile.role = "registered"
+                    profile.save()
+                    # Pastikan tidak masuk grup content
+                    new_user.groups.remove(content_group)
+
+                return JsonResponse({"status": True, "message": f"User {username} berhasil dibuat!"}, status=201)
+
+            elif op == "set_role":
                 uid = int(data.get("user_id"))
                 new_role = data.get("role", "registered").strip().lower()
 
