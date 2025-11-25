@@ -455,28 +455,23 @@ def login_api(request):
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        # Jika berhasil, login-kan user untuk membuat session/cookie
-        if request.user.is_authenticated:
-             # Jika user sudah terautentikasi di sesi ini, tidak perlu login lagi
-             pass
-        else:
-             login(request, user)
+        # --- PERBAIKAN DI SINI ---
+        # Selalu lakukan login() agar session lama (jika ada) diganti dengan yang baru
+        login(request, user) 
+        # -------------------------
         
-        # Kembalikan respons JSON sukses
         return JsonResponse({
             "status": True,
             "message": "Login Berhasil!",
             "username": user.username,
-            # Kamu bisa tambahkan data lain di sini, misal role user, avatar_url, dll.
              "role": getattr(getattr(user, "profile", None), "role", "registered"),
         }, status=200)
     else:
-        # Jika gagal (username/password salah)
         return JsonResponse({
             "status": False,
             "message": "Username atau password salah."
-        }, status=401) # 401 Unauthorized
-
+        }, status=401)
+    
 @csrf_exempt
 def register_api(request):
     if request.method != 'POST':
@@ -548,3 +543,77 @@ def register_api(request):
     except Exception as e:
         print(f"Register API Error: {e}")
         return JsonResponse({"status": False, "message": f"Error server: {str(e)}"}, status=500)
+
+@csrf_exempt
+def logout_api(request):
+    logout(request)
+    response = JsonResponse({
+        "status": True,
+        "message": "Logout berhasil."
+    }, status=200)
+
+    response.delete_cookie('last_login')
+    return response
+
+@login_required
+def user_profile_api_json(request):
+    """
+    API Khusus untuk mengambil data profil user yang sedang login dalam format JSON.
+    """
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    return JsonResponse({
+        "username": request.user.username,
+        "display_name": profile.display_name or "",
+        "favourite_team": profile.favorite_team or "",
+        "avatar_url": profile.avatar_url or "",
+        "bio": profile.bio or "",
+        "role": profile.role ,
+    })
+
+@csrf_exempt
+def edit_profile_api(request):
+    """
+    API khusus untuk Flutter melakukan update profile.
+    Pasti mengembalikan JSON.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": False, "message": "Method not allowed"}, status=405)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": False, "message": "Belum login"}, status=401)
+
+    try:
+        profile = request.user.profile
+        
+        # 1. Ambil data (support Form Data & JSON)
+        data = request.POST
+        if not data and request.body:
+            import json
+            data = json.loads(request.body)
+
+        # 2. Update Field
+        display_name = data.get('display_name')
+        favorite_team = data.get('favourite_team') # Perhatikan ejaan variabel di Flutter kamu 'favourite_team'
+        avatar_url = data.get('avatar_url')
+        bio = data.get('bio')
+
+        if display_name is not None:
+            profile.display_name = display_name
+        if favorite_team is not None:
+            profile.favorite_team = favorite_team
+        if avatar_url is not None:
+            profile.avatar_url = avatar_url
+        if bio is not None:
+            profile.bio = bio
+            
+        profile.save()
+
+        return JsonResponse({
+            "status": True,
+            "message": "Profile berhasil diupdate!",
+            "username": request.user.username
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": False, "message": f"Error: {str(e)}"}, status=500)

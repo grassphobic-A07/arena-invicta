@@ -1,6 +1,8 @@
 # accounts/urls.py
 from django.urls import path
-from .views import register, login_user, logout_user, home, profile_detail, profile_edit, delete_account, delete_avatar, admin_dashboard, login_api, register_api
+from .views import (edit_profile_api, register, login_user, logout_user, home, 
+                    profile_detail, profile_edit, delete_account, delete_avatar, 
+                    admin_dashboard, login_api, register_api, user_profile_api_json, logout_api)
 
 app_name = 'accounts'
 
@@ -17,6 +19,9 @@ urlpatterns = [
     # path("api/register/", register, name="api_register"),
     path('api/login/', login_api, name='login_api'),
     path('api/register/', register_api, name='register_api'),
+    path('api/logout/', logout_api, name='logout_api'),
+    path('api/profile/json/', user_profile_api_json, name='profile_api'),
+    path('api/profile/edit/', edit_profile_api, name='edit_profile_api'),   
 
     # >>> statis lebih dulu
     path('profile/edit/', profile_edit, name='profile_edit'),
