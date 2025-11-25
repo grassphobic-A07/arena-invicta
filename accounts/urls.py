@@ -25,7 +25,6 @@ urlpatterns = [
 
     # Admin
     path("admin/", admin_dashboard, name="admin_dashboard"),
-    #
 
     # ========== KEBUTUHAN MOBILE/JSON RESPONSE/API ==========
     # Untuk mengarahkan ke mobile/JSON Response/API
