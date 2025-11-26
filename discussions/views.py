@@ -3,7 +3,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q, F
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -40,6 +40,9 @@ def thread_list_api(request):
     query = request.GET.get('q', '').strip()
     threads = _filter_threads(_thread_queryset(), query)
     payload = [_serialize_thread(thread) for thread in threads]
+    if _should_return_xml(request):
+        xml_payload = _threads_to_xml(payload)
+        return HttpResponse(xml_payload, content_type='application/xml')
     return JsonResponse({'threads': payload})
 
 
@@ -328,3 +331,39 @@ def _news_excerpt(news, word_limit=24):
     if len(words) <= word_limit:
         return text
     return ' '.join(words[:word_limit]) + '…'
+
+
+def _should_return_xml(request):
+    """
+    Decide whether the response should be XML based on `format` query param
+    or explicit Accept header preference.
+    """
+    fmt = (request.GET.get('format') or '').lower()
+    if fmt == 'xml':
+        return True
+    if fmt == 'json':
+        return False
+    accept_header = request.headers.get('accept', '')
+    accepted_types = [part.strip() for part in accept_header.split(',') if part.strip()]
+    first_type = accepted_types[0] if accepted_types else ''
+    return first_type.startswith('application/xml') or first_type.startswith('text/xml')
+
+
+def _threads_to_xml(serialized_threads):
+    root = Element('threads')
+    for thread in serialized_threads:
+        thread_el = SubElement(root, 'thread')
+        _dict_to_xml(thread_el, thread)
+    return tostring(root, encoding='utf-8', xml_declaration=True).decode('utf-8')
+
+
+def _dict_to_xml(parent, data):
+    for key, value in data.items():
+        if value is None:
+            continue
+        child = SubElement(parent, key)
+        if isinstance(value, dict):
+            _dict_to_xml(child, value)
+        else:
+            child.text = str(value)
+from xml.etree.ElementTree import Element, SubElement, tostring
