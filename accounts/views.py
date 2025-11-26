@@ -655,12 +655,8 @@ def admin_dashboard_api(request):
                 data = json.loads(request.body)
 
             op = data.get("op", "")
-<<<<<<< HEAD
 
-            if op == "set_role":
-=======
-            
-            # === LOGIKA BARU: CREATE USER ===
+            # Tambahan: endpoint untuk membuat user baru via API
             if op == "create_user":
                 username = data.get("username", "").strip()
                 password = data.get("password", "").strip()
@@ -685,8 +681,8 @@ def admin_dashboard_api(request):
                 if role == "admin":
                     # Hanya admin induk yang boleh bikin admin lain (Opsional, tapi aman)
                     if request.user.username != os.getenv("ARENA_ADMIN_USER", "arena_admin"):
-                         new_user.delete() # Batalkan pembuatan
-                         return JsonResponse({"status": False, "message": "Hanya Super Admin yang bisa membuat Admin baru."})
+                        new_user.delete()  # Batalkan pembuatan
+                        return JsonResponse({"status": False, "message": "Hanya Super Admin yang bisa membuat Admin baru."})
 
                     new_user.is_superuser = True
                     new_user.is_staff = True
@@ -706,7 +702,6 @@ def admin_dashboard_api(request):
                 return JsonResponse({"status": True, "message": f"User {username} berhasil dibuat!"}, status=201)
 
             elif op == "set_role":
->>>>>>> 78e87214cee4585316763161008a30d03911abb5
                 uid = int(data.get("user_id"))
                 new_role = data.get("role", "registered").strip().lower()
 
