@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.html import strip_tags
 from django.contrib import messages
+import requests
 
 def show_news(request):
     filter_sports = request.GET.get("filter", "all")
@@ -154,22 +155,47 @@ def add_news_ajax(request):
         print(f"Error saving news via AJAX: {e}")
         return JsonResponse({'error': 'Internal Server Error'}, status=500)
     
+@csrf_exempt
+def show_news_json(request):
+    filter_sports = request.GET.get("filter", "all")
+    news_list = News.objects.all().order_by('-created_at')
 
-# DUMMY
-def discussion(request):
-    context = {
-        'page-title': "Discussions"
-    }
-    return render(request, "discussions.html", context)
+    if filter_sports != "all":
+        news_list = news_list.filter(sports=filter_sports)
 
-def league(request):
-    context = {
-        'page-title': "League"
-    }
-    return render(request, "league.html", context)
+    data = []
+    for news in news_list:
+        item = {
+            'id': str(news.id),
+            'title': news.title,
+            'content': news.content,
+            'author': news.author.username if news.author else "Admin",
+            'created_at': news.created_at.isoformat(), 
+            'category': news.category,
+            'sports': news.sports,
+            'thumbnail': news.thumbnail if news.thumbnail else None,
+            'news_views': news.news_views,
+            'is_featured': news.is_featured,
+        }
+        data.append(item)
 
-def quiz(request):
-    context = {
-        'page-title' : 'Quiz'
-    }
-    return render(request, "quiz.html", context)
+    return JsonResponse(data, safe=False)
+
+# Buat flutter
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)
