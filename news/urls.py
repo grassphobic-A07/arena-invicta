@@ -11,5 +11,5 @@ urlpatterns = [
     path('news/<uuid:news_id>/edit_news_ajax', edit_news_ajax, name='edit_news_ajax'),
     path('news/<uuid:news_id>/delete-news-ajax', delete_news_ajax, name='delete_news_ajax'),
     path('show-news-json', show_news_json, name='show_news_json'),
-    path('proxy-image/', proxy_image, name='proxy_image'),
+    path('proxy-image/', proxy_image, name='proxy_image')
 ]
