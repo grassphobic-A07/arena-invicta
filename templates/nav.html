@@ -1,4 +1,4 @@
-{% comment %} nav.html - Fixed Mobile Quiz & Dropdown Indicator {% endcomment %}
+{% comment %} nav.html - Quiz Only for Logged In Users {% endcomment %}
 <header class="sticky top-0 z-50 w-full border-b border-white/10 bg-[#1A103C]/90 backdrop-blur-md shadow-lg">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
@@ -24,7 +24,10 @@
         <a href="{{ home_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'news' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Home</a>
         <a href="{{ discussion_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'discussions' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Discussions</a>
         <a href="{{ league_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'leagues' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">League</a>
-        <a href="{{ quiz_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Quiz</a>
+        
+        {% if request.user.is_authenticated %}
+            <a href="{{ quiz_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Quiz</a>
+        {% endif %}
       </nav>
 
       {% comment %} === RIGHT SECTION (Auth) === {% endcomment %}
@@ -86,7 +89,7 @@
     </div>
   </div>
 
-  {% comment %} === MOBILE MENU CONTENT (Fixed Style & Layout) === {% endcomment %}
+  {% comment %} === MOBILE MENU CONTENT === {% endcomment %}
   <div id="mobile-sheet" class="hidden md:hidden bg-[#1A103C] border-b border-white/10 shadow-2xl animate-in slide-in-from-top-5 duration-200">
     <div class="px-4 pt-2 pb-6 space-y-2">
       
@@ -99,10 +102,13 @@
       <a href="{{ league_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-white hover:bg-white/10 border border-transparent hover:border-white/5 transition">
         League
       </a>
-      <a href="{{ quiz_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-yellow-400 hover:bg-yellow-400/10 border border-transparent hover:border-yellow-400/20 transition flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-        Quiz Arena
-      </a>
+
+      {% if request.user.is_authenticated %}
+        <a href="{{ quiz_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-yellow-400 hover:bg-yellow-400/10 border border-transparent hover:border-yellow-400/20 transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            Quiz Arena
+        </a>
+      {% endif %}
 
       <div class="pt-4 mt-4 border-t border-white/10">
         {% if request.user.is_authenticated %}
@@ -171,7 +177,6 @@
                 userMenu.classList.toggle('hidden');
             });
 
-            // Close when clicking outside
             document.addEventListener('click', (e) => {
                 if (!userBtn.contains(e.target) && !userMenu.contains(e.target)) {
                     userMenu.classList.add('hidden');
