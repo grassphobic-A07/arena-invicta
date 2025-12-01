@@ -4,91 +4,99 @@
 
 {% block content %}
 
-{% if messages %}
-    <div id="dj-messages" hidden>
-        {% for message in messages %}
-        <div data-level="{{ message.tags|default:'info' }}" data-text="{{ message|escape }}"></div>
-        {% endfor %}
-    </div>
-{% endif %}
+{# --- 1. HEADER SECTION (New Styling) --- #}
+<div class="text-center pt-6 pb-8">
+    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4 drop-shadow-[0_0_25px_rgba(234,179,8,0.5)]">
+       QUIZ <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">ARENA</span>
+    </h1>
+    <p class="text-lg text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
+      Test your knowledge, challenge your friends, and climb the leaderboard.
+    </p>
 
-<div class="mx-auto max-w-5xl mt-3 mb-3 px-4">
-    <div class="mb-8 text-center">
-        <h1 class="text-5xl font-bold text-gray-900 mb-2">Quizzes</h1>
-        <p class="text-lg text-gray-600">Choose a quiz below to get started!</p>
-    </div>
-    
     {% if authorized %}
-    <div class="mb-8 text-center">
+    <div class="mt-8">
         <a href="{% url 'quiz:create_quiz' %}" 
            id="create-quiz-btn-ajax"
-           class="inline-block bg-primary hover:bg-sea text-white font-bold py-2 px-5 rounded-lg transition duration-300">
-            + Create New Quiz
+           class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold shadow-lg hover:shadow-yellow-500/40 hover:-translate-y-1 transition transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Create New Quiz
         </a>
     </div>
     {% endif %}
+</div>
 
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-8">
+{# --- 2. FILTER SECTION (Restored functionality, adapted to New Styling) --- #}
+<div class="mx-auto max-w-6xl px-4 mb-10">
+    <div class="bg-[#2A1B54]/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-lg">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <div class="relative">
+            <div class="relative group">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-5 w-5 text-gray-400 group-focus-within:text-yellow-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
                 <input type="text" id="search-input" 
-                       class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary sm:text-sm py-2 border" 
+                       class="pl-10 block w-full rounded-xl border border-white/10 bg-black/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent sm:text-sm py-3 transition-all" 
                        placeholder="Search by title...">
             </div>
 
-            <div>
+            <div class="relative">
                 <select id="category-filter" 
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary sm:text-sm py-2 border bg-white">
-                    <option value="">All Categories</option>
-                    <option value="football">Football</option>
-                    <option value="basketball">Basketball</option>
-                    <option value="tennis">Tennis</option>
-                    <option value="volleyball">Volleyball</option>
-                    <option value="motogp">MotoGP</option>
+                        class="block w-full rounded-xl border border-white/10 bg-black/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent sm:text-sm py-3 transition-all appearance-none px-4">
+                    <option value="" class="bg-[#2A1B54] text-gray-300">All Categories</option>
+                    <option value="football" class="bg-[#2A1B54]">Football</option>
+                    <option value="basketball" class="bg-[#2A1B54]">Basketball</option>
+                    <option value="tennis" class="bg-[#2A1B54]">Tennis</option>
+                    <option value="volleyball" class="bg-[#2A1B54]">Volleyball</option>
+                    <option value="motogp" class="bg-[#2A1B54]">MotoGP</option>
                 </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
             </div>
 
-            <div class="relative">
+            <div class="relative group">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="h-5 w-5 text-gray-400 group-focus-within:text-yellow-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </div>
                 <input type="text" id="creator-filter" 
-                       class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary sm:text-sm py-2 border" 
+                       class="pl-10 block w-full rounded-xl border border-white/10 bg-black/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent sm:text-sm py-3 transition-all" 
                        placeholder="Filter by creator...">
             </div>
         </div>
     </div>
-    <div id="quiz-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="col-span-full text-center py-12 text-gray-500">
-            Loading quizzes...
-        </div>
-    </div>
-
 </div>
 
-<div id="ajax-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" ...>
-   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div id="modal-overlay" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+{# --- 3. GRID SECTION (Container for AJAX) --- #}
+<div id="quiz-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-16 min-h-[300px]">
+    <div class="col-span-full text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+        <p class="text-gray-300">Loading arena...</p>
+    </div>
+</div>
+
+{# --- 4. MODAL SECTION (New Styling) --- #}
+<div id="ajax-modal" class="fixed inset-0 z-[100] overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        
+        <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
-            <div class="bg-white p-6 md:p-8 relative">
-                <button id="modal-close-btn" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                    <span class="sr-only">Close</span>
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-                <div id="modal-content-target">
-                    </div>
-            </div>
+
+        <div class="inline-block align-bottom bg-[#2A1B54] border border-white/10 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+            
+            <button id="modal-close-btn" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-white transition z-10 bg-black/20 rounded-full p-1">
+                <span class="sr-only">Close</span>
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <div id="modal-content-target" class="p-6 md:p-8">
+                </div>
         </div>
     </div>
 </div>
@@ -98,15 +106,15 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. SELECTORS
+    // ===============================================
+    // == 1. QUIZ FETCHING & FILTERING LOGIC
+    // ===============================================
     const searchInput = document.getElementById('search-input');
     const categoryFilter = document.getElementById('category-filter');
     const creatorFilter = document.getElementById('creator-filter');
     const gridContainer = document.getElementById('quiz-grid-container');
 
-    // 2. FETCH FUNCTION
     async function fetchQuizzes() {
-        // Build URL Parameters
         const params = new URLSearchParams();
         const searchVal = searchInput.value.trim();
         const categoryVal = categoryFilter.value;
@@ -123,75 +131,85 @@ document.addEventListener('DOMContentLoaded', () => {
             renderQuizzes(data);
         } catch (error) {
             console.error('Error:', error);
-            gridContainer.innerHTML = '<div class="col-span-full text-center text-red-500">Failed to load quizzes.</div>';
+            gridContainer.innerHTML = `
+                <div class="col-span-full text-center py-16 border-2 border-dashed border-red-500/30 rounded-3xl bg-red-500/10">
+                    <p class="text-red-400">Failed to load quizzes. Please try again.</p>
+                </div>`;
         }
     }
 
-    // 3. RENDER FUNCTION
     function renderQuizzes(quizzes) {
-        gridContainer.innerHTML = ''; // Clear current content
+        gridContainer.innerHTML = ''; // Clear content
 
         if (quizzes.length === 0) {
+            // New Empty State Styling
             gridContainer.innerHTML = `
-                <div class="col-span-full text-center py-12 px-6 bg-white rounded-xl shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-700">No quizzes found</h3>
-                    <p class="text-gray-500 mt-2">Try adjusting your filters.</p>
+                <div class="col-span-full py-16 flex flex-col items-center justify-center text-center border-2 border-dashed border-white/10 rounded-3xl bg-white/5">
+                    <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-500">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">No Quizzes Found</h3>
+                    <p class="text-gray-400 max-w-sm">Try adjusting your filters or search terms.</p>
                 </div>`;
             return;
         }
 
         quizzes.forEach(quiz => {
-            // Determine Hot Badge HTML
-            const hotBadge = quiz.is_quiz_hot 
-                ? `<span class="inline-flex items-center bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold animate-pulse">🔥 HOT</span>` 
-                : '';
-            
-            // Determine Category Badge HTML
-            // Capitalize first letter for display
             const categoryDisplay = quiz.category.charAt(0).toUpperCase() + quiz.category.slice(1);
-            
-            // Build the URL manually using the ID
             const detailUrl = `/quiz/${quiz.id}/`;
+            const creatorInitial = quiz.created_by.charAt(0).toUpperCase();
 
+            // Hot Badge logic
+            const hotBadge = quiz.is_quiz_hot 
+                ? `<span class="absolute top-4 right-4 bg-red-500/20 text-red-400 border border-red-500/50 text-xs px-2 py-1 rounded-full font-bold animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.4)]">🔥 HOT</span>` 
+                : '';
+
+            // Using the NEW HTML Structure within the JS Template Literal
             const cardHtml = `
-            <div class="group bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col h-full">
-                <div class="p-6 flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full uppercase font-semibold tracking-wide">
+            <div class="group relative flex flex-col h-full bg-[#2A1B54]/60 backdrop-blur-md rounded-3xl border border-white/10 hover:border-yellow-400/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-400/10 overflow-hidden">
+                
+                <div class="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
+
+                <div class="p-6 md:p-8 flex-grow relative z-10">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs px-2 py-1 rounded-full uppercase font-semibold tracking-wide">
                             ${categoryDisplay}
                         </span>
-                        ${hotBadge}
                     </div>
 
-                    <h2 class="text-xl font-bold text-primary mb-2">
-                        <a href="${detailUrl}" class="hover:text-sea transition-colors">
-                            ${quiz.title}
+                    ${hotBadge}
+
+                    <h2 class="text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-yellow-400 transition-colors">
+                        <a href="${detailUrl}" class="focus:outline-none">
+                            <span class="absolute inset-0"></span> ${quiz.title}
                         </a>
                     </h2>
-                    <p class="text-sm text-surface/80 mb-4 line-clamp-3">
-                        ${quiz.description || "No description available."}
+
+                    <p class="text-sm text-gray-400 leading-relaxed line-clamp-3 mb-4">
+                        ${quiz.description || "No description provided."}
                     </p>
                 </div>
                 
-                <div class="p-6 border-t bg-gray-50/50">
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs text-surface/60">
-                            Created by: <strong>${quiz.created_by}</strong>
-                        </p>
-                        <a href="${detailUrl}" class="text-sm font-semibold text-sea group-hover:underline">
-                            View &raquo;
-                        </a>
+                <div class="px-6 md:px-8 py-4 border-t border-white/5 bg-black/20 flex items-center justify-between relative z-20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-300">
+                            ${creatorInitial}
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">@${quiz.created_by}</span>
                     </div>
+                    <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider group-hover:underline decoration-yellow-400 underline-offset-4">
+                        Start Quiz &rarr;
+                    </span>
                 </div>
-            </div>
-            `;
+            </div>`;
             
             gridContainer.insertAdjacentHTML('beforeend', cardHtml);
         });
     }
 
-    // 4. EVENT LISTENERS
-    // Debounce function to prevent API spam while typing
     function debounce(func, wait) {
         let timeout;
         return function(...args) {
@@ -200,17 +218,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const debouncedFetch = debounce(fetchQuizzes, 300); // Wait 300ms after typing stops
+    const debouncedFetch = debounce(fetchQuizzes, 300);
 
     searchInput.addEventListener('input', debouncedFetch);
     creatorFilter.addEventListener('input', debouncedFetch);
-    categoryFilter.addEventListener('change', fetchQuizzes); // Immediate fetch on dropdown change
+    categoryFilter.addEventListener('change', fetchQuizzes);
 
-    // 5. INITIAL LOAD
+    // Initial Load
     fetchQuizzes();
 });
+
 // ===============================================
-// ==  SHARED FORMSET LOGIC (from create_quiz.html)
+// == 2. FORMSET LOGIC (Cleaned Version)
 // ===============================================
 function initializeFormset(formContainer) {
     const container = formContainer.querySelector('#question-forms-container');
@@ -218,35 +237,29 @@ function initializeFormset(formContainer) {
     
     const addQuestionBtn = formContainer.querySelector('#add-question-btn');
     const template = formContainer.querySelector('#empty-form-template');
-    // Note: Use a more robust selector for totalFormsInput
     const totalFormsInput = formContainer.querySelector('input[name$="-TOTAL_FORMS"]');
     
     if (!addQuestionBtn || !template || !totalFormsInput) {
-        console.warn('Formset elements not found. JS initializer failed.');
+        console.warn('Formset elements not found.');
         return;
     }
 
-    const formsetPrefix = totalFormsInput.name.split('-')[0]; // e.g., 'questions'
+    const formsetPrefix = totalFormsInput.name.split('-')[0];
 
     const updateQuestionNumbers = () => {
         const visibleQuestionForms = container.querySelectorAll('.question-form:not([style*="display: none"])');
         visibleQuestionForms.forEach((form, index) => {
             const numberSpan = form.querySelector('.question-number');
-            if (numberSpan) {
-                numberSpan.textContent = index + 1;
-            }
+            if (numberSpan) numberSpan.textContent = index + 1;
         });
     };
 
-    // Prevent duplicate listeners
     if (addQuestionBtn.dataset.initialized) return;
     addQuestionBtn.dataset.initialized = 'true';
     
     addQuestionBtn.addEventListener('click', () => {
         let formNum = parseInt(totalFormsInput.value);
         let newFormHtml = template.innerHTML.replace(/__prefix__/g, formNum);
-        
-        // Fix for radio button names in new forms
         newFormHtml = newFormHtml.replace(new RegExp(formsetPrefix + '-__prefix__-correct_answer', 'g'), formsetPrefix + '-' + formNum + '-correct_answer');
 
         const div = document.createElement('div');
@@ -255,7 +268,6 @@ function initializeFormset(formContainer) {
         
         container.appendChild(newFormElement);
         totalFormsInput.value = formNum + 1;
-        
         updateQuestionNumbers();
     });
 
@@ -266,7 +278,6 @@ function initializeFormset(formContainer) {
             if (!formElement) return;
 
             const idInput = formElement.querySelector(`input[name$="-id"]`);
-
             if (idInput && idInput.value) {
                 const deleteInput = formElement.querySelector(`input[name$="-DELETE"]`);
                 if (deleteInput) {
@@ -276,7 +287,6 @@ function initializeFormset(formContainer) {
             } else {
                 formElement.remove();
             }
-            
             updateQuestionNumbers();
         }
     });
@@ -285,7 +295,7 @@ function initializeFormset(formContainer) {
 }
 
 // ===============================================
-// ==  MODAL & AJAX FORM HANDLING LOGIC
+// == 3. MODAL & AJAX FORM HANDLING
 // ===============================================
 document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('ajax-modal');
@@ -293,50 +303,59 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCloseBtn = document.getElementById('modal-close-btn');
     const modalOverlay = document.getElementById('modal-overlay');
     const createBtn = document.getElementById('create-quiz-btn-ajax');
-    
-    if (!modal || !createBtn) return;
 
     const openModal = () => modal.classList.remove('hidden');
     const closeModal = () => modal.classList.add('hidden');
-    const setModalLoading = () => modalContent.innerHTML = '<div class="text-center py-12"><p class="text-gray-600">Loading...</p></div>';
 
-    modalCloseBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', closeModal);
+    if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+    if(modalOverlay) modalOverlay.addEventListener('click', closeModal);
 
-    // --- 1. Handle "Create Quiz" button click ---
-    createBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const url = e.target.href;
-        
-        setModalLoading();
-        openModal();
-
-        try {
-            const response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            if (!response.ok) throw new Error('Network response was not ok.');
-
-            const html = await response.text();
-            modalContent.innerHTML = html;
+    const setupBtn = (btn) => {
+        if(!btn) return;
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Get URL from the closest anchor tag (in case user clicks icon inside button)
+            const anchor = e.target.closest('a');
+            const url = anchor ? anchor.href : null;
+            if(!url) return;
             
-            // Inisialisasi JS untuk form yang baru dimuat
-            const form = modalContent.querySelector('#quiz-form');
-            if(form) {
-                initializeFormset(form.parentElement);
-                attachFormSubmitHandler(form);
-            }
-        } catch (error) {
-            console.error('Failed to load create form:', error);
-            modalContent.innerHTML = '<p class="text-red-600 text-center py-12">Failed to load content. Please try again.</p>';
-        }
-    });
+            modalContent.innerHTML = '<div class="text-center py-12"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div><p class="text-gray-300">Loading...</p></div>';
+            openModal();
 
-    // --- 2. Function to handle AJAX form submission ---
+            try {
+                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!response.ok) throw new Error('Network response was not ok.');
+
+                const html = await response.text();
+                modalContent.innerHTML = html;
+                
+                const form = modalContent.querySelector('#quiz-form');
+                if(form) {
+                    initializeFormset(form.parentElement);
+                    attachFormSubmitHandler(form);
+                }
+            } catch (error) {
+                console.error('Failed to load create form:', error);
+                modalContent.innerHTML = '<p class="text-red-400 text-center py-12">Failed to load content. Please try again.</p>';
+            }
+        });
+    };
+
+    if (modal) {
+        setupBtn(createBtn);
+        // If there's a button in the empty state, add listener dynamically or ensure ID matches
+    }
+
     function attachFormSubmitHandler(form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if(submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Processing...";
+            }
+
             const formData = new FormData(form);
             const url = form.action;
 
@@ -353,21 +372,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    if (window.showToast && data.message) {
-                        window.showToast(data.message, 'success');
-                    }
-                    
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url;
-                    }, 700);
-
+                    if (window.showToast && data.message) window.showToast(data.message, 'success');
+                    setTimeout(() => { window.location.href = data.redirect_url; }, 700);
                 } else {
-                    if (window.showToast && data.message) {
-                        window.showToast(data.message, 'error');
-                    }
-                    // Gagal validasi, render ulang form dengan error
+                    if (window.showToast && data.message) window.showToast(data.message, 'error');
+                    
                     modalContent.innerHTML = data.html;
-                    // Attach ulang listener ke form baru
+                    
                     const newForm = modalContent.querySelector('#quiz-form');
                     if(newForm) {
                         initializeFormset(newForm.parentElement);
@@ -376,8 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Form submission error:', error);
-                if (window.showToast) {
-                    window.showToast('An error occurred during submission.', 'error');
+                if (window.showToast) window.showToast('An error occurred during submission.', 'error');
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Save Quiz";
                 }
             }
         });

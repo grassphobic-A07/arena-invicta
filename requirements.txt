@@ -6,3 +6,4 @@ requests
 urllib3
 python-dotenv
 selenium
+django-cors-headers

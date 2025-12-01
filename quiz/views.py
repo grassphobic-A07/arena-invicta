@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from .forms import QuizForm, QuestionForm
 from .models import Quiz, Question, Score
+from django.db.models import Count, Q
 import json
 
 # Helper function to detect AJAX requests
@@ -151,32 +152,16 @@ def take_quiz(request, quiz_id):
     questions = quiz.questions.all()
 
     if request.method == 'POST':
-        score_value = 0
-        total_questions = questions.count()
 
-        for question in questions:
-            user_answer = request.POST.get(f'question_{question.id}')
-            if user_answer == question.correct_answer:
-                score_value += 1
+        answers = {}
+        for key, value in request.POST.items():
+            if (key.startswith('question_')):
+                q_id = key.split('_')[1]
+                answers[q_id] = value
+
+        score_value, total_questions, _ = calculate_quiz_result(quiz, request.user, answers)
         
         percentage = (score_value / total_questions) * 100 if total_questions > 0 else 0
-
-        old_score_object = Score.objects.filter(user=request.user, quiz=quiz).first()
-        old_score_value = old_score_object.score if old_score_object else 0 
-
-        if old_score_object and score_value > old_score_value:
-            new_score_value = score_value
-        elif not old_score_object:
-            new_score_value = score_value
-        else:
-            new_score_value = old_score_value  # Keep the higher score
-
-        Score.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={'score': new_score_value},
-        )
-        
         leaderboard = Score.objects.filter(quiz=quiz).select_related('user').order_by('-score')[:10]
 
         context = {
@@ -375,21 +360,26 @@ def quiz_admin_quizzez(request):
 
     if "Content Staff" not in roles:
         return JsonResponse({"error": "Forbidden"}, status=403)
-    quiz = Quiz.objects.filter(user=request.user)
+    quiz = Quiz.objects.filter(user=request.user).annotate(
+        question_count=Count('questions', distinct=True),
+        score_count=Count('scores', distinct=True),
+    )
     data = []
     for q in quiz:
         data.append({
             'id':q.id,
             'title':q.title,
             'category': q.category,
-            'is_quiz_hot': q.is_quiz_hot,
-            'total_question': q.questions.count(),
+            'is_quiz_hot': q.score_count >= 5,
+            'total_question': q.question_count,
         })
     return JsonResponse(data, safe=False)
 
 def get_all_quizzes(request):
-    quizzes = Quiz.objects.filter(is_published=True).select_related('user')
-    
+    quizzes = Quiz.objects.filter(is_published=True).select_related('user').annotate(
+        question_count=Count('questions', distinct=True),
+        score_count=Count('scores', distinct=True),
+    )
     category = request.GET.get("category")
     search = request.GET.get("search")
     created_by = request.GET.get("created_by")
@@ -406,13 +396,14 @@ def get_all_quizzes(request):
     data = []
 
     for q in quizzes:
+        is_hot = q.score_count >= 5
         data.append({
             "id": q.id,
             "title": q.title,
             "description": q.description,
             "category": q.category,
-            "is_quiz_hot": q.is_quiz_hot,
-            "total_questions": q.questions.count(),
+            "is_quiz_hot": is_hot,
+            "total_questions": q.question_count,
             "is_published": q.is_published,
             "created_by": q.user.username,
         })
