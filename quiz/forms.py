@@ -8,7 +8,7 @@ class QuizForm(forms.ModelForm):
     class Meta:
         model = Quiz
 
-        fields = ['title', 'description', 'is_published']
+        fields = ['title', 'description', 'category', 'is_published']
         
         widgets = {
             'title': forms.TextInput(attrs={
@@ -20,11 +20,15 @@ class QuizForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'A brief description of this quiz.'
             }),
+            'category': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
         }
         
         labels = {
             'title': 'Quiz Title',
             'description': 'Description',
+            'category': 'Category',
         }
 
 

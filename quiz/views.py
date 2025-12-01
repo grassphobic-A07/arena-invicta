@@ -5,9 +5,10 @@ from django.forms import inlineformset_factory
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from .forms import QuizForm, QuestionForm
 from .models import Quiz, Question, Score
-
+import json
 
 # Helper function to detect AJAX requests
 def is_ajax(request):
@@ -48,7 +49,6 @@ def quiz_detail(request, quiz_id):
     }
     return render(request, 'quiz/quiz_detail.html', context)
 
-
 @login_required
 def create_quiz_with_questions(request):
     QuestionFormSet = inlineformset_factory(
@@ -82,6 +82,7 @@ def create_quiz_with_questions(request):
             return redirect('quiz:quiz_detail', quiz_id=quiz.id)
         else:
             message_text = "An error occurred. Please check your input and try again."
+            messages()
             if is_ajax(request):
                 context = {
                     'quiz_form': quiz_form,
@@ -90,8 +91,8 @@ def create_quiz_with_questions(request):
                 html = render_to_string('quiz/_quiz_form_partial.html', context, request=request)
                 return JsonResponse({'success': False, 'html': html, 'message': message_text}, status=400)
     else:
-        quiz_form = QuizForm()
-        question_formset = QuestionFormSet(instance=Quiz())
+            quiz_form = QuizForm()
+            question_formset = QuestionFormSet(instance=Quiz())
 
     context = {
         'quiz_form': quiz_form,
@@ -103,6 +104,46 @@ def create_quiz_with_questions(request):
     
     return render(request, 'quiz/create_quiz.html', context)
 
+def calculate_quiz_result(quiz, user, answers_dict):
+    """
+    Calculates score and handles 'High Score' logic.
+    answers_dict: Dictionary where key is question_id (str or int) and value is the answer char.
+    """
+    score = 0
+    results = []
+    questions = quiz.questions.all()
+    total_questions = questions.count()
+
+    # 1. Grade the Quiz
+    for question in questions:
+        # Handle string keys from JSON or Form data
+        user_answer = answers_dict.get(str(question.id))
+        is_correct = user_answer == question.correct_answer
+        
+        if is_correct:
+            score += 1
+            
+        results.append({
+            "question_id": question.id,
+            "correct": is_correct
+        })
+
+    # 2. Save Score (Only if User is Authenticated)
+    if user.is_authenticated:
+        # Check existing score to ensure we only save the highest
+        old_score_obj = Score.objects.filter(user=user, quiz=quiz).first()
+        old_score_value = old_score_obj.score if old_score_obj else 0
+
+        # Only update if the new score is higher, or if no score exists
+        final_score = max(score, old_score_value)
+        
+        Score.objects.update_or_create(
+            user=user,
+            quiz=quiz,
+            defaults={'score': final_score}
+        )
+    
+    return score, total_questions, results
 
 @login_required
 def take_quiz(request, quiz_id):
@@ -297,3 +338,125 @@ def display_score(request, quiz_id):
     }
     
     return render(request, 'quiz/quiz_result.html', context)
+
+def quiz_admin_detail(request, quiz_id):
+    quiz = Quiz.objects.get(id=quiz_id)
+
+    if quiz.user != request.user:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+
+    answers = []
+    for q in quiz.questions.all():
+        answers.append({
+            "question_id": q.id,
+            "correct_answer": q.correct_answer
+        })
+
+    scores = [
+        {
+            "user": s.user.username,
+            "score": s.score
+        }
+        for s in quiz.scores.all()
+    ]
+
+    return JsonResponse({
+        "id": quiz.id,
+        "title": quiz.title,
+        "correct_answers": answers,
+        "scores": scores
+    })
+
+def quiz_admin_quizzez(request):
+    roles = []  
+
+    if request.user.is_authenticated:
+        roles = list(request.user.groups.values_list('name', flat=True))
+
+    if "Content Staff" not in roles:
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    quiz = Quiz.objects.filter(user=request.user)
+    data = []
+    for q in quiz:
+        data.append({
+            'id':q.id,
+            'title':q.title,
+            'category': q.category,
+            'is_quiz_hot': q.is_quiz_hot,
+            'total_question': q.questions.count(),
+        })
+    return JsonResponse(data, safe=False)
+
+def get_all_quizzes(request):
+    quizzes = Quiz.objects.filter(is_published=True).select_related('user')
+    
+    category = request.GET.get("category")
+    search = request.GET.get("search")
+    created_by = request.GET.get("created_by")
+
+    if category:
+        quizzes = quizzes.filter(category__iexact=category)
+
+    if search:
+        quizzes = quizzes.filter(title__icontains=search)
+
+    if created_by:
+        quizzes = quizzes.filter(user__username__iexact=created_by)
+
+    data = []
+
+    for q in quizzes:
+        data.append({
+            "id": q.id,
+            "title": q.title,
+            "description": q.description,
+            "category": q.category,
+            "is_quiz_hot": q.is_quiz_hot,
+            "total_questions": q.questions.count(),
+            "is_published": q.is_published,
+            "created_by": q.user.username,
+        })
+
+    return JsonResponse(data, safe=False)
+
+def get_quiz_detail(request, quiz_id):
+    quiz = Quiz.objects.get(id=quiz_id, is_published=True)
+
+    questions = []
+    for q in quiz.questions.all():
+        questions.append({
+            "id": q.id,
+            "text": q.text,
+            "options": {
+                "A": q.option_a,
+                "B": q.option_b,
+                "C": q.option_c,
+                "D": q.option_d,
+            }
+        })
+
+    data = {
+        "id": quiz.id,
+        "title": quiz.title,
+        "description": quiz.description,
+        "questions": questions
+    }
+
+    return JsonResponse(data)
+
+@csrf_exempt
+def submit_quiz(request, quiz_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST only"}, status=405)
+
+    quiz = Quiz.objects.get(id=quiz_id, is_published=True)
+    body = json.loads(request.body.decode())
+    answers = body.get("answers", {})
+
+    score, total, results = calculate_quiz_result(quiz, request.user, answers)
+
+    return JsonResponse({
+        "score": score,
+        "total": quiz.questions.count(),
+        "result": results,
+    })
