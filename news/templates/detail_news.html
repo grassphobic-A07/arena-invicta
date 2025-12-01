@@ -3,80 +3,101 @@
 {% block title %}{{ news.title }}{% endblock %}
 
 {% block content %}
-<article>
-    <!-- Header Berita dengan Gambar Latar Belakang -->
-    {% if news.thumbnail %}
-    <div class="relative aspect-video sm:aspect-[3/1] w-full overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-cover bg-center mb-6" style="background-image: url('{{ news.thumbnail }}');">
-    {% else %}
-    <div class="relative aspect-video sm:aspect-[3/1] w-full overflow-hidden flex flex-col justify-end p-6 sm:p-8 text-white bg-gradient-to-r from-primary to-sea mb-6">
-    {% endif %}
-        <!-- Gradien untuk keterbacaan teks -->
-        <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/50 to-transparent"></div>
-        <div class="relative z-10">
-            <!-- Kategori dan Olahraga -->
-            <div class="flex items-center gap-2 mb-2">
-                <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md">{{ news.get_sports_display }}</span>
-                <span class="inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md">{{ news.get_category_display }}</span>
+<article class="mx-auto max-w-5xl px-4 py-8">
+    
+    <div class="mb-6">
+        <a href="{% url 'news:show_news' %}" class="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition hover:text-white group">
+            <div class="p-1 rounded-full bg-white/5 group-hover:bg-white/10 transition">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </div>
-            <!-- Judul Berita -->
-            <h1 class="text-3xl md:text-4xl font-bold leading-tight">{{ news.title }}</h1>
+            <span>Back to News</span>
+        </a>
+    </div>
+
+    <div class="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 group mb-8">
+        {% if news.thumbnail %}
+            <div class="aspect-video w-full bg-cover bg-center transition duration-700 group-hover:scale-105" 
+                 style="background-image: url('{{ news.thumbnail }}');">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#1A103C] via-[#1A103C]/60 to-transparent"></div>
+        {% else %}
+            <div class="aspect-[3/1] w-full bg-gradient-to-br from-primary to-secondary relative overflow-hidden">
+                <div class="absolute inset-0 bg-[#1A103C]/30 backdrop-blur-[2px]"></div>
+            </div>
+        {% endif %}
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20">
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/20 text-white border border-primary/30 backdrop-blur-md shadow-sm">
+                    {{ news.get_sports_display }}
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-gray-200 border border-white/10 backdrop-blur-md">
+                    {{ news.get_category_display }}
+                </span>
+            </div>
+            
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg mb-2">
+                {{ news.title }}
+            </h1>
+            
+            <div class="flex items-center gap-2 text-sm text-gray-300 mt-2 font-medium">
+                <span>{{ news.created_at|date:"F d, Y" }}</span>
+                <span class="w-1 h-1 rounded-full bg-gray-500"></span>
+                <span>{{ news.news_views }} Views</span>
+            </div>
         </div>
     </div>
 
-    <div class="mt-8 text-left">
-        <a href="{% url 'news:show_news' %}" class="inline-flex items-center h-10 px-4 rounded-lg text-sm transition font-semibold text-primary bg-mist/70 border border-mist hover:text-sea">
-            &larr; Back to News
-        </a>
-    </div>
-    <!-- Konten Berita -->
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mx-[15px]">
-        <!-- Meta Info -->
-        <div class="flex items-center justify-between text-sm text-surface/70 mb-10 pb-4 border-b border-mist">
-            <span>Published on: {{ news.created_at|date:"F d, Y" }}</span>
-            <span>Views: {{ news.news_views }}</span>
-        </div>
+    <div class="bg-[#2A1B54]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
         
-        <!-- Isi Konten -->
-        <div class="prose max-w-none text-surface/90">
+        {% if news.author %}
+        <div class="flex items-center justify-end gap-3 mb-8 pb-6 border-b border-white/5">
+            <div class="text-right">
+                <p class="text-xs text-gray-400 font-medium uppercase tracking-wider">Written By</p>
+                <p class="text-base font-bold text-white">{{ news.author.profile.display_name|default:news.author.username }}</p>
+            </div>
+            {% if news.author.profile.avatar_url %}
+                <img src="{{ news.author.profile.avatar_url }}" alt="Author" class="w-10 h-10 rounded-full object-cover ring-2 ring-white/10">
+            {% else %}
+                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold ring-2 ring-white/10">
+                    {{ news.author.username|slice:":1"|upper }}
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed text-base md:text-lg">
             {{ news.content|linebreaks }}
         </div>
-        <!-- Nama Author -->
-        {% if news.author %}  <div class="mt-8 pt-4 border-t border-mist text-right text-sm text-surface/80">
-            <span>Written by: </span>
-            <strong class="font-semibold text-surface/90">
-                {{ news.author.profile.display_name|default:news.author.username }}
-            </strong>
+
+        {% if request.user.is_authenticated and request.user == news.author %}
+        <div class="mt-12 pt-8 border-t border-white/10 flex flex-wrap items-center justify-end gap-4">
+            
+            <button type="button" 
+                    onclick="openEditNewsModal('{% url 'news:get_news_data_json' news.id %}', '{% url 'news:edit_news_ajax' news.id %}')" 
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Edit News
+            </button>
+
+            <button type="button" 
+                    onclick="confirmDeleteNewsAjax('{% url 'news:delete_news_ajax' news.id %}')"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500/50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Delete News
+            </button>
         </div>
         {% endif %}
     </div>
 
-    {% if request.user.is_authenticated and request.user == news.author %}
-    <div class="mt-2 pt-1 mb-4 mr-3 border-t border-mist flex flex-wrap items-center justify-end gap-3">
-        <!-- Tombol Edit -->
-        <button type="button" 
-                onclick="openEditNewsModal('{% url 'news:get_news_data_json' news.id %}', '{% url 'news:edit_news_ajax' news.id %}')" 
-                class="inline-flex items-center h-10 px-4 rounded-lg text-sm font-semibold transition bg-sea/10 text-sea border border-sea/30 hover:bg-sea/20">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            Edit News
-        </button>
-        <!-- Tombol Delete -->
-        <button type="button" 
-                onclick="confirmDeleteNewsAjax('{% url 'news:delete_news_ajax' news.id %}')"
-                class="inline-flex items-center h-10 px-4 rounded-lg text-sm font-semibold transition bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            Delete News
-        </button>
-    </div>
-    {% endif %}
-
 </article>
+
 {% include 'modal.html' %}
 {% endblock %}
 
 {% block scripts %}
 <script>
     async function openEditNewsModal(dataUrl, submitUrl){
-        // Ambil elemen modal dan form (asumsi ada di modal.html)
         const modal = document.getElementById('addNewsModal');
         const modalContent = document.getElementById('addNewsModalContent');
         const form = document.getElementById('addNewsForm');
@@ -85,106 +106,69 @@
         
         if(!modal || !form || !titleElement || !submitButtonText){
             console.error("Modal elements not found!");
-            alert("Error: Could not prepare the edit form.");
             return;
         }
 
-        // --- 1. Fetch Existing Data ---
         try{
-            const response = await fetch(dataUrl); // Kirim GET request ke get_news_data_json
-            if(!response.ok){
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const response = await fetch(dataUrl);
+            if(!response.ok){ throw new Error(`HTTP error! status: ${response.status}`); }
             const newsData = await response.json();
 
-            // --- 2. Populate Form ---
-            form.querySelector('#modal_title').value = newsData.title || '';
-            form.querySelector('#modal_content').value = newsData.content || '';
-            form.querySelector('#modal_category').value = newsData.category || '';
-            form.querySelector('#modal_sports').value = newsData.sports || '';
-            form.querySelector('#modal_thumbnail').value = newsData.thumbnail || '';
-            form.querySelector('#modal_is_featured').checked = newsData.is_featured || false;
+            // Populate Form (Pastikan ID di modal.html sesuai)
+            if(form.querySelector('#modal_title')) form.querySelector('#modal_title').value = newsData.title || '';
+            if(form.querySelector('#modal_content')) form.querySelector('#modal_content').value = newsData.content || '';
+            
+            // Handle select population secara manual jika perlu (untuk styling custom)
+            const catSelect = form.querySelector('select[name="category"]');
+            if(catSelect) catSelect.value = newsData.category || '';
+            
+            const sportSelect = form.querySelector('select[name="sports"]');
+            if(sportSelect) sportSelect.value = newsData.sports || '';
 
-            // --- 3. Update Modal Appearance ---
+            if(form.querySelector('input[name="thumbnail"]')) form.querySelector('input[name="thumbnail"]').value = newsData.thumbnail || '';
+            if(form.querySelector('#modal_is_featured')) form.querySelector('#modal_is_featured').checked = newsData.is_featured || false;
+
             titleElement.textContent = "Edit News";
             submitButtonText.textContent = "Update News";
-            
-            // --- 4. Set Form Action ---
             form.action = submitUrl;
+            
+            // Panggil fungsi global showNewsModal (dari modal.html script)
+            if(typeof showNewsModal === 'function') showNewsModal();
 
-            // --- 5. Show Modal ---
-            showNewsModal();
-
-        } 
-        catch(error){
-            console.error("Error fetching or populating edit data:", error);
-             if(window.showToast){ 
-                showToast('Could not load news data for editing.', 'error');
-             } 
-             else{
-                alert('Could not load news data for editing.');
-             }
+        } catch(error){
+            console.error("Error fetching edit data:", error);
+            if(window.showToast) showToast('Could not load news data.', 'error');
         }
     }
 
-    // Fungsi ini akan dipanggil saat tombol Delete diklik
     async function confirmDeleteNewsAjax(deleteUrl){
-        const confirmed = await window.Confirm.open({
-            titleText: 'Delete News Confirmation', // Judul modal
-            messageText: 'Are you sure you want to permanently delete this news article? This action cannot be undone.', // Pesan konfirmasi
-            confirmText: 'Yes, Delete', // Teks tombol konfirmasi
-            tone: 'danger' // Warna merah untuk tombol konfirmasi
-        });
+        // Gunakan Global Confirm Modal jika ada
+        const confirmed = window.Confirm ? await window.Confirm.open({
+            titleText: 'Delete News?',
+            messageText: 'This action is irreversible. Are you sure?',
+            confirmText: 'Yes, Delete',
+            tone: 'danger'
+        }) : confirm("Delete this news permanently?");
 
-        // Jika pengguna menekan tombol konfirmasi (misal "Yes, Delete")
         if(confirmed){
             try{
-                // Kirim request POST ke URL delete AJAX
                 const response = await fetch(deleteUrl, {
-                    method: 'POST', // Gunakan POST untuk mengirim CSRF token
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest', // Tandai sebagai AJAX
-                        'Content-Type': 'application/json' // Header standar
-                    },
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' },
                 });
-
-                // Tunggu dan parse respons JSON dari server
                 const data = await response.json();
 
-                // Cek jika request berhasil (status OK 200-299) dan ada flag 'ok: true' dari view
                 if(response.ok && data.ok){
-                    // SUKSES
-                    // Simpan pesan sukses ke localStorage agar bisa ditampilkan setelah redirect
                     localStorage.setItem("ai_toast", JSON.stringify({ text: data.message, level: "success" }));
-                    // Redirect ke halaman daftar berita (URL didapat dari respons JSON)
                     window.location.href = data.redirect_url;
+                } else {
+                    if(window.showToast) showToast(data.error || 'Delete failed.', 'error');
                 }
-                else{
-                    // GAGAL (server mengembalikan error 4xx atau 5xx, atau data.ok false)
-                    console.error("Delete failed:", data.error || `Server responded with status ${response.status}`);
-                    // Tampilkan toast error dengan pesan dari server atau pesan default
-                    // Pastikan showToast tersedia secara global (dari base.html)
-                    if(window.showToast){
-                       showToast(data.error || 'Could not delete the news article.', 'error');
-                    } 
-                    else{
-                       alert(data.error || 'Could not delete the news article.'); // Fallback alert
-                    }
-                }
-
-            } 
-            catch(error){
-                // Tangani error network atau error JavaScript lainnya
-                console.error('Network or JS error during delete request:', error);
-                 if(window.showToast){
-                    showToast('A network or script error occurred. Please check console and try again.', 'error');
-                 } 
-                 else{
-                    alert('A network or script error occurred. Please try again.'); // Fallback alert
-                 }
+            } catch(error){
+                console.error(error);
+                if(window.showToast) showToast('Network error.', 'error');
             } 
         }
-        // Jika pengguna menekan "Cancel" di modal, tidak terjadi apa-apa
     }
 </script>
 {% endblock scripts %}
