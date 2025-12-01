@@ -2,178 +2,87 @@
      class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4" 
      aria-labelledby="addNewsModalTitle" role="dialog" aria-modal="true">
     
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="hideNewsModal()"></div>
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" onclick="hideNewsModal()"></div>
 
     <div id="addNewsModalContent" 
-         class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col 
-                transform transition-all duration-200 opacity-0 scale-95">
+         class="relative bg-[#2A1B54] bg-opacity-90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-[0_0_50px_rgba(147,51,234,0.3)] w-full max-w-lg max-h-[90vh] flex flex-col transform transition-all duration-300 opacity-0 scale-95">
         
-        <div class="flex items-start justify-between p-4 sm:p-5 border-b border-mist">
+        <div class="flex items-start justify-between p-5 border-b border-white/10">
             <div>
-                <h3 id="addNewsModalTitle" class="text-xl font-semibold text-primary">
-                    Create New News
+                <h3 id="addNewsModalTitle" class="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                    Create News
                 </h3>
-                <p class="text-sm text-surface/80 mt-1">Share news and stories with the community.</p>
+                <p class="text-sm text-gray-400 mt-1 font-light">Share your story with the arena.</p>
             </div>
             <button type="button" 
-                    class="ml-auto -mr-1 p-1.5 rounded-lg text-surface/60 hover:bg-mist hover:text-primary focus:outline-none focus:ring-2 focus:ring-sea/30" 
-                    onclick="hideNewsModal()"
-                    aria-label="Close modal">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    class="p-2 rounded-full text-gray-400 hover:bg-white/10 hover:text-white transition" 
+                    onclick="hideNewsModal()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
-        <div class="p-4 sm:p-4 space-y-4 overflow-y-auto">
+        <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar">
             <form id="addNewsForm" method="POST" action="{% url 'news:add_news_ajax' %}" novalidate>
-                <div>
-                    <label for="modal_title" class="block text-sm font-medium text-surface/90 mb-1">Title <span class="text-danger">*</span></label>
+                <div class="group">
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-1">Headline Title <span class="text-danger">*</span></label>
                     <input type="text" id="modal_title" name="title" 
-                           class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition" 
-                           placeholder="Enter news title" required>
+                           class="w-full rounded-xl bg-black/30 border border-white/10 focus:border-secondary focus:ring-1 focus:ring-secondary px-4 py-3 text-white placeholder-white/30 transition outline-none font-medium" 
+                           placeholder="Enter an epic title..." required>
                     <span class="text-xs text-danger mt-1 empty:hidden error-message-title"></span>
                 </div>
 
                 <div>
-                    <label for="modal_content" class="block text-sm font-medium text-surface/90 mb-1">Content <span class="text-danger">*</span></label>
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-1">Content <span class="text-danger">*</span></label>
                     <textarea id="modal_content" name="content" rows="5" 
-                              class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition resize-y" 
-                              placeholder="Write your news content here..." required></textarea>
+                              class="w-full rounded-xl bg-black/30 border border-white/10 focus:border-secondary focus:ring-1 focus:ring-secondary px-4 py-3 text-white placeholder-white/30 transition outline-none resize-none font-light" 
+                              placeholder="What's happening in the arena?" required></textarea>
                     <span class="text-xs text-danger mt-1 empty:hidden error-message-content"></span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label id="modal-category-label" for="modal-category-search" class="block text-sm font-medium text-surface/90 mb-1">Category <span class="text-danger">*</span></label>
-                        <div class="relative" data-combobox data-combobox-field="category" data-placeholder="Choose a category">
-                            <input type="hidden"
-                                   id="modal_category"
-                                   name="category"
-                                   value="{{ news_form.category.value|default_if_none:'' }}"
-                                   data-combobox-hidden>
-                            <button type="button"
-                                    class="flex w-full items-center justify-between rounded-lg border border-surface/30 bg-white px-4 py-2.5 text-base text-surface/70 transition hover:border-sea/40 focus:outline-none focus:ring-2 focus:ring-sea/20"
-                                    data-combobox-toggle
-                                    aria-haspopup="listbox"
-                                    aria-expanded="false"
-                                    aria-labelledby="modal-category-label"
-                                    aria-controls="modal-category-panel">
-                                <span class="line-clamp-1" data-combobox-toggle-label>Choose a category</span>
-                                <svg class="ml-2 h-4 w-4 text-surface/50 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-combobox-toggle-icon>
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.11l3.71-3.88a.75.75 0 1 1 1.08 1.04l-4.25 4.44a.75.75 0 0 1-1.08 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <div id="modal-category-panel"
-                                 class="absolute left-0 right-0 z-30 mt-2 hidden overflow-hidden rounded-xl border border-surface/20 bg-white shadow-xl"
-                                 data-combobox-panel>
-                                <div class="flex items-center gap-2 border-b border-surface/10 px-3 py-2">
-                                    <svg class="h-4 w-4 text-surface/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <path d="m21 21-4.35-4.35"></path>
-                                    </svg>
-                                    <input id="modal-category-search"
-                                           type="text"
-                                           autocomplete="off"
-                                           placeholder="Search categories..."
-                                           class="w-full border-none bg-transparent text-sm text-surface/80 focus:outline-none"
-                                           data-combobox-search>
-                                </div>
-                                <ul class="max-h-48 overflow-y-auto py-1" role="listbox" aria-labelledby="modal-category-label" data-combobox-options>
-                                    {% for value, display in news_form.fields.category.choices %}
-                                        {% if value %}
-                                            <li role="option"
-                                                tabindex="-1"
-                                                data-combobox-option
-                                                data-value="{{ value }}"
-                                                class="cursor-pointer px-3 py-2 text-sm text-surface/70 transition hover:bg-mist">{{ display }}</li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
-                                <p class="hidden px-3 py-3 text-xs text-surface/50" data-combobox-empty>No categories found.</p>
-                            </div>
-                        </div>
-                        <span class="text-xs text-danger mt-1 empty:hidden error-message-category"></span>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-1">Category</label>
+                        <select name="category" class="w-full rounded-xl bg-black/30 border border-white/10 text-white px-4 py-3 focus:border-secondary outline-none appearance-none font-medium">
+                             {% for value, display in news_form.fields.category.choices %}
+                                <option value="{{ value }}" class="bg-[#2A1B54]">{{ display }}</option>
+                             {% endfor %}
+                        </select>
                     </div>
-
                     <div>
-                        <label id="modal-sports-label" for="modal-sports-search" class="block text-sm font-medium text-surface/90 mb-1">Sport <span class="text-danger">*</span></label>
-                        <div class="relative" data-combobox data-combobox-field="sports" data-placeholder="Choose a sport">
-                            <input type="hidden"
-                                   id="modal_sports"
-                                   name="sports"
-                                   value="{{ news_form.sports.value|default_if_none:'' }}"
-                                   data-combobox-hidden>
-                            <button type="button"
-                                    class="flex w-full items-center justify-between rounded-lg border border-surface/30 bg-white px-4 py-2.5 text-base text-surface/70 transition hover:border-sea/40 focus:outline-none focus:ring-2 focus:ring-sea/20"
-                                    data-combobox-toggle
-                                    aria-haspopup="listbox"
-                                    aria-expanded="false"
-                                    aria-labelledby="modal-sports-label"
-                                    aria-controls="modal-sports-panel">
-                                <span class="line-clamp-1" data-combobox-toggle-label>Choose a sport</span>
-                                <svg class="ml-2 h-4 w-4 text-surface/50 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-combobox-toggle-icon>
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.11l3.71-3.88a.75.75 0 1 1 1.08 1.04l-4.25 4.44a.75.75 0 0 1-1.08 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <div id="modal-sports-panel"
-                                 class="absolute left-0 right-0 z-30 mt-2 hidden overflow-hidden rounded-xl border border-surface/20 bg-white shadow-xl"
-                                 data-combobox-panel>
-                                <div class="flex items-center gap-2 border-b border-surface/10 px-3 py-2">
-                                    <svg class="h-4 w-4 text-surface/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <path d="m21 21-4.35-4.35"></path>
-                                    </svg>
-                                    <input id="modal-sports-search"
-                                           type="text"
-                                           autocomplete="off"
-                                           placeholder="Search sports..."
-                                           class="w-full border-none bg-transparent text-sm text-surface/80 focus:outline-none"
-                                           data-combobox-search>
-                                </div>
-                                <ul class="max-h-48 overflow-y-auto py-1" role="listbox" aria-labelledby="modal-sports-label" data-combobox-options>
-                                    {% for value, display in news_form.fields.sports.choices %}
-                                        {% if value %}
-                                            <li role="option"
-                                                tabindex="-1"
-                                                data-combobox-option
-                                                data-value="{{ value }}"
-                                                class="cursor-pointer px-3 py-2 text-sm text-surface/70 transition hover:bg-mist">{{ display }}</li>
-                                        {% endif %}
-                                    {% endfor %}
-                                </ul>
-                                <p class="hidden px-3 py-3 text-xs text-surface/50" data-combobox-empty>No sports found.</p>
-                            </div>
-                        </div>
-                        <span class="text-xs text-danger mt-1 empty:hidden error-message-sports"></span>
+                        <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-1">Sport</label>
+                        <select name="sports" class="w-full rounded-xl bg-black/30 border border-white/10 text-white px-4 py-3 focus:border-secondary outline-none appearance-none font-medium">
+                             {% for value, display in news_form.fields.sports.choices %}
+                                <option value="{{ value }}" class="bg-[#2A1B54]">{{ display }}</option>
+                             {% endfor %}
+                        </select>
                     </div>
                 </div>
 
-                <div>
-                    <label for="modal_thumbnail" class="block text-sm font-medium text-surface/90 mb-1 my-[10px]">Thumbnail URL</label>
-                    <input type="url" id="modal_thumbnail" name="thumbnail" 
-                        class="w-full rounded-lg border border-surface/30 focus:border-sea/60 focus:ring-2 focus:ring-sea/20 px-4 py-2.5 text-base outline-none bg-white transition" 
-                        placeholder="https://example.com/image.jpg">
-                    <span class="text-xs text-danger mt-1 empty:hidden error-message-thumbnail"></span>
+                <div class="mt-2">
+                    <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-1">Image URL</label>
+                    <input type="url" name="thumbnail" 
+                        class="w-full rounded-xl bg-black/30 border border-white/10 focus:border-secondary px-4 py-3 text-white placeholder-white/30 transition outline-none font-light" 
+                        placeholder="https://...">
                 </div>
 
-                <div class="flex items-center gap-2 mt-[7px]">
+                <div class="flex items-center gap-3 mt-4 bg-white/5 p-3 rounded-lg border border-white/5">
                     <input id="modal_is_featured" name="is_featured" type="checkbox" 
-                           class="h-4 w-4 rounded border-surface/40 text-primary focus:ring-sea/40 cursor-pointer">
-                    <label for="modal_is_featured" class="text-sm font-medium text-surface/90">Mark as Featured News?</label>
-                     <span class="text-xs text-danger mt-1 empty:hidden error-message-is_featured"></span>
+                           class="h-5 w-5 rounded border-white/20 bg-black/40 text-secondary focus:ring-secondary cursor-pointer">
+                    <label for="modal_is_featured" class="text-sm font-medium text-gray-200 cursor-pointer">Mark as Hot News / Featured?</label>
                 </div>
             </form>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 p-4 sm:p-5 border-t border-mist bg-mist/40">
+        <div class="flex items-center justify-end gap-3 p-5 border-t border-white/10 bg-black/20">
             <button type="button" 
-                    class="order-2 sm:order-1 w-full sm:w-auto px-5 py-2.5 rounded-lg border border-surface/30 text-sm font-medium text-surface/90 bg-white hover:bg-mist/60 focus:outline-none focus:ring-2 focus:ring-sea/30 transition" 
+                    class="px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/10 transition" 
                     onclick="hideNewsModal()">
                 Cancel
             </button>
-            <button type="submit" form="addNewsForm" {# Links to the form #}
-                    class="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-sea/50 transition disabled:opacity-60 submit-button">
-                 <span class="submit-text">Publish News</span>
-                 <span class="loading-indicator hidden">Processing...</span>
+            <button type="submit" form="addNewsForm" 
+                    class="submit-button px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide text-white bg-gradient-to-r from-primary to-secondary hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                 <span class="submit-text">PUBLISH</span>
+                 <span class="loading-indicator hidden animate-pulse">Processing...</span>
             </button>
         </div>
     </div>
@@ -184,18 +93,8 @@
     const newsModalContent = document.getElementById('addNewsModalContent');
     const newsForm = document.getElementById('addNewsForm');
     const newsSubmitButton = newsForm.closest('#addNewsModalContent').querySelector('.submit-button');
-    const comboboxControllers = [];
-
-    newsForm.querySelectorAll('[data-combobox]').forEach((node) => {
-        const controller = initCombobox(node);
-        if (controller) {
-            comboboxControllers.push(controller);
-        }
-    });
 
     function showNewsModal(){
-        clearNewsFormErrors();
-        comboboxControllers.forEach((controller) => controller.refresh());
         newsModal.classList.remove('hidden');
         requestAnimationFrame(() => {
             newsModalContent.classList.remove('opacity-0', 'scale-95');
@@ -208,403 +107,56 @@
         newsModalContent.classList.add('opacity-0', 'scale-95');
         setTimeout(() => {
             newsModal.classList.add('hidden');
-        }, 200);
+        }, 300);
     }
 
     async function submitNewsForm(){
-        clearNewsFormErrors();
-
         const submitText = newsSubmitButton.querySelector('.submit-text');
         const loadingIndicator = newsSubmitButton.querySelector('.loading-indicator');
         newsSubmitButton.disabled = true;
         submitText.classList.add('hidden');
         loadingIndicator.classList.remove('hidden');
-
         const formData = new FormData(newsForm);
         try{
-            const response = await fetch(newsForm.action, {
-                method: "POST",
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            });
-
-            // --- PERUBAHAN UTAMA ADA DI SINI ---
-            const data = await response.json(); // Coba parse JSON
-
-            if(response.status === 201){ // Sukses
+            const response = await fetch(newsForm.action, { method: "POST", body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
+            const data = await response.json();
+            if(response.status === 201){
                 hideNewsModal();
-                showToast('News added successfully!', 'success');
-
-                // Panggil fungsi untuk menambahkan kartu baru ke grid
+                showToast('News deployed successfully!', 'success');
                 prependNewsCard(data);
-
-                // Hapus pesan "No news found" jika ada
-                const noNewsMsg = document.getElementById('no-news-message');
-                if(noNewsMsg){
-                    noNewsMsg.remove();
-                }
-
-            } 
-            else{ // Error
-                console.error("Form submission error:", data);
-                if(data.errors){
-                    displayNewsFormErrors(data.errors); // Tampilkan error form (jika ada)
-                    showToast('Please correct the errors below.', 'error');
-                } 
-                else if(data.error){
-                    showToast(data.error, 'error'); // Tampilkan error string manual
-                } 
-                else{
-                    showToast(data.message || `An error occurred (Status: ${response.status}).`, 'error');
-                }
-            }
-            // --- AKHIR PERUBAHAN ---
-
-        } 
-        catch(error){
-            console.error('Network or JS error during submission:', error);
-            showToast('A network error occurred. Please try again.', 'error');
-        } 
-        finally{
+                newsForm.reset();
+            } else { showToast(data.message || 'Error creating news.', 'error'); }
+        } catch(error){ showToast('Connection lost.', 'error'); } finally{
             newsSubmitButton.disabled = false;
             submitText.classList.remove('hidden');
             loadingIndicator.classList.add('hidden');
         }
     }
 
-    function clearNewsFormErrors(){
-        newsForm.querySelectorAll('[class*="border-danger"]').forEach(el => {
-            el.classList.remove('border-danger', 'ring-2', 'ring-danger/20', 'focus:border-danger', 'focus:ring-danger/30', 'text-danger');
-        });
-        newsForm.querySelectorAll('[class^="error-message-"]').forEach(span => {
-            span.textContent = '';
-        });
-        comboboxControllers.forEach((controller) => {
-            controller.toggle.classList.remove('border-danger', 'text-danger', 'focus:border-danger', 'focus:ring-danger/30');
-            controller.toggle.classList.add('border-surface/30');
-            controller.refresh();
-        });
-    }
-
-    function displayNewsFormErrors(errors){
-        for(const fieldName in errors){
-            const errorSpan = newsForm.querySelector(`.error-message-${fieldName}`);
-            if(errorSpan && errors[fieldName].length > 0){
-                errorSpan.textContent = errors[fieldName][0];
-            }
-            const combobox = comboboxControllers.find((controller) => controller.field === fieldName);
-            if (combobox) {
-                combobox.toggle.classList.add('border-danger', 'focus:border-danger', 'focus:ring-danger/30', 'text-danger');
-                combobox.toggle.classList.remove('border-surface/30');
-                continue;
-            }
-            const inputElement = newsForm.querySelector(`[name="${fieldName}"]`);
-            if(inputElement){
-                inputElement.classList.add('border-danger', 'ring-2', 'ring-danger/20');
-            }
-        }
-    }
-
-    // --- FUNGSI BARU UNTUK MEMBUAT DAN MENAMBAHKAN KARTU ---
     function prependNewsCard(newsData) {
         const grid = document.getElementById('news-grid');
         if(!grid) return;
-
-        // 1. Buat elemen <a> utama
-        const cardLink = document.createElement('a');
-        cardLink.href = newsData.detail_url;
-        cardLink.className = "group block relative overflow-hidden rounded-xl shadow-lg transform transition-transform duration-300 hover:-translate-y-1";
-
-        // 2. Buat div background
-        const backgroundDiv = document.createElement('div');
-        backgroundDiv.className = "relative w-full h-56 transition-transform duration-300 group-hover:scale-105";
-        if(newsData.thumbnail){
-            backgroundDiv.classList.add('bg-cover', 'bg-center');
-            backgroundDiv.style.backgroundImage = `url('${newsData.thumbnail}')`;
-        } 
-        else{
-            backgroundDiv.classList.add('bg-gradient-to-r', 'from-primary', 'to-sea');
-        }
-
-        // 3. Buat div overlay
-        const overlayDiv = document.createElement('div');
-        overlayDiv.className = "absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-xl";
-
-        // 4. Buat div konten (bawah)
-        const contentDiv = document.createElement('div');
-        contentDiv.className = "absolute bottom-0 left-0 p-4 z-10";
-
-        // 5. Buat span kategori
-        const categorySpan = document.createElement('span');
-        categorySpan.className = "inline-block bg-black/40 text-mist text-xs font-semibold capitalize px-2 py-1 rounded-md";
-        categorySpan.textContent = newsData.category_display; // Gunakan display name
-
-        // 6. Buat h3 judul
-        const titleHeader = document.createElement('h3');
-        titleHeader.className = "text-white text-lg font-semibold leading-tight line-clamp-2 group-hover:underline mt-1"; // Tambah mt-1 jika perlu jarak
-        titleHeader.textContent = newsData.title.toUpperCase(); // Buat uppercase
-
-        // 7. Susun elemen
-        contentDiv.appendChild(categorySpan);
-        contentDiv.appendChild(titleHeader);
-        backgroundDiv.appendChild(overlayDiv);
-        backgroundDiv.appendChild(contentDiv);
-        cardLink.appendChild(backgroundDiv);
-
-        // 8. Tambahkan ke awal grid
-        grid.prepend(cardLink);
+        const cardHTML = `
+        <a href="${newsData.detail_url}" class="group relative block rounded-2xl overflow-hidden bg-[#2A1B54] border border-white/5 shadow-lg hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300">
+            <div class="h-48 w-full bg-cover bg-center relative" style="background-image: url('${newsData.thumbnail || 'https://via.placeholder.com/400x200?text=Arena+Invicta'}');">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#2A1B54] via-transparent to-transparent"></div>
+                <span class="absolute top-3 left-3 bg-secondary/80 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md uppercase tracking-wider font-sans">
+                    ${newsData.category_display}
+                </span>
+            </div>
+            <div class="p-4 relative">
+                <h3 class="text-lg font-bold text-white leading-tight group-hover:text-secondary transition line-clamp-2">
+                    ${newsData.title}
+                </h3>
+                <div class="mt-3 flex items-center justify-between text-xs text-gray-400 font-medium">
+                    <span>Just now</span>
+                    <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></path></svg> 0</span>
+                </div>
+            </div>
+        </a>`;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHTML;
+        grid.prepend(tempDiv.firstElementChild);
     }
-    // --- AKHIR FUNGSI BARU ---
-
-    newsForm.addEventListener("submit", function(event){
-        event.preventDefault();
-        submitNewsForm();
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !newsModal.classList.contains('hidden')) {
-            hideNewsModal();
-        }
-    });
-
-    function initCombobox(combobox) {
-        const hiddenInput = combobox.querySelector('[data-combobox-hidden]');
-        const toggle = combobox.querySelector('[data-combobox-toggle]');
-        const toggleLabel = combobox.querySelector('[data-combobox-toggle-label]');
-        const toggleIcon = combobox.querySelector('[data-combobox-toggle-icon]');
-        const panel = combobox.querySelector('[data-combobox-panel]');
-        const searchInput = combobox.querySelector('[data-combobox-search]');
-        const options = Array.from(combobox.querySelectorAll('[data-combobox-option]'));
-        const emptyState = combobox.querySelector('[data-combobox-empty]');
-        const placeholder = combobox.dataset.placeholder || 'Select option';
-        const field = combobox.dataset.comboboxField || hiddenInput?.name || '';
-        let isOpen = false;
-
-        if (!hiddenInput || !toggle || !toggleLabel || !panel || !options.length) {
-            return null;
-        }
-
-        function setActiveStyles(active) {
-            toggle.classList.toggle('border-primary', active);
-            toggle.classList.toggle('text-primary', active);
-            toggle.classList.toggle('border-surface/30', !active);
-            toggle.classList.toggle('text-surface/70', !active);
-        }
-
-        function updateLabel(text, isPlaceholder = false) {
-            toggleLabel.textContent = text;
-            setActiveStyles(!isPlaceholder);
-        }
-
-        function clearSelection() {
-            options.forEach((option) => {
-                option.classList.remove('bg-primary/5', 'text-primary');
-                option.removeAttribute('aria-selected');
-            });
-        }
-
-        function getVisibleOptions() {
-            return options.filter((option) => !option.classList.contains('hidden'));
-        }
-
-        function filterOptions(term) {
-            const query = (term || '').trim().toLowerCase();
-            let visibleCount = 0;
-            options.forEach((option) => {
-                const matches = option.textContent.toLowerCase().includes(query);
-                option.classList.toggle('hidden', !matches);
-                if (matches) {
-                    option.removeAttribute('aria-hidden');
-                    visibleCount += 1;
-                } else {
-                    option.setAttribute('aria-hidden', 'true');
-                }
-            });
-            if (emptyState) {
-                emptyState.classList.toggle('hidden', visibleCount !== 0);
-            }
-        }
-
-        function focusVisibleOption(position) {
-            const visible = getVisibleOptions();
-            if (!visible.length) return;
-            const target = position === 'last' ? visible[visible.length - 1] : visible[0];
-            requestAnimationFrame(() => target.focus());
-        }
-
-        function focusRelativeOption(current, delta) {
-            const visible = getVisibleOptions();
-            if (!visible.length) return;
-            const index = visible.indexOf(current);
-            if (index === -1) {
-                (delta > 0 ? visible[0] : visible[visible.length - 1])?.focus();
-                return;
-            }
-            const nextIndex = (index + delta + visible.length) % visible.length;
-            visible[nextIndex]?.focus();
-        }
-
-        function handleOutsideClick(event) {
-            if (!isOpen) return;
-            if (!combobox.contains(event.target)) {
-                closePanel();
-            }
-        }
-
-        function handleGlobalKeydown(event) {
-            if (!isOpen) return;
-            if (event.key === 'Escape') {
-                event.preventDefault();
-                closePanel();
-                toggle.focus();
-            }
-        }
-
-        function openPanel({ focusSearch = true } = {}) {
-            if (isOpen) return;
-            isOpen = true;
-            panel.classList.remove('hidden');
-            toggle.setAttribute('aria-expanded', 'true');
-            if (toggleIcon) {
-                toggleIcon.classList.add('rotate-180');
-            }
-            filterOptions('');
-            const selected = options.find((option) => option.getAttribute('aria-selected') === 'true');
-            if (selected) {
-                requestAnimationFrame(() => selected.scrollIntoView({ block: 'nearest' }));
-            }
-            if (focusSearch && searchInput) {
-                requestAnimationFrame(() => searchInput.focus());
-            }
-            document.addEventListener('click', handleOutsideClick);
-            document.addEventListener('keydown', handleGlobalKeydown);
-        }
-
-        function closePanel() {
-            if (!isOpen) return;
-            isOpen = false;
-            panel.classList.add('hidden');
-            toggle.setAttribute('aria-expanded', 'false');
-            if (toggleIcon) {
-                toggleIcon.classList.remove('rotate-180');
-            }
-            document.removeEventListener('click', handleOutsideClick);
-            document.removeEventListener('keydown', handleGlobalKeydown);
-        }
-
-        function selectOption(option, { silent = false, focusToggle = true } = {}) {
-            if (!option) return;
-            const value = option.dataset.value || '';
-            hiddenInput.value = value;
-            clearSelection();
-            option.classList.add('bg-primary/5', 'text-primary');
-            option.setAttribute('aria-selected', 'true');
-            updateLabel(option.textContent.trim() || placeholder, !value);
-            if (!silent) {
-                closePanel();
-                if (focusToggle) {
-                    toggle.focus();
-                }
-            }
-        }
-
-        toggle.addEventListener('click', (event) => {
-            event.preventDefault();
-            if (isOpen) {
-                closePanel();
-            } else {
-                openPanel();
-            }
-        });
-
-        toggle.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                if (isOpen) {
-                    closePanel();
-                } else {
-                    openPanel();
-                }
-            } else if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                if (!isOpen) {
-                    openPanel({ focusSearch: false });
-                }
-                focusVisibleOption('first');
-            } else if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                if (!isOpen) {
-                    openPanel({ focusSearch: false });
-                }
-                focusVisibleOption('last');
-            }
-        });
-
-        if (searchInput) {
-            searchInput.addEventListener('input', (event) => {
-                filterOptions(event.target.value);
-            });
-
-            searchInput.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    const [firstVisible] = getVisibleOptions();
-                    selectOption(firstVisible);
-                } else if (event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    focusVisibleOption('first');
-                } else if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    focusVisibleOption('last');
-                }
-            });
-        }
-
-        options.forEach((option) => {
-            option.addEventListener('click', () => selectOption(option));
-            option.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    selectOption(option);
-                } else if (event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    focusRelativeOption(option, 1);
-                } else if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    focusRelativeOption(option, -1);
-                } else if (event.key === 'Escape') {
-                    event.preventDefault();
-                    closePanel();
-                    toggle.focus();
-                }
-            });
-        });
-
-        function refresh() {
-            const currentValue = hiddenInput.value ? hiddenInput.value.toString() : '';
-            clearSelection();
-            filterOptions('');
-            if (currentValue) {
-                const initialOption = options.find((option) => option.dataset.value === currentValue);
-                if (initialOption) {
-                    selectOption(initialOption, { silent: true, focusToggle: false });
-                    closePanel();
-                    return;
-                }
-            }
-            updateLabel(placeholder, true);
-            closePanel();
-        }
-
-        refresh();
-
-        return {
-            field,
-            toggle,
-            refresh,
-            close: closePanel,
-        };
-    }
+    newsForm.addEventListener("submit", function(e){ e.preventDefault(); submitNewsForm(); });
 </script>
