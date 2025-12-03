@@ -46,6 +46,7 @@ def detail_news(request, news_id):
 def get_news_data_json(request, news_id):
     try:
         news = News.objects.get(pk=news_id)
+        news.increment_views()
         data = {
             'id': str(news.id),
             'title': news.title,
