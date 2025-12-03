@@ -1,6 +1,6 @@
 # quiz/urls.py
 
-from django.urls import path
+from django.urls import path # type: ignore
 from quiz.views import (
     show_main,
     create_quiz_with_questions,
@@ -22,7 +22,7 @@ app_name = 'quiz'
 urlpatterns = [
     path('', show_main, name='show_main'),
     path('api/', get_all_quizzes, name="get_all_quizzes"),
-    path('api/admin', quiz_admin_quizzez, name="get_admin_quizzes"),
+    path('api/admin/', quiz_admin_quizzez, name="get_admin_quizzes"),
     path('api/<int:quiz_id>/', get_quiz_detail, name="get_quiz_detail"), 
     path('api/<int:quiz_id>/submit/', submit_quiz, name="submit_quiz"),   
     path('api/<int:quiz_id>/admin/', quiz_admin_detail, name="quiz_admin_detail"),  

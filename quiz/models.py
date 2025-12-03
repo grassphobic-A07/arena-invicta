@@ -13,7 +13,7 @@ class Quiz(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     is_published = models.BooleanField(default=False)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='football')
@@ -27,11 +27,11 @@ class Quiz(models.Model):
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    text = models.CharField(max_length=500)
-    option_a = models.CharField(max_length=200)
-    option_b = models.CharField(max_length=200)
-    option_c = models.CharField(max_length=200)
-    option_d = models.CharField(max_length=200)
+    text = models.CharField(max_length=160)
+    option_a = models.CharField(max_length=80)
+    option_b = models.CharField(max_length=80)
+    option_c = models.CharField(max_length=80)
+    option_d = models.CharField(max_length=80)
     correct_answer = models.CharField(max_length=1, choices=[
         ('A', 'Option A'),
         ('B', 'Option B'),

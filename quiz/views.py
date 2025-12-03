@@ -1,14 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.forms import inlineformset_factory
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-from .forms import QuizForm, QuestionForm
+from django.shortcuts import render, redirect, get_object_or_404 # type: ignore
+from django.contrib.auth.decorators import login_required # type: ignore
+from django.contrib import messages # type: ignore
+from django.forms import inlineformset_factory # type: ignore
+from django.http import JsonResponse # type: ignore
+from django.template.loader import render_to_string # type: ignore
+from django.urls import reverse # type: ignore
+from django.views.decorators.csrf import csrf_exempt # type: ignore
+from .forms import QuizForm, QuestionForm 
 from .models import Quiz, Question, Score
-from django.db.models import Count, Q
+from django.db.models import Count, Q # type: ignore
 import json
 
 # Helper function to detect AJAX requests
@@ -369,9 +369,11 @@ def quiz_admin_quizzez(request):
         data.append({
             'id':q.id,
             'title':q.title,
+            'description':q.description,
             'category': q.category,
             'is_quiz_hot': q.score_count >= 5,
             'total_question': q.question_count,
+            'is_published': q.is_published,
         })
     return JsonResponse(data, safe=False)
 
@@ -404,7 +406,6 @@ def get_all_quizzes(request):
             "category": q.category,
             "is_quiz_hot": is_hot,
             "total_questions": q.question_count,
-            "is_published": q.is_published,
             "created_by": q.user.username,
         })
 
@@ -448,6 +449,6 @@ def submit_quiz(request, quiz_id):
 
     return JsonResponse({
         "score": score,
-        "total": quiz.questions.count(),
+        "total": total,
         "result": results,
     })
