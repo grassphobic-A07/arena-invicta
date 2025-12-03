@@ -4,27 +4,31 @@
 {% block title %}Community Discussions · Arena Invicta{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-6xl px-4 py-8 space-y-6">
-  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+<section class="mx-auto max-w-7xl px-4 py-8 space-y-8">
+  
+  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
     <div>
-      <h1 class="text-3xl font-semibold text-primary">Community Discussions</h1>
-      <p class="mt-1 text-sm text-surface/70">
+      <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary drop-shadow-lg">
+        Community Discussions
+      </h1>
+      <p class="mt-2 text-base text-gray-300 font-light max-w-2xl">
         Ikuti percakapan terbaru, temukan diskusi seputar berita favorit, dan mulai thread baru bersama komunitas.
       </p>
     </div>
+    
     {% if request.user.is_authenticated %}
       <button id="thread-open-btn"
               type="button"
-              class="inline-flex items-center gap-2 self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/40">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary px-6 py-3 text-sm font-bold text-white shadow-lg hover:shadow-primary/40 transition transform hover:-translate-y-1">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 5v14M5 12h14"></path>
         </svg>
         Tambah Thread
       </button>
     {% else %}
       <a href="{% url 'accounts:login' %}"
-         class="inline-flex items-center gap-2 self-start rounded-lg border border-surface/30 px-4 py-2 text-sm font-medium text-primary transition hover:border-primary/70 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+         class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10 hover:border-white/40">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
           <path d="M10 17l5-5-5-5"></path>
           <path d="M15 12H3"></path>
@@ -34,76 +38,135 @@
     {% endif %}
   </div>
 
-  <div class="relative">
+  <div class="relative group">
+    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-secondary transition">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+    </div>
     <input id="thread-search-input"
            type="search"
            name="q"
            value="{{ search_query }}"
            placeholder="Cari thread berdasarkan judul berita atau UUID..."
-           class="peer w-full rounded-xl border border-surface/20 bg-white px-4 py-3 text-sm text-surface/80 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+           class="w-full rounded-2xl border border-white/10 bg-[#2A1B54]/40 px-12 py-4 text-white placeholder-white/30 backdrop-blur-sm transition focus:border-secondary focus:ring-1 focus:ring-secondary focus:bg-[#2A1B54]/60 outline-none shadow-inner"
            aria-label="Cari diskusi">
-    <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-surface/40 opacity-0 transition-opacity duration-150 peer-placeholder-shown:opacity-100">
-      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-    </span>
   </div>
 
   <div id="thread-grid"
-       class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+       class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2"
        data-fetch-url="{{ api_list_url }}"
        data-create-url="{{ api_create_url }}">
     {% if threads %}
       {% for thread in threads %}
-        {% include 'discussions/thread_preview_card.html' %}
+        <article class="flex h-full flex-col gap-4 rounded-2xl border border-white/10 bg-[#2A1B54]/60 backdrop-blur-md p-6 shadow-lg transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-primary/10 group">
+          <header class="flex items-start gap-4">
+            {% if thread.author.profile.avatar_url %}
+                <img src="{{ thread.author.profile.avatar_url }}" alt="{{ thread.author.username }}" class="h-12 w-12 rounded-full object-cover ring-2 ring-white/10">
+            {% else %}
+                <div class="grid h-12 w-12 place-items-center rounded-full bg-primary/20 text-sm font-bold text-primary ring-2 ring-white/10">
+                    {{ thread.author.username|slice:":2"|upper }}
+                </div>
+            {% endif %}
+            
+            <div class="min-w-0 flex-1 space-y-1">
+              <div class="flex items-center gap-2">
+                {% if thread.is_pinned %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-400 border border-yellow-500/30">
+                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 17V3"></path><path d="m5 11 7 6 7-6"></path></svg> Pinned
+                    </span>
+                {% endif %}
+              </div>
+              <a href="{% url 'discussions:thread-detail' thread.pk %}" class="block text-lg font-bold text-white transition hover:text-secondary line-clamp-2 leading-tight">
+                {{ thread.title }}
+              </a>
+              <p class="text-xs text-gray-400">
+                <span class="text-gray-300 font-medium">@{{ thread.author.username }}</span> · {{ thread.created_at|date:"d M Y, H:i" }}
+              </p>
+            </div>
+          </header>
+
+          {% if thread.is_locked %}
+            <div class="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold uppercase tracking-wide text-red-400">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 10V8a6 6 0 1 1 12 0v2"></path><rect width="18" height="12" x="3" y="10" rx="2"></rect></svg>
+                Thread Locked
+            </div>
+          {% endif %}
+
+          <p class="text-sm text-gray-300 line-clamp-3 leading-relaxed border-l-2 border-white/10 pl-3">
+            {{ thread.body }}
+          </p>
+
+          <footer class="mt-auto flex flex-col gap-4 pt-4 border-t border-white/5">
+            {% if thread.news and thread.news.uuid %}
+                <div class="bg-black/20 rounded-lg p-3 border border-white/5">
+                    <a href="{% url 'news:detail_news' thread.news.uuid %}" class="group/news inline-flex items-center gap-2 text-primary text-sm font-semibold transition hover:text-secondary">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        <span class="line-clamp-1">{{ thread.news.title }}</span>
+                    </a>
+                </div>
+            {% endif %}
+
+            <div class="flex flex-wrap items-center gap-4 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+              <span class="inline-flex items-center gap-1.5 group-hover:text-white transition">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {{ thread.comments.count }} Comments
+              </span>
+              <span class="inline-flex items-center gap-1.5 group-hover:text-white transition">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 15l7-12 7 12"></path><path d="M5 21h14"></path></svg>
+                {{ thread.upvote_count }} Upvotes
+              </span>
+            </div>
+          </footer>
+        </article>
       {% endfor %}
     {% else %}
-      <p class="col-span-full rounded-xl border border-dashed border-surface/30 bg-white px-6 py-12 text-center text-sm text-surface/60">
-        Belum ada diskusi yang cocok. Coba kata kunci lain atau mulai thread baru.
-      </p>
+      <div class="col-span-full py-16 flex flex-col items-center justify-center text-center border-2 border-dashed border-white/10 rounded-3xl bg-white/5">
+        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-500">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        </div>
+        <p class="text-gray-400 font-medium">Belum ada diskusi yang cocok. Coba kata kunci lain atau mulai thread baru.</p>
+      </div>
     {% endif %}
   </div>
 </section>
 
 {% if request.user.is_authenticated %}
-  <div id="thread-modal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-black/40 px-4 py-6 backdrop-blur">
-    <div class="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-      <form id="thread-form" class="flex flex-col gap-4 p-6">
-        <header class="flex items-start justify-between">
+  <div id="thread-modal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm">
+    <div class="w-full max-w-xl overflow-hidden rounded-2xl bg-[#2A1B54] border border-white/10 shadow-2xl transform transition-all">
+      <form id="thread-form" class="flex flex-col gap-5 p-6 md:p-8">
+        
+        <header class="flex items-start justify-between border-b border-white/10 pb-4">
           <div>
-            <h2 class="text-lg font-semibold text-primary">Mulai thread baru</h2>
-            <p class="text-xs text-surface/60">Pilih berita, kemudian sampaikan topik diskusi kepada komunitas.</p>
+            <h2 class="text-2xl font-bold text-white">Mulai Thread Baru</h2>
+            <p class="text-xs text-gray-400 mt-1">Pilih berita, kemudian sampaikan topik diskusi kepada komunitas.</p>
           </div>
           <button type="button"
-                  class="rounded-lg p-1.5 text-surface/50 transition hover:bg-mist hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  class="rounded-full p-2 text-gray-400 transition hover:bg-white/10 hover:text-white focus:outline-none"
                   data-thread-modal-close>
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 6 6 18M6 6l12 12"></path>
             </svg>
           </button>
         </header>
 
         <div class="space-y-2">
-          <label id="field-news-label"
-                 for="field-news-search"
-                 class="text-sm font-medium text-surface/80">Berita yang dibahas</label>
+          <label id="field-news-label" for="field-news-search" class="text-xs font-bold text-secondary uppercase tracking-wider">Berita yang dibahas</label>
           <div class="relative" data-news-combobox>
             <input type="hidden" name="news" id="field-news" value="">
             <button type="button"
-                    class="flex w-full items-center justify-between rounded-lg border border-surface/20 bg-white px-3 py-2 text-left text-sm text-surface/60 transition hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    class="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-left text-sm text-gray-300 transition hover:border-secondary/50 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
                     data-news-toggle
                     aria-haspopup="listbox"
                     aria-expanded="false"
                     aria-labelledby="field-news-label">
               <span class="line-clamp-1" data-news-toggle-label>Pilih berita...</span>
-              <svg class="ml-2 h-4 w-4 text-surface/40 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-news-toggle-icon>
+              <svg class="ml-2 h-4 w-4 text-gray-500 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-news-toggle-icon>
                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.11l3.71-3.88a.75.75 0 1 1 1.08 1.04l-4.25 4.44a.75.75 0 0 1-1.08 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z" clip-rule="evenodd" />
               </svg>
             </button>
-            <div class="absolute left-0 right-0 z-30 mt-2 hidden overflow-hidden rounded-xl border border-surface/20 bg-white shadow-xl" data-news-panel>
-              <div class="flex items-center gap-2 border-b border-surface/10 px-3 py-2">
-                <svg class="h-4 w-4 text-surface/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            
+            <div class="absolute left-0 right-0 z-30 mt-2 hidden overflow-hidden rounded-xl border border-white/10 bg-[#1A103C] shadow-xl" data-news-panel>
+              <div class="flex items-center gap-2 border-b border-white/10 px-3 py-3 bg-black/20">
+                <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.35-4.35"></path>
                 </svg>
@@ -111,57 +174,57 @@
                        type="text"
                        autocomplete="off"
                        placeholder="Cari berita..."
-                       class="w-full border-none bg-transparent text-sm text-surface/80 focus:outline-none"
+                       class="w-full border-none bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none"
                        data-news-search>
               </div>
-              <ul class="max-h-60 overflow-y-auto py-1" role="listbox" aria-labelledby="field-news-label" data-news-options>
+              <ul class="max-h-60 overflow-y-auto py-1 custom-scrollbar" role="listbox" aria-labelledby="field-news-label" data-news-options>
                 {% for news in thread_form.fields.news.queryset %}
                   <li role="option"
                       tabindex="-1"
                       data-news-option
                       data-value="{{ news.id }}"
-                      class="cursor-pointer px-3 py-2 text-sm text-surface/70 transition hover:bg-mist">
+                      class="cursor-pointer px-4 py-2.5 text-sm text-gray-300 transition hover:bg-primary/20 hover:text-white border-b border-white/5 last:border-0">
                     {{ news.title }} ({{ news.id }})
                   </li>
                 {% endfor %}
               </ul>
-              <p class="hidden px-3 py-3 text-xs text-surface/50" data-news-empty>Tidak ada berita yang cocok.</p>
+              <p class="hidden px-4 py-4 text-xs text-gray-500 text-center" data-news-empty>Tidak ada berita yang cocok.</p>
             </div>
           </div>
           <p class="text-xs text-danger empty:hidden" data-field-error="news"></p>
         </div>
 
         <div class="space-y-2">
-          <label for="field-title" class="text-sm font-medium text-surface/80">Judul thread</label>
+          <label for="field-title" class="text-xs font-bold text-secondary uppercase tracking-wider">Judul thread</label>
           <input id="field-title"
                  type="text"
                  name="title"
                  maxlength="150"
                  required
-                 class="w-full rounded-lg border border-surface/20 bg-white px-3 py-2 text-sm text-surface/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                 class="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary transition"
                  placeholder="Misal: Strategi tim A menghadapi final">
           <p class="text-xs text-danger empty:hidden" data-field-error="title"></p>
         </div>
 
         <div class="space-y-2">
-          <label for="field-body" class="text-sm font-medium text-surface/80">Pembuka diskusi</label>
+          <label for="field-body" class="text-xs font-bold text-secondary uppercase tracking-wider">Pembuka diskusi</label>
           <textarea id="field-body"
                     name="body"
                     rows="4"
                     required
-                    class="w-full rounded-lg border border-surface/20 bg-white px-3 py-2 text-sm text-surface/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    class="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary transition resize-none"
                     placeholder="Bagikan analisis, opini, atau pertanyaan awal Anda."></textarea>
           <p class="text-xs text-danger empty:hidden" data-field-error="body"></p>
         </div>
 
-        <footer class="flex items-center justify-end gap-2 pt-2">
+        <footer class="flex items-center justify-end gap-3 pt-2 border-t border-white/10 mt-2">
           <button type="button"
-                  class="rounded-lg border border-surface/30 px-4 py-2 text-sm text-surface/70 transition hover:bg-mist focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  class="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-medium text-gray-400 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                   data-thread-modal-close>
             Batal
           </button>
           <button type="submit"
-                  class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30">
+                  class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-secondary px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-primary/30 transition transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/30">
             <svg class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-submit-spinner>
               <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
             </svg>
@@ -203,46 +266,28 @@
     let isNewsPanelOpen = false;
 
     function escapeHTML(value) {
-      if (!value) {
-        return "";
-      }
-      return value
-        .toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+      if (!value) return "";
+      return value.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
 
     function formatDate(isoString) {
       if (!isoString) return "";
       try {
         const date = new Date(isoString);
-        return new Intl.DateTimeFormat("id-ID", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(date);
-      } catch {
-        return isoString;
-      }
+        return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+      } catch { return isoString; }
     }
 
     function updateNewsLabel(labelText, isPlaceholder = false) {
       if (!newsToggleLabel) return;
       newsToggleLabel.textContent = labelText;
       if (newsToggle) {
-        newsToggle.classList.toggle("text-surface/60", isPlaceholder);
-        newsToggle.classList.toggle("text-surface/80", !isPlaceholder);
+        newsToggle.classList.toggle("text-gray-500", isPlaceholder);
+        newsToggle.classList.toggle("text-white", !isPlaceholder);
       }
     }
 
-    function getVisibleNewsOptions() {
-      return newsOptions.filter((option) => !option.classList.contains("hidden"));
-    }
+    function getVisibleNewsOptions() { return newsOptions.filter((option) => !option.classList.contains("hidden")); }
 
     function filterNewsOptions(term) {
       if (!newsOptions.length) return 0;
@@ -251,38 +296,11 @@
       newsOptions.forEach((option) => {
         const matches = option.textContent.toLowerCase().includes(query);
         option.classList.toggle("hidden", !matches);
-        if (matches) {
-          option.removeAttribute("aria-hidden");
-        } else {
-          option.setAttribute("aria-hidden", "true");
-        }
-        if (matches) {
-          visible += 1;
-        }
+        if (matches) option.removeAttribute("aria-hidden"); else option.setAttribute("aria-hidden", "true");
+        if (matches) visible += 1;
       });
-      if (newsEmptyState) {
-        newsEmptyState.classList.toggle("hidden", visible !== 0);
-      }
+      if (newsEmptyState) newsEmptyState.classList.toggle("hidden", visible !== 0);
       return visible;
-    }
-
-    function focusVisibleOption(position) {
-      const visible = getVisibleNewsOptions();
-      if (!visible.length) return;
-      const target = position === "last" ? visible[visible.length - 1] : visible[0];
-      target?.focus();
-    }
-
-    function focusRelativeOption(currentOption, delta) {
-      const visible = getVisibleNewsOptions();
-      if (!visible.length) return;
-      const currentIndex = visible.indexOf(currentOption);
-      if (currentIndex === -1) {
-        (delta > 0 ? visible[0] : visible[visible.length - 1])?.focus();
-        return;
-      }
-      const nextIndex = (currentIndex + delta + visible.length) % visible.length;
-      visible[nextIndex]?.focus();
     }
 
     function closeNewsPanel() {
@@ -292,252 +310,90 @@
       newsToggle?.setAttribute("aria-expanded", "false");
       newsToggleIcon?.classList.remove("rotate-180");
       document.removeEventListener("click", handleOutsideClick);
-      document.removeEventListener("keydown", handleGlobalKeydown);
     }
 
     function openNewsPanel(options = {}) {
       if (isNewsPanelOpen) return;
-      const { focusSearch = true } = options;
       isNewsPanelOpen = true;
       newsPanel?.classList.remove("hidden");
       newsToggle?.setAttribute("aria-expanded", "true");
       newsToggleIcon?.classList.add("rotate-180");
-      if (newsSearchInput) {
-        newsSearchInput.value = "";
-        filterNewsOptions("");
-        if (focusSearch) {
-          requestAnimationFrame(() => newsSearchInput.focus());
-        }
-      } else {
-        filterNewsOptions("");
-      }
-      const selectedOption = newsOptions.find((option) => option.getAttribute("aria-selected") === "true");
-      if (selectedOption) {
-        requestAnimationFrame(() => selectedOption.scrollIntoView({ block: "nearest" }));
-      }
+      if (newsSearchInput) { newsSearchInput.value = ""; filterNewsOptions(""); if (options.focusSearch !== false) requestAnimationFrame(() => newsSearchInput.focus()); }
       document.addEventListener("click", handleOutsideClick);
-      document.addEventListener("keydown", handleGlobalKeydown);
     }
 
     function handleOutsideClick(event) {
       if (!isNewsPanelOpen || !newsCombobox) return;
-      if (!newsCombobox.contains(event.target)) {
-        closeNewsPanel();
-      }
-    }
-
-    function handleGlobalKeydown(event) {
-      if (!isNewsPanelOpen) return;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeNewsPanel();
-        newsToggle?.focus();
-      }
+      if (!newsCombobox.contains(event.target)) closeNewsPanel();
     }
 
     function selectNewsOption(option, { silent = false } = {}) {
       if (!option) return;
       const value = option.dataset.value || "";
-      if (newsHiddenInput) {
-        newsHiddenInput.value = value;
-      }
-      newsOptions.forEach((item) => {
-        item.classList.remove("bg-primary/5", "text-primary");
-        item.removeAttribute("aria-selected");
-      });
-      option.classList.add("bg-primary/5", "text-primary");
-      option.setAttribute("aria-selected", "true");
+      if (newsHiddenInput) newsHiddenInput.value = value;
+      newsOptions.forEach((item) => { item.classList.remove("bg-primary/20", "text-white"); item.classList.add("text-gray-300"); });
+      option.classList.add("bg-primary/20", "text-white");
+      option.classList.remove("text-gray-300");
       updateNewsLabel(option.textContent.trim() || newsPlaceholder, !value);
-      if (!silent) {
-        closeNewsPanel();
-        newsToggle?.focus();
-      }
-    }
-
-    function resetNewsCombobox() {
-      if (!newsCombobox) return;
-      if (newsHiddenInput) {
-        newsHiddenInput.value = "";
-      }
-      updateNewsLabel(newsPlaceholder, true);
-      newsOptions.forEach((option) => {
-        option.classList.remove("bg-primary/5", "text-primary");
-        option.removeAttribute("aria-selected");
-        option.classList.remove("hidden");
-        option.removeAttribute("aria-hidden");
-      });
-      if (newsEmptyState) {
-        newsEmptyState.classList.add("hidden");
-      }
-      if (newsSearchInput) {
-        newsSearchInput.value = "";
-      }
-      closeNewsPanel();
+      if (!silent) { closeNewsPanel(); newsToggle?.focus(); }
     }
 
     if (newsCombobox) {
       updateNewsLabel(newsPlaceholder, true);
-      const initialValue = newsHiddenInput?.value?.trim();
-      if (initialValue) {
-        const initialOption = newsOptions.find((option) => option.dataset.value === initialValue);
-        if (initialOption) {
-          selectNewsOption(initialOption, { silent: true });
-        } else if (newsHiddenInput) {
-          newsHiddenInput.value = "";
-        }
-      }
-
-      newsToggle?.addEventListener("click", (event) => {
-        event.preventDefault();
-        if (isNewsPanelOpen) {
-          closeNewsPanel();
-        } else {
-          openNewsPanel();
-        }
-      });
-
-      newsToggle?.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          if (isNewsPanelOpen) {
-            closeNewsPanel();
-          } else {
-            openNewsPanel();
-          }
-        } else if (event.key === "ArrowDown") {
-          event.preventDefault();
-          if (!isNewsPanelOpen) {
-            openNewsPanel({ focusSearch: false });
-          }
-          focusVisibleOption("first");
-        } else if (event.key === "ArrowUp") {
-          event.preventDefault();
-          if (!isNewsPanelOpen) {
-            openNewsPanel({ focusSearch: false });
-          }
-          focusVisibleOption("last");
-        }
-      });
-
-      newsSearchInput?.addEventListener("input", (event) => {
-        filterNewsOptions(event.target.value);
-      });
-
-      newsSearchInput?.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const [firstOption] = getVisibleNewsOptions();
-          selectNewsOption(firstOption);
-        } else if (event.key === "ArrowDown") {
-          event.preventDefault();
-          focusVisibleOption("first");
-        } else if (event.key === "ArrowUp") {
-          event.preventDefault();
-          focusVisibleOption("last");
-        }
-      });
-
-      newsOptions.forEach((option) => {
-        option.addEventListener("click", () => selectNewsOption(option));
-        option.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            selectNewsOption(option);
-          } else if (event.key === "ArrowDown") {
-            event.preventDefault();
-            focusRelativeOption(option, 1);
-          } else if (event.key === "ArrowUp") {
-            event.preventDefault();
-            focusRelativeOption(option, -1);
-          }
-        });
-      });
+      newsToggle?.addEventListener("click", (e) => { e.preventDefault(); isNewsPanelOpen ? closeNewsPanel() : openNewsPanel(); });
+      newsSearchInput?.addEventListener("input", (e) => filterNewsOptions(e.target.value));
+      newsOptions.forEach((option) => option.addEventListener("click", () => selectNewsOption(option)));
     }
 
     function renderThreadCard(thread) {
       const author = thread.author || {};
       const news = thread.news || {};
+      
       const avatar = author.avatar_url
-        ? `<img src="${escapeHTML(author.avatar_url)}" alt="${escapeHTML(author.display_name || author.username || "Member")}" class="h-12 w-12 rounded-full object-cover ring-2 ring-mist/80">`
-        : `<div class="grid h-12 w-12 place-items-center rounded-full bg-mint/40 text-sm font-semibold text-primary ring-2 ring-mist/80">${escapeHTML((author.display_name || author.username || "?").slice(0, 2).toUpperCase())}</div>`;
+        ? `<img src="${escapeHTML(author.avatar_url)}" alt="${escapeHTML(author.username)}" class="h-12 w-12 rounded-full object-cover ring-2 ring-white/10">`
+        : `<div class="grid h-12 w-12 place-items-center rounded-full bg-primary/20 text-sm font-bold text-primary ring-2 ring-white/10">${escapeHTML((author.username || "?").slice(0, 2).toUpperCase())}</div>`;
 
-      const newsSection = news && news.title
-        ? `<a href="${escapeHTML(news.detail_url || "#")}" class="group inline-flex items-center gap-2 text-primary transition hover:text-primary/80">
-             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M3 4h18v16H3z"></path>
-               <path d="M7 8h10"></path>
-               <path d="M7 12h10"></path>
-               <path d="M7 16h4"></path>
-             </svg>
-             <span class="line-clamp-1">${escapeHTML(news.title)}</span>
-           </a>
-           <span class="text-[11px] text-surface/40">UUID: ${escapeHTML(news.uuid || "")}</span>
-           ${news.summary ? `<p class="text-[11px] text-surface/50 line-clamp-2 mt-1">${escapeHTML(news.summary)}</p>` : ""}`
-        : `<span class="text-xs text-surface/50 italic">Berita tidak tersedia</span>`;
-
-      const badge = thread.is_pinned
-        ? `<span class="inline-flex items-center gap-1 rounded-full bg-mint/30 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
-             <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M12 17V3"></path>
-               <path d="m5 11 7 6 7-6"></path>
-             </svg>
-             Pinned
-           </span>`
-        : "";
-
-      const lockedBanner = thread.is_locked
-        ? `<div class="flex items-center gap-2 rounded-lg border border-danger/40 bg-danger/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-danger">
-             <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M6 10V8a6 6 0 1 1 12 0v2"></path>
-               <rect width="18" height="12" x="3" y="10" rx="2"></rect>
-             </svg>
-             Thread Terkunci
+      // SAFE CHECK: Hanya render news jika news DAN news.uuid ada
+      const newsSection = news && news.title && news.uuid
+        ? `<div class="bg-black/20 rounded-lg p-3 border border-white/5">
+             <a href="/news/${escapeHTML(news.uuid)}/" class="group/news inline-flex items-center gap-2 text-primary text-sm font-semibold transition hover:text-secondary">
+               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+               <span class="line-clamp-1">${escapeHTML(news.title)}</span>
+             </a>
            </div>`
         : "";
 
       return `
-        <article class="flex h-full flex-col gap-4 rounded-2xl border border-surface/15 bg-white/95 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-          <header class="flex items-start gap-3">
+        <article class="flex h-full flex-col gap-4 rounded-2xl border border-white/10 bg-[#2A1B54]/60 backdrop-blur-md p-6 shadow-lg transition hover:-translate-y-1 hover:border-primary/40 hover:shadow-primary/10 group">
+          <header class="flex items-start gap-4">
             ${avatar}
-            <div class="min-w-0 space-y-1">
+            <div class="min-w-0 flex-1 space-y-1">
               <div class="flex items-center gap-2">
-                ${badge}
+                ${thread.is_pinned ? `<span class="inline-flex items-center gap-1 rounded-full bg-yellow-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-yellow-400 border border-yellow-500/30">Pinned</span>` : ""}
               </div>
-              <a href="${escapeHTML(thread.detail_url || "#")}" class="block text-base font-semibold text-primary transition hover:text-sea line-clamp-2">
+              <a href="/discussions/${thread.id || thread.pk}/" class="block text-lg font-bold text-white transition hover:text-secondary line-clamp-2 leading-tight">
                 ${escapeHTML(thread.title)}
               </a>
-              <p class="text-xs text-surface/50">
-                ${escapeHTML(author.display_name || author.username || "Anggota")} · ${formatDate(thread.created_at)}
+              <p class="text-xs text-gray-400">
+                <span class="text-gray-300 font-medium">@${escapeHTML(author.username || "Member")}</span> · ${formatDate(thread.created_at)}
               </p>
             </div>
           </header>
+          
+          <p class="text-sm text-gray-300 line-clamp-3 leading-relaxed border-l-2 border-white/10 pl-3">
+            ${escapeHTML(thread.body)}
+          </p>
 
-          ${lockedBanner}
-
-          <p class="text-sm text-surface/70 line-clamp-3">${escapeHTML(thread.body)}</p>
-
-          <footer class="mt-auto flex flex-col gap-3 text-xs text-surface/60">
-            <div class="flex flex-col gap-1">${newsSection}</div>
-            <div class="flex flex-wrap items-center gap-4 text-[11px] font-semibold uppercase tracking-wide text-surface/60">
-              <span class="inline-flex items-center gap-1">
-                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                ${thread.comment_count || 0} komentar
+          <footer class="mt-auto flex flex-col gap-4 pt-4 border-t border-white/5">
+            ${newsSection}
+            <div class="flex flex-wrap items-center gap-4 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+              <span class="inline-flex items-center gap-1.5 group-hover:text-white transition">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                ${thread.comment_count || 0} Comments
               </span>
-              <span class="inline-flex items-center gap-1">
-                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 15l7-12 7 12"></path>
-                  <path d="M5 21h14"></path>
-                </svg>
-                ${thread.upvote_count || 0} upvote
-              </span>
-              <span class="inline-flex items-center gap-1">
-                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                ${thread.views_count || 0} views
+              <span class="inline-flex items-center gap-1.5 group-hover:text-white transition">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 15l7-12 7 12"></path><path d="M5 21h14"></path></svg>
+                ${thread.upvote_count || 0} Upvotes
               </span>
             </div>
           </footer>
@@ -548,167 +404,71 @@
     function renderThreads(threads) {
       if (!threads || threads.length === 0) {
         grid.innerHTML = `
-          <p class="col-span-full rounded-xl border border-dashed border-surface/30 bg-white px-6 py-12 text-center text-sm text-surface/60">
-            Belum ada diskusi yang cocok. Coba kata kunci lain atau mulai thread baru.
-          </p>
+          <div class="col-span-full py-16 flex flex-col items-center justify-center text-center border-2 border-dashed border-white/10 rounded-3xl bg-white/5">
+            <h3 class="text-xl font-bold text-white mb-2">No discussions found</h3>
+            <p class="text-gray-400">Try searching for something else or start a new thread.</p>
+          </div>
         `;
         return;
       }
-
       grid.innerHTML = threads.map(renderThreadCard).join("");
     }
 
     async function fetchThreads(query) {
-      const params = new URLSearchParams();
-      if (query) {
-        params.set("q", query);
-      }
-      const queryString = params.toString();
-      const url = queryString ? `${fetchUrl}?${queryString}` : fetchUrl;
+      const params = new URLSearchParams(); if (query) params.set("q", query);
       try {
-        const response = await fetch(url, { headers: { Accept: "application/json" } });
-        if (!response.ok) throw new Error("Gagal memuat thread.");
+        const response = await fetch(`${fetchUrl}?${params.toString()}`, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Failed to load threads.");
         const data = await response.json();
         renderThreads(data.threads);
-      } catch (error) {
-        console.error(error);
-        if (window.showToast) {
-          window.showToast(error.message || "Tidak dapat memuat data diskusi.", "error");
-        }
-      }
+      } catch (error) { console.error(error); }
     }
 
-    function debounce(fn, delay) {
-      let timer;
-      return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), delay);
-      };
-    }
-
-    const handleSearch = debounce(() => {
-      const query = searchInput.value.trim();
-      fetchThreads(query);
-    }, 350);
-
-    if (searchInput) {
-      searchInput.addEventListener("input", handleSearch);
-    }
+    const handleSearch = (fn, delay) => {
+      let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+    };
+    searchInput?.addEventListener("input", handleSearch((e) => fetchThreads(e.target.value.trim()), 350));
 
     function toggleModal(show) {
       if (!modal) return;
       if (show) {
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-        document.body.classList.add("overflow-hidden");
+        modal.classList.remove("hidden"); modal.classList.add("flex"); document.body.classList.add("overflow-hidden");
       } else {
-        modal.classList.remove("flex");
-        modal.classList.add("hidden");
-        document.body.classList.remove("overflow-hidden");
-        if (form) {
-          form.reset();
-          clearFieldErrors();
-          resetNewsCombobox();
-        }
+        modal.classList.remove("flex"); modal.classList.add("hidden"); document.body.classList.remove("overflow-hidden");
+        form?.reset(); closeNewsPanel();
       }
     }
-
     openBtn?.addEventListener("click", () => toggleModal(true));
     closeBtns.forEach((btn) => btn.addEventListener("click", () => toggleModal(false)));
 
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && modal && !modal.classList.contains("hidden")) {
-        toggleModal(false);
-      }
-    });
-
-    function clearFieldErrors() {
-      if (!form) return;
-      form.querySelectorAll("[data-field-error]").forEach((node) => (node.textContent = ""));
-      form.querySelectorAll(".border-danger").forEach((node) => {
-        node.classList.remove("border-danger", "focus:border-danger", "focus:ring-danger/30");
-      });
-    }
-
-    function applyFieldErrors(errors) {
-      clearFieldErrors();
-      Object.entries(errors || {}).forEach(([field, messages]) => {
-        const errorContainer = form.querySelector(`[data-field-error="${field}"]`);
-        const input = form.querySelector(`[name="${field}"]`);
-        if (errorContainer) {
-          errorContainer.textContent = messages[0];
-        }
-        if (field === "news" && newsToggle) {
-          newsToggle.classList.add("border-danger", "focus:border-danger", "focus:ring-danger/30");
-          newsToggle.focus();
-        } else if (input) {
-          input.classList.add("border-danger", "focus:border-danger", "focus:ring-danger/30");
-        }
-      });
-    }
-
     form?.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const news = form.news.value.trim();
-      const title = form.title.value.trim();
-      const body = form.body.value.trim();
+      const news = form.news.value.trim(); const title = form.title.value.trim(); const body = form.body.value.trim();
+      if (!news || !title || !body) { window.showToast?.("Please fill all fields.", "error"); return; }
 
-      if (!news || !title || !body) {
-        applyFieldErrors({
-          news: !news ? ["Pilih berita terkait terlebih dahulu."] : [],
-          title: !title ? ["Judul tidak boleh kosong."] : [],
-          body: !body ? ["Isi thread tidak boleh kosong."] : [],
-        });
-        return;
-      }
-
-      clearFieldErrors();
+      const spinner = form.querySelector("[data-submit-spinner]");
+      const submitText = form.querySelector("[data-submit-text]");
+      if(spinner) spinner.classList.remove("hidden");
+      if(submitText) submitText.classList.add("hidden");
 
       try {
-        if (spinner && submitText) {
-          spinner.classList.remove("hidden");
-          submitText.classList.add("hidden");
-        }
-
         const response = await fetch(createUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
+          method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ news, title, body }),
         });
-
         const data = await response.json();
-
-        if (!response.ok || !data.ok) {
-          applyFieldErrors(data.errors);
-          const message = data.error || "Gagal membuat thread. Periksa kembali input Anda.";
-          window.showToast?.(message, "error");
-          return;
-        }
-
+        if (!response.ok || !data.ok) { throw new Error(data.error || "Failed to create thread."); }
+        
         toggleModal(false);
-        window.showToast?.(data.message || "Thread berhasil dibuat!", "success");
-
-        if (Array.isArray(data.thread?.news)) {
-          data.thread.news = null;
-        }
-
-        const currentCards = grid.querySelectorAll("article");
-        if (currentCards.length === 0) {
-          grid.innerHTML = renderThreadCard(data.thread);
-        } else {
-          grid.insertAdjacentHTML("afterbegin", renderThreadCard(data.thread));
-        }
+        window.showToast?.("Thread created successfully!", "success");
+        if (Array.isArray(data.thread?.news)) data.thread.news = null;
+        grid.insertAdjacentHTML("afterbegin", renderThreadCard(data.thread));
+        
       } catch (error) {
-        console.error(error);
-        window.showToast?.("Terjadi kesalahan jaringan. Coba lagi.", "error");
+        window.showToast?.(error.message, "error");
       } finally {
-        if (spinner && submitText) {
-          spinner.classList.add("hidden");
-          submitText.classList.remove("hidden");
-        }
+        if(spinner) spinner.classList.add("hidden");
+        if(submitText) submitText.classList.remove("hidden");
       }
     });
   })();

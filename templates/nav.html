@@ -1,271 +1,187 @@
-{% comment %} nav.html {% endcomment %}
-<header class="sticky top-0 z-50 w-full border-b border-surface/20 bg-white/80 backdrop-blur">
-  <div class="mx-auto max-w-7xl px-6 md:px-8">
-    <div class="grid grid-cols-[auto_1fr_auto] items-center gap-x-6 md:gap-x-8 py-3 md:py-4">
+{% comment %} nav.html - Quiz Only for Logged In Users {% endcomment %}
+<header class="sticky top-0 z-50 w-full border-b border-white/10 bg-[#1A103C]/90 backdrop-blur-md shadow-lg">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
 
       {% comment %} --- URL Definitions --- {% endcomment %}
       {% url 'news:show_news' as home_url %}
+      {% url 'leagues:league_list' as league_url %}
+      {% url 'discussions:thread-list' as discussion_url %}
+      {% url 'quiz:show_main' as quiz_url %}
       {% url 'accounts:login' as login_url %}
       {% url 'accounts:register' as register_url %}
       {% url 'accounts:logout' as logout_url %}
-      {% url 'leagues:league_list' as league_url %}
-      {% url 'quiz:show_main' as quiz_url %} 
 
-      {% comment %} === BAGIAN KIRI === {% endcomment %}
+      {% comment %} === BRAND === {% endcomment %}
       <div class="flex-shrink-0">
-        <a href="{{ home_url }}" class="font-semibold text-primary text-lg">Arena Invicta</a>
+        <a href="{{ home_url }}" class="font-extrabold text-2xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-secondary hover:opacity-80 transition">
+          Arena Invicta
+        </a>
       </div>
 
-      {% comment %} === BAGIAN TENGAH (Desktop Nav >= md) === {% endcomment %}
-      <nav class="hidden md:flex justify-center items-center gap-5 lg:gap-8">
-        {# --- HOME --- #}
-        <a href="{{ home_url }}"
-           class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Perbaiki kondisi aktif #}
-           {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}aria-current="page"{% endif %}>
-           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
-          Home
-        </a>
-
-        {# --- DISCUSSIONS --- #}
-        <a href="{% url 'discussions:thread-list' %}"
-           class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.app_name == 'discussions' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Cek app_name #}
-           {% if request.resolver_match.app_name == 'discussions' %}aria-current="page"{% endif %}>
-           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-           </svg>
-          Discussions
-        </a>
-
-        {# --- LEAGUE --- #}
-        <a href="{{ league_url }}"
-           class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30
-                  {% if request.resolver_match.app_name == 'leagues' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}" {# <-- Cek app_name #}
-           {% if request.resolver_match.app_name == 'leagues' %}aria-current="page"{% endif %}>
-           <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
-             <path d="M12 12v4m0 4v4m-4 0h8"></path>
-             <path d="M8 12a4 4 0 0 1 8 0"></path>
-           </svg>
-          League
-        </a>
+      {% comment %} === DESKTOP MENU (Hidden on Mobile) === {% endcomment %}
+      <nav class="hidden md:flex space-x-1">
+        <a href="{{ home_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'news' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Home</a>
+        <a href="{{ discussion_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'discussions' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Discussions</a>
+        <a href="{{ league_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'leagues' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">League</a>
+        
+        {% if request.user.is_authenticated %}
+            <a href="{{ quiz_url }}" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 text-white shadow-inner{% else %}text-gray-300 hover:bg-white/5 hover:text-white{% endif %}">Quiz</a>
+        {% endif %}
       </nav>
 
-      {% comment %} === BAGIAN KANAN (Auth/Profile/Hamburger) === {% endcomment %}
-      <div class="flex-shrink-0 flex items-center gap-3 md:gap-4">
-        {# --- Desktop Auth/Profile (>= md) --- #}
-        <div class="hidden md:flex items-center gap-2">
-          {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
-            <a href="{% url 'accounts:admin_dashboard' %}"
-               class="inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 bg-white hover:bg-mist/60">
-              Admin
-            </a>
+      {% comment %} === RIGHT SECTION (Auth) === {% endcomment %}
+      <div class="hidden md:flex items-center gap-4">
+        {% if request.user.is_authenticated %}
+          {% if request.user.username == 'arena_admin' %}
+            <a href="{% url 'accounts:admin_dashboard' %}" class="px-3 py-1 text-xs font-bold uppercase tracking-wide border border-secondary text-secondary rounded-full hover:bg-secondary hover:text-white transition">Admin</a>
           {% endif %}
-          {% if request.user.is_authenticated %}
-            {% url 'accounts:profile_detail' request.user.username as profile_url %}
-            <span class="text-sm text-surface/80 mr-1"> 
-                Hi, <strong>{{ request.user.username }}</strong>
-            </span>
-            <div class="relative">
-              <button id="user-menu-button"
-                      class="relative h-9 w-9 rounded-full border border-surface/20 bg-mist/50 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-sea/30"
-                      aria-haspopup="menu" aria-expanded="false" aria-controls="user-menu" aria-label="Open user menu">
-                <span class="absolute inset-0 rounded-full overflow-hidden">
-                  {% if request.user.profile.avatar_url %}
-                    <img src="{{ request.user.profile.avatar_url }}" alt="" class="h-full w-full object-cover" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
-                  {% endif %}
-                  <svg class="absolute inset-0 m-auto w-5 h-5 text-surface/70 {% if request.user.profile.avatar_url %}hidden{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/>
-                  </svg>
-                </span>
-                <span class="pointer-events-none absolute bottom-0 right-0 translate-x-1/6 translate-y-1/6 rounded-full bg-white ring-1 ring-surface/20 shadow flex items-center justify-center" style="width:14px;height:14px">
-                  <svg id="user-chevron" class="w-3 h-3 text-surface/70 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-width="2" d="M6 9l6 6 6-6"/>
-                  </svg>
-                </span>
-              </button>
-              <div id="user-menu" class="hidden absolute right-0 top-full mt-2 w-48 z-[60] rounded-xl border border-mist bg-white shadow-2xl overflow-hidden" role="menu" aria-labelledby="user-menu-button">
-                <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60" role="menuitem" {% if request.resolver_match.view_name == 'profile_detail' and request.resolver_match.kwargs.username == request.user.username %}aria-current="page"{% endif %}> {# Update active state check for profile #}
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
-                  <span>My Profile</span>
-                </a>
 
-                <a href="{{ quiz_url }}"
-                  class="flex items-center gap-3 px-4 py-3 text-sm text-surface/90 hover:bg-mist/60"
-                  role="menuitem" {% if request.resolver_match.app_name == 'quiz' %}aria-current="page"{% endif %}> {# <-- Cek app_name #}
-                    {# Contoh Ikon Clipboard List #}
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    <span>Quiz</span>
-                </a>
+          <div class="relative ml-2">
+            <button id="user-menu-button" class="relative flex items-center focus:outline-none group">
+                <div class="h-9 w-9 rounded-full border-2 border-white/20 bg-black/40 overflow-hidden group-hover:border-white/50 transition">
+                    {% if request.user.profile.avatar_url %}
+                        <img src="{{ request.user.profile.avatar_url }}" class="h-full w-full object-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                        <div class="hidden h-full w-full grid place-items-center text-xs font-bold text-white">{{ request.user.username|slice:":1"|upper }}</div>
+                    {% else %}
+                        <div class="h-full w-full grid place-items-center text-xs font-bold text-white">{{ request.user.username|slice:":1"|upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="absolute -bottom-1 -right-1 bg-[#1A103C] rounded-full p-0.5">
+                    <div class="bg-secondary text-white rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </button>
 
-                <a href="{{ logout_url }}" class="flex items-center gap-3 px-4 py-3 text-sm text-danger/90 hover:bg-mist/60" role="menuitem">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path stroke-width="2" d="M14 7l5 5-5 5"/><path stroke-width="2" d="M19 12H9"/></svg>
-                  <span>Logout</span>
-                </a>
-              </div>
+            <div id="user-menu" class="hidden absolute right-0 mt-3 w-56 origin-top-right rounded-xl bg-[#2A1B54] border border-white/10 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none z-50 transform transition-all">
+                <div class="px-4 py-3 border-b border-white/10">
+                    <p class="text-xs text-gray-400">Signed in as</p>
+                    <p class="text-sm font-bold text-white truncate">{{ request.user.username }}</p>
+                </div>
+                <div class="py-1">
+                    <a href="{% url 'accounts:profile_detail' request.user.username %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white">My Profile</a>
+                    <a href="{{ quiz_url }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white">Quiz Arena</a> 
+                </div>
+                <div class="border-t border-white/10 py-1">
+                    <a href="{{ logout_url }}" class="block px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300">Sign out</a>
+                </div>
             </div>
-          {% else %}
-            <a href="{{ login_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.view_name == 'login_user' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai view_name #}
-              <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
-              Login
-            </a>
-            <a href="{{ register_url }}" class="inline-flex items-center h-9 px-3 rounded-lg text-sm transition focus:outline-none focus:ring-2 focus:ring-sea/30 {% if request.resolver_match.view_name == 'register' %}font-semibold text-primary bg-mist/70 border border-mist{% else %}text-surface/80 hover:text-sea{% endif %}"> {# Pakai view_name #}
-              <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
-              Sign up
-            </a>
-          {% endif %}
-        </div>
-
-        {# --- Hamburger (mobile < md) --- #}
-        <button id="nav-toggle" class="md:hidden inline-flex items-center h-9 px-3 rounded-lg text-sm border border-surface/20 text-surface/80 hover:text-sea" aria-controls="mobile-sheet" aria-expanded="false" aria-label="Open navigation">
-          <svg class="w-5 h-5 icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          <svg class="w-5 h-5 icon-close hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M6 6l12 12M6 18L18 6"/></svg>
-        </button>
+          </div>
+        {% else %}
+          <a href="{{ login_url }}" class="text-sm font-medium text-gray-300 hover:text-white transition">Log in</a>
+          <a href="{{ register_url }}" class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-lg hover:bg-primary/90 transition transform hover:-translate-y-0.5">Sign Up</a>
+        {% endif %}
       </div>
 
+      {% comment %} === MOBILE MENU BUTTON === {% endcomment %}
+      <div class="flex md:hidden">
+        <button id="nav-toggle" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-white/10 focus:outline-none">
+          <span class="sr-only">Open main menu</span>
+          <svg id="icon-menu" class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg id="icon-close" class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {% comment %} === MOBILE MENU CONTENT === {% endcomment %}
+  <div id="mobile-sheet" class="hidden md:hidden bg-[#1A103C] border-b border-white/10 shadow-2xl animate-in slide-in-from-top-5 duration-200">
+    <div class="px-4 pt-2 pb-6 space-y-2">
+      
+      <a href="{{ home_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-white hover:bg-white/10 border border-transparent hover:border-white/5 transition">
+        Home
+      </a>
+      <a href="{{ discussion_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-white hover:bg-white/10 border border-transparent hover:border-white/5 transition">
+        Discussions
+      </a>
+      <a href="{{ league_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-white hover:bg-white/10 border border-transparent hover:border-white/5 transition">
+        League
+      </a>
+
+      {% if request.user.is_authenticated %}
+        <a href="{{ quiz_url }}" class="block px-4 py-3 rounded-lg text-base font-medium text-yellow-400 hover:bg-yellow-400/10 border border-transparent hover:border-yellow-400/20 transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            Quiz Arena
+        </a>
+      {% endif %}
+
+      <div class="pt-4 mt-4 border-t border-white/10">
+        {% if request.user.is_authenticated %}
+          <div class="flex items-center px-4 mb-4">
+            <div class="flex-shrink-0">
+                {% if request.user.profile.avatar_url %}
+                    <img class="h-10 w-10 rounded-full object-cover border border-white/20" src="{{ request.user.profile.avatar_url }}" alt="">
+                {% else %}
+                    <div class="h-10 w-10 rounded-full bg-surface grid place-items-center font-bold text-white border border-white/20">{{ request.user.username|slice:":1"|upper }}</div>
+                {% endif %}
+            </div>
+            <div class="ml-3">
+              <div class="text-base font-medium leading-none text-white">{{ request.user.username }}</div>
+              <div class="text-sm font-medium leading-none text-gray-400 mt-1">Logged In</div>
+            </div>
+          </div>
+          
+          <a href="{% url 'accounts:profile_detail' request.user.username %}" class="block px-4 py-2 rounded-lg text-base font-medium text-gray-300 hover:text-white hover:bg-white/10">Your Profile</a>
+          
+          {% if request.user.username == 'arena_admin' %}
+             <a href="{% url 'accounts:admin_dashboard' %}" class="block px-4 py-2 rounded-lg text-base font-medium text-secondary hover:bg-secondary/10">Admin Dashboard</a>
+          {% endif %}
+
+          <a href="{{ logout_url }}" class="block px-4 py-2 rounded-lg text-base font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10">Sign out</a>
+        {% else %}
+          <div class="grid grid-cols-2 gap-4 px-2">
+              <a href="{{ login_url }}" class="flex items-center justify-center px-4 py-2 border border-white/10 rounded-lg text-base font-medium text-white hover:bg-white/5">Log in</a>
+              <a href="{{ register_url }}" class="flex items-center justify-center px-4 py-2 border border-transparent rounded-lg text-base font-medium text-white bg-primary hover:bg-primary/90">Sign up</a>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 </header>
 
-{# --------- Mobile floating sheet --------- #}
-<div id="mobile-backdrop" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity md:hidden"></div>
-<div id="mobile-sheet" class="fixed left-3 right-3 top-3 z-50 md:hidden translate-y-4 opacity-0 scale-95 pointer-events-none transition-all duration-200">
-  <div class="rounded-2xl border border-mist bg-white/90 backdrop-blur-xl shadow-2xl overflow-hidden">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-mist/60 bg-gradient-to-r from-mist/60 to-white/40">
-      <div class="flex items-center gap-3">
-        {% if request.user.is_authenticated and request.user.profile.avatar_url %}
-          <img src="{{ request.user.profile.avatar_url }}" alt="" class="h-8 w-8 rounded-full object-cover" referrerpolicy="no-referrer" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');">
-          <svg class="hidden w-8 h-8 text-surface/70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
-        {% else %}
-          <svg class="w-8 h-8 text-surface/70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
-        {% endif %}
-        <span class="font-semibold text-primary">
-          {% if request.user.is_authenticated %}{{ request.user.get_username }}{% else %}Menu{% endif %}
-        </span>
-      </div>
-      <button id="nav-close" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-surface/20 text-surface/80 hover:text-sea" aria-label="Close menu">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M6 6l12 12M6 18L18 6"/></svg>
-      </button>
-    </div>
-
-    <nav class="p-3">
-      <ul class="space-y-2">
-        <li>
-          <a href="{{ home_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'news' and request.resolver_match.url_name == 'show_news' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Perbaiki kondisi aktif #}
-          <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10"/></svg>
-            <span>Home</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'discussions:thread-list' %}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'discussions' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Cek app_name #}
-            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-           </svg>
-            <span>Discussions</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ league_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.app_name == 'leagues' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# <-- Cek app_name #}
-            <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M12 2C8.686 2 6 4.686 6 8c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4 0-3.314-2.686-6-6-6z"></path>
-             <path d="M12 12v4m0 4v4m-4 0h8"></path>
-             <path d="M8 12a4 4 0 0 1 8 0"></path>
-           </svg>
-            <span>League</span>
-          </a>
-        </li>
-
-        {% if request.user.is_authenticated %}
-          {% url 'accounts:profile_detail' request.user.username as profile_url %}
-          <li>
-            <div class="rounded-xl border border-surface/20">
-              <div class="px-4 pt-3 pb-1 text-xs tracking-wide text-surface/60">AKUN</div>
-              <a href="{{ profile_url }}" class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
-                <span>My Profile</span>
-              </a>
-              {% if request.user.is_authenticated and request.user.username == 'arena_admin' %}
-                <a href="{% url 'accounts:admin_dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-mist/50 border-t border-surface/10">
-                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/></svg>
-                  <span>Admin</span>
-                </a>
-              {% endif %}
-              <a href="{{ logout_url }}" class="flex items-center gap-3 px-4 py-3 text-danger hover:bg-mist/50 border-t border-surface/10">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path stroke-width="2" d="M14 7l5 5-5 5"/><path stroke-width="2" d="M19 12H9"/></svg>
-                <span>Logout</span>
-              </a>
-            </div>
-          </li>
-        {% else %}
-          <li>
-            <a href="{{ login_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.view_name == 'login_user' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai view_name #}
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path stroke-width="2" d="M10 17l5-5-5-5"/><path stroke-width="2" d="M15 12H3"/></svg>
-              <span>Login</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ register_url }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] border {% if request.resolver_match.view_name == 'register' %}border-mist bg-mist/70 font-semibold text-primary{% else %}border-surface/20 text-surface/90 hover:bg-mist/50{% endif %}"> {# Pakai view_name #}
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4" stroke-width="2"/><path stroke-width="2" d="M6 20a6 6 0 0112 0"/><path stroke-width="2" d="M19 8h4M21 6v4"/></svg>
-              <span>Sign up</span>
-            </a>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
-  </div>
-</div>
-
-{# JS (toggle + dropdown) #}
 <script>
-  (function () {
-    // ... (Kode JavaScript kamu yang sudah ada tetap di sini) ...
-    const navBtn   = document.getElementById('nav-toggle');
-    const sheet    = document.getElementById('mobile-sheet');
-    const backdrop = document.getElementById('mobile-backdrop');
-    const closeBtn = document.getElementById('nav-close');
+    document.addEventListener('DOMContentLoaded', () => {
+        // Toggle Mobile Menu
+        const navToggle = document.getElementById('nav-toggle');
+        const mobileSheet = document.getElementById('mobile-sheet');
+        const iconMenu = document.getElementById('icon-menu');
+        const iconClose = document.getElementById('icon-close');
 
-    function openSheet(){
-      sheet.classList.remove('pointer-events-none','opacity-0','translate-y-4','scale-95');
-      backdrop.classList.remove('pointer-events-none','opacity-0');
-      sheet.classList.add('opacity-100','translate-y-0','scale-100','pointer-events-auto');
-      backdrop.classList.add('opacity-100','pointer-events-auto');
-      navBtn?.setAttribute('aria-expanded','true');
-      navBtn?.querySelector('.icon-open')?.classList.add('hidden');
-      navBtn?.querySelector('.icon-close')?.classList.remove('hidden');
-    }
-    function closeSheet(){
-      sheet.classList.add('pointer-events-none','opacity-0','translate-y-4','scale-95');
-      backdrop.classList.add('pointer-events-none','opacity-0');
-      sheet.classList.remove('opacity-100','translate-y-0','scale-100','pointer-events-auto');
-      backdrop.classList.remove('opacity-100','pointer-events-auto');
-      navBtn?.setAttribute('aria-expanded','false');
-      navBtn?.querySelector('.icon-open')?.classList.remove('hidden');
-      navBtn?.querySelector('.icon-close')?.classList.add('hidden');
-    }
-    navBtn?.addEventListener('click', () => (sheet.classList.contains('opacity-100') ? closeSheet() : openSheet()));
-    backdrop?.addEventListener('click', closeSheet);
-    closeBtn?.addEventListener('click', closeSheet);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
-    sheet?.addEventListener('click', e => { if (e.target.closest('a')) closeSheet(); });
+        if(navToggle && mobileSheet){
+            navToggle.addEventListener('click', () => {
+                const isHidden = mobileSheet.classList.contains('hidden');
+                if(isHidden){
+                    mobileSheet.classList.remove('hidden');
+                    iconMenu.classList.add('hidden');
+                    iconClose.classList.remove('hidden');
+                } else {
+                    mobileSheet.classList.add('hidden');
+                    iconMenu.classList.remove('hidden');
+                    iconClose.classList.add('hidden');
+                }
+            });
+        }
 
-    // Desktop user dropdown + chevron rotate
-    const userBtn     = document.getElementById('user-menu-button');
-    const userMenu    = document.getElementById('user-menu');
-    const userChevron = document.getElementById('user-chevron');
+        // Toggle Desktop User Dropdown
+        const userBtn = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
 
-    function closeUser(){
-      userMenu?.classList.add('hidden');
-      userBtn?.setAttribute('aria-expanded','false');
-      userChevron?.classList.remove('rotate-180');
-    }
-    function openUser(){
-      userMenu?.classList.remove('hidden');
-      userBtn?.setAttribute('aria-expanded','true');
-      userChevron?.classList.add('rotate-180');
-    }
-    userBtn?.addEventListener('click', () => (userMenu.classList.contains('hidden') ? openUser() : closeUser()));
-    document.addEventListener('click', (e)=>{ if(!userMenu||!userBtn) return; if(userMenu.contains(e.target) || userBtn.contains(e.target)) return; closeUser(); });
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeUser(); });
-  })();
+        if(userBtn && userMenu){
+            userBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!userBtn.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+    });
 </script>

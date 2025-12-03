@@ -1,332 +1,187 @@
-{% load static %}  <!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Arena Invicta{% endblock %}</title>
         
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
                 theme: {
                     extend: {
                         colors: {
-                            primary: "#102A43",  /* navy dingin */
-                            surface: "#3E4C59",  /* steel */
-                            sea:     "#2A7F9D",  /* biru laut (muted) */
-                            mint:    "#8EC5B8",  /* foam/mint */
-                            mist:    "#E9EEF3",  /* neutral */
-                            danger:  "#D64545",  /* cool red */
+                            dark: "#1A103C",
+                            surface: "#2A1B54",
+                            primary: "#9333EA",
+                            secondary: "#EC4899",
+                            evergreen: "#062726",   
+                            danger: "#FF4D4D",
                         },
-                        borderRadius: { xl: "14px" }
+                        fontFamily: {
+                            sans: ['Poppins', 'sans-serif'],
+                        },
+                        borderRadius: { xl: "16px" }
                     }
                 }            
             }
         </script>
 
         <style>
-            ::-webkit-scrollbar {
-                width: 10px; /* Lebar scrollbar */
-                height: 10px; /* Tinggi scrollbar (untuk horizontal) */
+            body {
+                font-family: 'Poppins', sans-serif;
+                background-color: #1A103C;
+                background-image: linear-gradient(135deg, #1A103C 0%, #2A1B54 50%, #062726 100%);
+                background-attachment: fixed;
+                color: #FFFFFF;
             }
-
-            ::-webkit-scrollbar-track {
-                background: #FFFFFF; 
-                border-radius: 5px; 
+            /* Scrollbar */
+            ::-webkit-scrollbar { width: 10px; height: 10px; }
+            ::-webkit-scrollbar-track { background: #1A103C; }
+            ::-webkit-scrollbar-thumb { background-color: #9333EA; border-radius: 5px; border: 2px solid #1A103C; }
+            ::-webkit-scrollbar-thumb:hover { background-color: #EC4899; }
+            
+            /* Inputs */
+            input, textarea, select {
+                background-color: rgba(0, 0, 0, 0.3) !important;
+                color: white !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
             }
-
-            ::-webkit-scrollbar-thumb {
-                background-color: #3E4C59;
-                border-radius: 5px; 
-                border: 2px solid #FFFFFF;
+            input:focus, textarea:focus, select:focus {
+                border-color: #EC4899 !important;
+                outline: none !important;
+                box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2) !important;
             }
-
-            ::-webkit-scrollbar-thumb:hover {
-                background-color: #102A43;
-            }
-
-            html {
-              scrollbar-color: #3E4C59 #FFFFFF; /* Warna thumb (surface), Warna track (putih) */
-              scrollbar-width: thin; /* Membuat scrollbar lebih tipis */
+            select {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+                background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; -webkit-appearance: none; appearance: none;
             }
         </style>
-        
     </head>
 
-    <body class="min-h-screen bg-mist text-surface">
+    <body class="flex flex-col min-h-screen text-white selection:bg-secondary selection:text-white">
+        
         {% include "nav.html" %}        
 
-        {% block content %}
-            <main class="mx-auto max-w-3xl px-4 py-10">
-                {% if messages %}
-                    <div id="dj-messages" hidden>
-                        {% for message in messages %}
-                        <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
-                        {% endfor %}
+        <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+            {% if messages %}
+                <div id="dj-messages" hidden>
+                    {% for message in messages %}
+                    <div data-level="{{ message.tags|default:"info" }}" data-text="{{ message|escape }}"></div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="border-t border-white/10 bg-[#1A103C]/90 backdrop-blur-sm mt-auto">
+            <div class="max-w-7xl mx-auto px-6 py-8 md:py-12">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    
+                    <div class="text-center md:text-left">
+                        <span class="block text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-2">ARENA INVICTA</span>
+                        <p class="text-xs text-gray-400">© 2024 Grassphobic A07. All rights reserved.</p>
                     </div>
-                {% endif %}
-            </main>
-        {% endblock %}
 
+                    <div class="flex gap-6 text-sm font-medium text-gray-500 cursor-default select-none">
+                        <span>Berita</span>
+                        <span>Analisis</span>
+                        <span>Kuis</span>
+                    </div>
 
-        <footer class="px-4 py-6 border-t border-surface/20 text-xs text-surface/70">
-            <div class="mx-auto max-w-3xl text-center">
-                Arena Invicta • Berita · Analisis · Kuis
+                </div>
             </div>
         </footer>
         
-        <div id="toast-viewport" class="fixed top-4 right-4 space-y-2 z-[100000]"></div>
-
-        <div id="ai-confirm"
-            class="fixed inset-0 z-[10050] hidden"
-            role="dialog" aria-modal="true" aria-labelledby="ai-confirm-title" aria-describedby="ai-confirm-desc">
-            <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" data-ai-close></div>
-
+        <div id="toast-viewport" class="fixed top-24 right-4 space-y-2 z-[100000]"></div>
+        <div id="ai-confirm" class="fixed inset-0 z-[10050] hidden" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-ai-close></div>
             <div class="absolute inset-0 flex items-center justify-center p-4">
-                <div data-ai-card
-                    class="w-full max-w-md rounded-2xl border border-mist bg-white shadow-2xl overflow-hidden
-                            transform transition-all duration-150 opacity-0 scale-95">
+                <div data-ai-card class="w-full max-w-md rounded-2xl border border-white/10 bg-[#2A1B54] shadow-2xl overflow-hidden transform transition-all duration-150 opacity-0 scale-95 ring-1 ring-white/10">
                     <div class="px-5 py-4 flex items-start gap-3">
-                        
-                        {# --- Area Ikon --- #}
-                        <div id="ai-confirm-badge"
-                            class="h-20 w-20 rounded-full grid place-items-center bg-danger/10 text-danger flex-shrink-0">
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                {# Pastikan path tanda seru benar #}
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01"/><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                            </svg>
+                        <div id="ai-confirm-badge" class="h-12 w-12 rounded-full grid place-items-center bg-danger/20 text-danger flex-shrink-0">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01"/><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                         </div>
-                        {# --- Akhir Area Ikon --- #}
-
-                        <div class="min-w-0 flex-grow">
-                            <h3 id="ai-confirm-title" class="text-lg font-semibold text-primary">Konfirmasi</h3>
-                            <p id="ai-confirm-desc" class="mt-1 text-sm text-surface/80">Yakin?</p>
+                        <div class="min-w-0 flex-grow pt-1">
+                            <h3 id="ai-confirm-title" class="text-lg font-bold text-white">Konfirmasi</h3>
+                            <p id="ai-confirm-desc" class="mt-1 text-sm text-gray-300 font-light">Yakin?</p>
                         </div>
-                        <button class="ml-auto rounded-lg p-1.5 text-surface/60 hover:bg-mist flex-shrink-0" {# <-- Tambah flex-shrink-0 #}
-                                data-ai-close aria-label="Close">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-width="2" d="M18 6L6 18M6 6l12 12"/>
-                            </svg>
-                        </button>
                     </div>
-                    <div class="px-5 py-3 bg-mist/60 flex justify-end gap-2">
-                        <button data-ai-cancel
-                                class="px-3 py-1.5 rounded-lg border border-surface/20 text-surface hover:bg-mist">Cancel</button>
-                        <button data-ai-confirm
-                                class="px-3 py-1.5 rounded-lg text-white bg-danger hover:bg-danger/90">Delete</button>
+                    <div class="px-5 py-3 bg-black/20 flex justify-end gap-2">
+                        <button data-ai-cancel class="px-4 py-2 rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 hover:text-white transition text-sm font-medium">Cancel</button>
+                        <button data-ai-confirm class="px-4 py-2 rounded-lg text-white bg-danger hover:bg-red-600 transition text-sm font-bold shadow-lg shadow-red-500/20">Delete</button>
                     </div>
                 </div>
             </div>
         </div>
         
-        <style>
-            @keyframes toast-in {
-                0% {
-                    transform: translateY(8px);
-                    scale: (.98);
-                    opacity: 0;
-                }
-
-                100% {
-                    transform: none;
-                    opacity: 1;
-                }
-            }
-
-            @keyframes toast-out {
-                0% {
-                    transform: none;
-                    opacity: 1;
-                }
-
-                100% {
-                    transform: translateY(6px) scale(.98);
-                    opacity: 0;
-                }
-            }
-
-            .toast-enter{ 
-                animation:toast-in .2s cubic-bezier(.22,.9,.32,1.2) both 
-            }
-
-            .toast-leave{ 
-                animation:toast-out .18s ease both 
-            }
-
-            /* Pastikan teks horizontal (mengatasi bug “vertikal”) */
-            #toast-viewport, #toast-viewport * {
-                writing-mode: horizontal-tb !important;
-                -webkit-writing-mode: horizontal-tb !important;
-                text-orientation: mixed !important;
-                letter-spacing: normal !important;
-            }
-
-            .tw-toast-text { 
-                white-space: normal !important; 
-                word-break: break-word !important; 
-                overflow-wrap: anywhere !important; 
-            }
-            .tw-toast-card { 
-                width:100%; 
-                border-radius:16px; 
-            }
-
-            /* Frame glassy + border gradient */
-            .tw-glass {
-                backdrop-filter: saturate(140%) blur(8px);
-                -webkit-backdrop-filter: saturate(140%) blur(8px);
-                position: relative;
-            }
-
-            .tw-glass:before {
-                content:""; position:absolute; inset:0;
-                border-radius:16px;
-                padding:1px;
-                background: linear-gradient(135deg, rgba(255,255,255,.6), rgba(255,255,255,.12));
-                -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-                -webkit-mask-composite: xor; mask-composite: exclude;
-                pointer-events:none;
-            }
-        </style>
-
         <script>
             (() => {
-            // --- ensure viewport exists lalu init ---
             let vp = document.getElementById("toast-viewport");
             if (!vp) { vp = document.createElement("div"); vp.id = "toast-viewport"; vp.className = "fixed bottom-6 right-6 z-[9999] w-[360px] max-w-[92vw] flex flex-col gap-3 pointer-events-none"; document.body.appendChild(vp); }
-
             const variants = {
-                success:{wrap:"bg-mint/90 text-primary ring-1 ring-mint/40",badge:"bg-white/70 text-primary",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M20 6L9 17l-5-5"/></svg>`},
-                error:{wrap:"bg-danger/95 text-white ring-1 ring-danger/40",badge:"bg-white/20 text-white",icon:``},
-                info:{wrap:"bg-primary/95 text-mist ring-1 ring-primary/40",badge:"bg-white/20 text-mist",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-width="2" d="M12 8v.01M11 12h2v4h-2"/></svg>`},
-                warning:{wrap:"bg-yellow-500 text-black ring-1 ring-yellow-300/40",badge:"bg-black/10 text-black",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M12 9v4m0 4h.01"/><path stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`}
+                success:{wrap:"bg-surface/90 text-white ring-1 ring-secondary/50 shadow-lg shadow-secondary/20",badge:"bg-secondary text-white",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M20 6L9 17l-5-5"/></svg>`},
+                error:{wrap:"bg-dark/95 text-white ring-1 ring-danger/50 shadow-lg shadow-danger/20",badge:"bg-danger text-white",icon:``},
+                info:{wrap:"bg-surface/90 text-white ring-1 ring-primary/50",badge:"bg-primary text-white",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-width="2" d="M12 8v.01M11 12h2v4h-2"/></svg>`},
+                warning:{wrap:"bg-yellow-900/90 text-white ring-1 ring-yellow-500/50",badge:"bg-yellow-500 text-black",icon:`<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M12 9v4m0 4h.01"/><path stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`}
             };
-
             function pushToast({ title="", message="", type="success", duration=3200, action } = {}) {
                 const v = variants[type] || variants.info;
-
                 const node = document.createElement("div");
                 node.setAttribute("role","status"); node.setAttribute("aria-live","polite");
-                node.className = `tw-toast-card tw-glass pointer-events-auto shadow-2xl px-4 py-3 flex items-start gap-3 ${v.wrap} toast-enter`;
+                node.className = `w-full rounded-xl pointer-events-auto shadow-2xl px-4 py-3 flex items-start gap-3 backdrop-blur-md transition-all transform duration-300 ${v.wrap}`;
                 node.innerHTML = `
                 <div class="shrink-0"><div class="h-8 w-8 rounded-full ${v.badge} grid place-items-center shadow">${v.icon}</div></div>
-                <div class="min-w-0 flex-1">${title?`<div class="font-semibold leading-5">${title}</div>`:""}<div class="tw-toast-text text-sm leading-5 opacity-90">${message}</div>
-                    <div class="mt-2 h-1 w-full bg-black/10 rounded overflow-hidden"><div class="h-full bg-black/30" style="width:100%;transition:width ${duration}ms linear"></div></div>
+                <div class="min-w-0 flex-1">${title?`<div class="font-bold leading-5 tracking-tight">${title}</div>`:""}<div class="text-sm leading-5 opacity-90 mt-1 font-light">${message}</div>
+                    <div class="mt-2 h-1 w-full bg-white/10 rounded overflow-hidden"><div class="h-full bg-white/50" style="width:100%;transition:width ${duration}ms linear"></div></div>
                 </div>
                 <div class="pl-1 flex gap-2">
                     ${action?`<button class="ai-toast-action px-2.5 py-1 rounded-lg text-xs font-medium bg-white/20 hover:bg-white/30 transition">${action.label}</button>`:""}
-                    <button class="ai-toast-close rounded-lg p-1.5 hover:bg-black/10 transition" aria-label="Close">
-                    <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M18 6L6 18M6 6l12 12"/></svg>
+                    <button class="ai-toast-close rounded-lg p-1.5 hover:bg-white/10 transition" aria-label="Close">
+                    <svg class="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                 </div>`;
-
                 vp.prepend(node);
-
                 const bar = node.querySelector("div > div > div > div");
                 requestAnimationFrame(() => { bar.style.width = "0%"; });
-
-                const close = () => { node.classList.remove("toast-enter"); node.classList.add("toast-leave"); setTimeout(()=>node.remove(),180); };
+                const close = () => { node.style.opacity = '0'; node.style.transform = 'translateY(-10px)'; setTimeout(()=>node.remove(),300); };
                 let timer = setTimeout(close, duration);
-
-                node.addEventListener("mouseenter", () => { clearTimeout(timer); const w = getComputedStyle(bar).width; bar.style.transition="none"; bar.style.width=w; });
-                node.addEventListener("mouseleave", () => {
-                const left = parseFloat(getComputedStyle(bar).width)/bar.parentElement.clientWidth;
-                const remain = Math.max(0, duration*left); bar.offsetHeight; bar.style.transition=`width ${remain}ms linear`;
-                requestAnimationFrame(()=>{ bar.style.width="0%"; }); timer = setTimeout(close, remain);
-                });
                 node.querySelector(".ai-toast-close")?.addEventListener("click", () => { clearTimeout(timer); close(); });
-                if (action) node.querySelector(".ai-toast-action")?.addEventListener("click", () => { action.onClick?.(); clearTimeout(timer); close(); });
-
                 return { close };
             }
-
-            // expose global
             window.showToast = (message, type="success") => pushToast({ message, type });
             window.pushToast = pushToast;
-
-            // render Django messages payload
-            function runMessages(){
-                document.querySelectorAll("#dj-messages > div").forEach(n => showToast(n.dataset.text, n.dataset.level));
-            }
+            function runMessages(){ document.querySelectorAll("#dj-messages > div").forEach(n => showToast(n.dataset.text, n.dataset.level)); }
             (document.readyState === "loading") ? document.addEventListener("DOMContentLoaded", runMessages) : runMessages();
-
-            // render toast from localStorage (redirect cases)
-            try {
-                const raw = localStorage.getItem("ai_toast");
-                if (raw) { const data = JSON.parse(raw); localStorage.removeItem("ai_toast"); if (data?.text) showToast(data.text, data.level || "success"); }
-            } catch {}
             })();
-        </script>
-        
-        <script>
-            /* Global Confirm modal (reusable) — tanpa event handler halaman */
+
             window.Confirm = (() => {
-            const root   = document.getElementById("ai-confirm");
-            if (!root) return { open: async () => true }; // fallback silent
-
-            const card   = root.querySelector("[data-ai-card]");
-            const badge  = document.getElementById("ai-confirm-badge");
-            const title  = document.getElementById("ai-confirm-title");
-            const desc   = document.getElementById("ai-confirm-desc");
-            const okBtn  = root.querySelector("[data-ai-confirm]");
-            const noBtn  = root.querySelector("[data-ai-cancel]");
-            const closes = root.querySelectorAll("[data-ai-close]");
-
-            function toneCls(tone) {
-                return tone === "danger"
-                ? { badge: "bg-danger/10 text-danger", ok: "px-3 py-1.5 rounded-lg text-white bg-danger hover:bg-danger/90" }
-                : { badge: "bg-primary/10 text-primary", ok: "px-3 py-1.5 rounded-lg text-white bg-primary hover:bg-primary/90" };
-            }
-
+            const root = document.getElementById("ai-confirm"); if (!root) return { open: async () => true };
+            const card = root.querySelector("[data-ai-card]"); const title = document.getElementById("ai-confirm-title");
+            const desc = document.getElementById("ai-confirm-desc"); const okBtn = root.querySelector("[data-ai-confirm]"); const noBtn = root.querySelector("[data-ai-cancel]");
             function open({ titleText, messageText, confirmText="Confirm", tone="danger" } = {}) {
                 return new Promise((resolve) => {
-                title.textContent = titleText || "Konfirmasi";
-                desc.textContent  = messageText || "Yakin melanjutkan?";
-                okBtn.textContent = confirmText;
-
-                const cls = toneCls(tone);
-                badge.className = "h-10 w-10 rounded-full grid place-items-center " + cls.badge;
-                okBtn.className = cls.ok;
-
-                // show
+                title.textContent = titleText || "Konfirmasi"; desc.textContent  = messageText || "Yakin melanjutkan?"; okBtn.textContent = confirmText;
                 root.classList.remove("hidden");
-                requestAnimationFrame(() => {
-                    card.classList.remove("opacity-0","scale-95");
-                    card.classList.add("opacity-100","scale-100");
-                });
-
-                // handlers
+                requestAnimationFrame(() => { card.classList.remove("opacity-0","scale-95"); card.classList.add("opacity-100","scale-100"); });
                 const done = (val) => {
-                    card.classList.add("opacity-0","scale-95");
-                    card.classList.remove("opacity-100","scale-100");
-                    setTimeout(() => root.classList.add("hidden"), 120);
-                    cleanup(); resolve(val);
+                    card.classList.add("opacity-0","scale-95"); card.classList.remove("opacity-100","scale-100");
+                    setTimeout(() => root.classList.add("hidden"), 120); cleanup(); resolve(val);
                 };
-                const onOk = () => done(true);
-                const onCancel = () => done(false);
-                const onEsc = (e) => { if (e.key === "Escape") onCancel(); };
-
-                okBtn.addEventListener("click", onOk);
-                noBtn.addEventListener("click", onCancel);
-                closes.forEach(el => el.addEventListener("click", onCancel));
-                document.addEventListener("keydown", onEsc);
-
-                function cleanup() {
-                    okBtn.removeEventListener("click", onOk);
-                    noBtn.removeEventListener("click", onCancel);
-                    closes.forEach(el => el.removeEventListener("click", onCancel));
-                    document.removeEventListener("keydown", onEsc);
-                }
-
+                const onOk = () => done(true); const onCancel = () => done(false);
+                okBtn.addEventListener("click", onOk); noBtn.addEventListener("click", onCancel);
+                function cleanup() { okBtn.removeEventListener("click", onOk); noBtn.removeEventListener("click", onCancel); }
                 okBtn.focus();
                 });
-            }
-
-            return { open };
-            })();
+            } return { open }; })();
         </script>
-        
         {% block scripts %}{% endblock scripts %}
-
     </body>
 </html>

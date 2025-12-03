@@ -2,82 +2,90 @@
 {% block title %}Login • Arena Invicta{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 pb-16">
-  <h1 class="mb-8 text-3xl font-semibold text-primary">Login</h1>
-
-  <form method="post"
-        class="backdrop-blur-xl bg-white/70 border border-white/40 rounded-2xl shadow-[0_10px_40px_rgba(16,42,67,.12)] p-8 md:p-10 space-y-6">
-    {% csrf_token %}
-
-    {% if form.non_field_errors %}
-      <div class="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3">
-        {% for e in form.non_field_errors %}<p class="text-sm">{{ e }}</p>{% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- Username -->
-    <div>
-      <label class="block text-sm font-medium text-primary/90 mb-1" for="{{ form.username.id_for_label }}">Username</label>
-      {{ form.username }} 
-      {% for e in form.username.errors %}
-      <p class="mt-1 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
+<section class="min-h-[80vh] flex flex-col justify-center items-center px-4">
+  
+  <div class="w-full max-w-[450px]">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-secondary drop-shadow-lg">
+        Welcome Back
+      </h1>
+      <p class="text-gray-400 mt-3 text-sm">Enter the arena and continue your journey.</p>
     </div>
 
-    <!-- Password -->
-    <div>
-      <label class="block text-sm font-medium text-primary/90 mb-1" for="{{ form.password.id_for_label }}">Password</label>
-      <div class="relative">
-        {{ form.password }}
-        <button type="button"
-                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-primary"
-                data-toggle-password data-target="#{{ form.password.id_for_label }}"
-                aria-label="Toggle password">
-          <!-- eye -->
-          <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3" stroke-width="2"/>
-          </svg>
-          <!-- eye-off -->
-          <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/>
-            <path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/>
-          </svg>
-        </button>
+    <form method="post" class="bg-[#2A1B54]/80 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(147,51,234,0.15)] p-8 md:p-10 space-y-6 relative overflow-hidden">
+      
+      <div class="absolute -top-20 -left-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-secondary/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 px-4 py-3 text-sm flex items-start gap-2">
+          <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        </div>
+      {% endif %}
+
+      <div class="relative z-10 space-y-2">
+        <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Username</label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            {{ form.username }}
+        </div>
+        {% for e in form.username.errors %}
+        <p class="text-xs text-red-400 pl-1">{{ e }}</p>
+        {% endfor %}
       </div>
-      {% for e in form.password.errors %}
-      <p class="mt-1 text-sm text-red-600">{{ e }}</p>
-      {% endfor %}
-    </div>
 
-    <button type="submit"
-            class="w-full rounded-xl py-3 text-white
-                   bg-gradient-to-r from-[#102A43] to-[#2A7F9D] hover:brightness-105">
-      Login
-    </button>
-  </form>
+      <div class="relative z-10 space-y-2">
+        <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Password</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          {{ form.password }}
+          <button type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition p-1"
+                  data-toggle-password data-target="#{{ form.password.id_for_label }}">
+            <svg class="w-5 h-5 eye" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+            <svg class="w-5 h-5 eye-off hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0112 5c7 0 11 7 11 7a17.7 17.7 0 01-3.6 4.5M7 7C2.8 9 1 12 1 12s4 7 11 7a10.8 10.8 0 004.1-.8"/><path stroke-width="2" d="M9 9a3 3 0 104.2 4.2"/></svg>
+          </button>
+        </div>
+        {% for e in form.password.errors %}
+        <p class="text-xs text-red-400 pl-1">{{ e }}</p>
+        {% endfor %}
+      </div>
 
-  <p class="mt-4 text-sm">
-    Don't have an account?
-    <a class="underline text-primary hover:text-sea" href="{% url 'accounts:register' %}">Sign up</a>
-  </p>
+      <button type="submit"
+              class="w-full rounded-xl py-4 font-bold text-white tracking-wide shadow-lg mt-4
+                     bg-gradient-to-r from-primary to-secondary hover:shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all transform hover:-translate-y-1 active:scale-95">
+        LOGIN
+      </button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-gray-400">
+      Don't have an account?
+      <a class="font-bold text-white hover:text-secondary underline decoration-secondary/50 decoration-2 underline-offset-4 transition" href="{% url 'accounts:register' %}">Sign up now</a>
+    </p>
+  </div>
 </section>
 
-<!-- Styling global untuk input tanpa perlu as_widget/attr -->
 <style type="text/tailwindcss">
   @layer base{
-    input[type='text'], input[type='password'], select, textarea{
-      @apply w-full h-12 rounded-xl bg-white/90 border border-white/60 px-4 shadow-inner
-             focus:outline-none focus:ring-4 focus:ring-[#2A7F9D]/30;
+    input[type='text'], input[type='password'] {
+      @apply w-full h-12 rounded-xl bg-black/40 border border-white/10 pl-11 pr-10 text-white placeholder-white/20 shadow-inner
+             focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-300;
     }
   }
 </style>
 
-<!-- JS: toggle & placeholder ringan -->
 <script>
   (function () {
     const setPH = (id, ph) => { const el = document.getElementById(id); if (el && !el.placeholder) el.placeholder = ph; };
-    setPH('{{ form.username.id_for_label }}', 'Your Username');
-    setPH('{{ form.password.id_for_label }}', 'Password');
+    setPH('{{ form.username.id_for_label }}', 'Enter your username');
+    setPH('{{ form.password.id_for_label }}', '••••••••');
 
     document.addEventListener('click', function(e){
       const b = e.target.closest('[data-toggle-password]'); if(!b) return;
