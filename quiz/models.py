@@ -1,6 +1,6 @@
 # quiz/models.py
-from django.contrib.auth.models import User
-from django.db import models
+from django.contrib.auth.models import User # type: ignore
+from django.db import models # type: ignore
 
 # Create your models here.
 class Quiz(models.Model):
