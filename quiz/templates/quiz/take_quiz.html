@@ -13,46 +13,46 @@
 {% endif %}
 
 <div class="mx-auto max-w-2xl mt-3 mb-3" id="quiz-container">
-    <div class="bg-white p-6 md:p-8 rounded-xl shadow-md">
-        <div class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ quiz.title }}</h1>
-            <p class="text-gray-600">{{ quiz.description|default:"Answer the questions below as best as you can." }}</p>
+    <div class="bg-[#2A1B54]/60 border border-white/10 p-6 md:p-8 rounded-xl shadow-md">
+        <div class="mb-6 border-b border-white/10 pb-4">
+            <h1 class="text-3xl font-bold text-white mb-2">{{ quiz.title }}</h1>
+            <p class="text-gray-400">{{ quiz.description|default:"Answer the questions below as best as you can." }}</p>
         </div>
 
         <form method="post" action="{% url 'quiz:take_quiz' quiz.id %}" id="take-quiz-form">
             {% csrf_token %}
             <div class="space-y-8">
                 {% for question in questions %}
-                    <fieldset class="p-4 border rounded-lg bg-gray-50/50">
-                        <legend class="text-lg font-semibold text-gray-800 px-2">
+                    <fieldset class="p-4 border border-white/5 rounded-lg bg-[#1d1539] shadow-inner">
+                        <legend class="text-lg font-semibold text-gray-200 px-2">
                             Question #{{ forloop.counter }}:
                         </legend>
-                        <p class="text-gray-900 mb-4 px-2">{{ question.text }}</p>
+                        <p class="text-white mb-4 px-2 text-lg">{{ question.text }}</p>
                         
                         <div class="space-y-3">
-                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                                <input type="radio" id="q{{ question.id }}_a" name="question_{{ question.id }}" value="A" class="h-4 w-4 text-primary focus:ring-sea" required>
-                                <label for="q{{ question.id }}_a" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_a }}</label>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors group">
+                                <input type="radio" id="q{{ question.id }}_a" name="question_{{ question.id }}" value="A" class="h-4 w-4 text-primary focus:ring-primary bg-gray-700 border-gray-600" required>
+                                <label for="q{{ question.id }}_a" class="ml-3 block text-sm font-medium text-gray-300 group-hover:text-white w-full cursor-pointer">{{ question.option_a }}</label>
                             </div>
-                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                                <input type="radio" id="q{{ question.id }}_b" name="question_{{ question.id }}" value="B" class="h-4 w-4 text-primary focus:ring-sea">
-                                <label for="q{{ question.id }}_b" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_b }}</label>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors group">
+                                <input type="radio" id="q{{ question.id }}_b" name="question_{{ question.id }}" value="B" class="h-4 w-4 text-primary focus:ring-primary bg-gray-700 border-gray-600">
+                                <label for="q{{ question.id }}_b" class="ml-3 block text-sm font-medium text-gray-300 group-hover:text-white w-full cursor-pointer">{{ question.option_b }}</label>
                             </div>
-                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                                <input type="radio" id="q{{ question.id }}_c" name="question_{{ question.id }}" value="C" class="h-4 w-4 text-primary focus:ring-sea">
-                                <label for="q{{ question.id }}_c" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_c }}</label>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors group">
+                                <input type="radio" id="q{{ question.id }}_c" name="question_{{ question.id }}" value="C" class="h-4 w-4 text-primary focus:ring-primary bg-gray-700 border-gray-600">
+                                <label for="q{{ question.id }}_c" class="ml-3 block text-sm font-medium text-gray-300 group-hover:text-white w-full cursor-pointer">{{ question.option_c }}</label>
                             </div>
-                            <div class="flex items-center p-3 rounded-lg hover:bg-mint/30 transition-colors">
-                                <input type="radio" id="q{{ question.id }}_d" name="question_{{ question.id }}" value="D" class="h-4 w-4 text-primary focus:ring-sea">
-                                <label for="q{{ question.id }}_d" class="ml-3 block text-sm font-medium text-gray-700 w-full">{{ question.option_d }}</label>
+                            <div class="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors group">
+                                <input type="radio" id="q{{ question.id }}_d" name="question_{{ question.id }}" value="D" class="h-4 w-4 text-primary focus:ring-primary bg-gray-700 border-gray-600">
+                                <label for="q{{ question.id }}_d" class="ml-3 block text-sm font-medium text-gray-300 group-hover:text-white w-full cursor-pointer">{{ question.option_d }}</label>
                             </div>
                         </div>
                     </fieldset>
                 {% endfor %}
             </div>
             
-            <div class="mt-8 border-t pt-6">
-                <button type="submit" id="submit-quiz-btn" class="w-full bg-primary hover:bg-sea text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+            <div class="mt-8 border-t border-white/10 pt-6">
+                <button type="submit" id="submit-quiz-btn" class="w-full bg-primary hover:bg-[#7139c9] text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg">
                     Submit & View Results
                 </button>
             </div>
@@ -60,7 +60,6 @@
     </div>
 </div>
 {% endblock %}
-
 
 {% block scripts %}
 <script>
@@ -73,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
         quizForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Tampilkan loading
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
 
@@ -93,14 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Ganti konten halaman dengan hasil
                     quizContainer.innerHTML = data.html;
-                    // Scroll ke atas
                     window.scrollTo(0, 0);
                     const resultUrl = data.result_url;
                     history.replaceState({ page: "result" }, "Quiz Result", resultUrl);
                 } else {
-                    // Tampilkan error jika ada
                     if (window.showToast) {
                         window.showToast(data.error || 'Gagal submit kuis.', 'error');
                     }
