@@ -347,6 +347,23 @@ def thread_toggle_upvote(request, pk):
     return redirect('discussions:thread-detail', pk=pk)
 
 
+@login_required
+@require_POST
+@csrf_exempt
+def thread_toggle_upvote_api(request, pk):
+    """API endpoint for mobile - always returns JSON"""
+    thread = get_object_or_404(DiscussionThread, pk=pk)
+    upvote, created = DiscussionThreadUpvote.objects.get_or_create(thread=thread, user=request.user)
+    if created:
+        state = 'added'
+    else:
+        upvote.delete()
+        state = 'removed'
+
+    upvote_count = thread.upvotes.count()
+    return JsonResponse({'ok': True, 'state': state, 'upvote_count': upvote_count})
+
+
 def _can_manage_thread(user, thread):
     return user.is_authenticated and (thread.author == user or user.is_staff)
 

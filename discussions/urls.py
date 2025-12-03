@@ -14,6 +14,7 @@ urlpatterns = [
     path('threads/<int:pk>/edit/', views.thread_edit, name='thread-edit'),
     path('threads/<int:pk>/delete/', views.thread_delete, name='thread-delete'),
     path('threads/<int:pk>/upvote/', views.thread_toggle_upvote, name='thread-upvote'),
+    path('api/threads/<int:pk>/upvote/', views.thread_toggle_upvote_api, name='thread-upvote-api'),
     path('threads/<int:thread_pk>/comments/add/', views.comment_create, name='comment-create'),
     path('api/threads/<int:thread_pk>/comments/', views.comment_create_api, name='comment-create-api'),
     path('comments/<int:pk>/edit/', views.comment_edit, name='comment-edit'),
