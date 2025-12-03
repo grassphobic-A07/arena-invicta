@@ -46,6 +46,45 @@ def thread_list_api(request):
     return JsonResponse({'threads': payload})
 
 
+@require_GET
+def thread_detail_api(request, pk):
+    thread = get_object_or_404(_thread_queryset(), pk=pk)
+    DiscussionThread.objects.filter(pk=thread.pk).update(views_count=F('views_count') + 1)
+    thread.views_count = (thread.views_count or 0) + 1
+    
+    comments_qs = thread.comments.filter(is_removed=False).select_related(
+        'author', 'author__profile', 'parent', 'parent__author', 'parent__author__profile'
+    )
+    comments = []
+    for comment in comments_qs:
+        profile = getattr(comment.author, 'profile', None)
+        avatar_url = getattr(profile, 'avatar_url', '') or None
+        display_name = getattr(profile, 'display_name', '') or ''
+        comments.append({
+            'id': comment.pk,
+            'content': comment.content,
+            'created_at': comment.created_at.isoformat(),
+            'parent_id': comment.parent_id,
+            'author': {
+                'username': comment.author.get_username(),
+                'display_name': display_name or comment.author.get_full_name() or comment.author.get_username(),
+                'avatar_url': avatar_url,
+            },
+        })
+    
+    user_has_upvoted = False
+    if request.user.is_authenticated:
+        user_has_upvoted = DiscussionThreadUpvote.objects.filter(thread=thread, user=request.user).exists()
+    
+    thread_data = _serialize_thread(thread)
+    thread_data['user_has_upvoted'] = user_has_upvoted
+    
+    return JsonResponse({
+        'thread': thread_data,
+        'comments': comments,
+    })
+
+
 def thread_detail(request, pk):
     thread = get_object_or_404(_thread_queryset(), pk=pk)
     DiscussionThread.objects.filter(pk=thread.pk).update(views_count=F('views_count') + 1)
@@ -189,6 +228,53 @@ def comment_create(request, thread_pk):
 
 
 @login_required
+@require_POST
+@csrf_exempt
+def comment_create_api(request, thread_pk):
+    thread = get_object_or_404(DiscussionThread, pk=thread_pk)
+    
+    if request.content_type == 'application/json':
+        try:
+            payload = json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'error': 'Payload tidak valid.'}, status=400)
+        form = CommentForm(payload)
+        parent_id = payload.get('parent')
+    else:
+        form = CommentForm(request.POST)
+        parent_id = request.POST.get('parent')
+    
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.thread = thread
+        if parent_id:
+            comment.parent = get_object_or_404(DiscussionComment, pk=parent_id, thread=thread)
+        comment.save()
+        
+        profile = getattr(request.user, 'profile', None)
+        avatar_url = getattr(profile, 'avatar_url', '') or None
+        display_name = getattr(profile, 'display_name', '') or ''
+        
+        return JsonResponse({
+            'ok': True,
+            'comment': {
+                'id': comment.pk,
+                'content': comment.content,
+                'created_at': comment.created_at.isoformat(),
+                'parent_id': comment.parent_id,
+                'author': {
+                    'username': request.user.get_username(),
+                    'display_name': display_name or request.user.get_full_name() or request.user.get_username(),
+                    'avatar_url': avatar_url,
+                },
+            },
+        }, status=201)
+    
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+
+@login_required
 def comment_edit(request, pk):
     comment = get_object_or_404(DiscussionComment.objects.select_related('thread'), pk=pk)
     if not _can_manage_comment(request.user, comment):
@@ -242,6 +328,7 @@ def comment_delete(request, pk):
 
 @login_required
 @require_POST
+@csrf_exempt
 def thread_toggle_upvote(request, pk):
     thread = get_object_or_404(DiscussionThread, pk=pk)
     upvote, created = DiscussionThreadUpvote.objects.get_or_create(thread=thread, user=request.user)
