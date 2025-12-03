@@ -79,9 +79,12 @@ def thread_detail_api(request, pk):
     thread_data = _serialize_thread(thread)
     thread_data['user_has_upvoted'] = user_has_upvoted
     
+    current_username = request.user.get_username() if request.user.is_authenticated else None
+    
     return JsonResponse({
         'thread': thread_data,
         'comments': comments,
+        'current_username': current_username,
     })
 
 
@@ -324,6 +327,50 @@ def comment_delete(request, pk):
         'discussions/comment_confirm_delete.html',
         {'object': comment, 'thread': comment.thread},
     )
+
+
+@login_required
+@csrf_exempt
+def comment_edit_api(request, pk):
+    """API endpoint for editing comments - mobile"""
+    comment = get_object_or_404(DiscussionComment.objects.select_related('thread'), pk=pk)
+    if not _can_manage_comment(request.user, comment):
+        return JsonResponse({'ok': False, 'error': 'Tidak diizinkan.'}, status=403)
+    
+    if request.method == 'GET':
+        return JsonResponse({'ok': True, 'content': comment.content})
+    
+    if request.method in ['POST', 'PUT', 'PATCH']:
+        if request.content_type == 'application/json':
+            try:
+                payload = json.loads(request.body or '{}')
+            except json.JSONDecodeError:
+                return JsonResponse({'ok': False, 'error': 'Payload tidak valid.'}, status=400)
+            content = payload.get('content', '').strip()
+        else:
+            content = request.POST.get('content', '').strip()
+        
+        if not content:
+            return JsonResponse({'ok': False, 'error': 'Konten tidak boleh kosong.'}, status=400)
+        
+        comment.content = content
+        comment.save()
+        return JsonResponse({'ok': True, 'content': comment.content})
+    
+    return JsonResponse({'ok': False, 'error': 'Method tidak diizinkan.'}, status=405)
+
+
+@login_required
+@require_POST
+@csrf_exempt
+def comment_delete_api(request, pk):
+    """API endpoint for deleting comments - mobile"""
+    comment = get_object_or_404(DiscussionComment.objects.select_related('thread'), pk=pk)
+    if not _can_manage_comment(request.user, comment):
+        return JsonResponse({'ok': False, 'error': 'Tidak diizinkan.'}, status=403)
+    
+    comment.delete()
+    return JsonResponse({'ok': True, 'message': 'Komentar berhasil dihapus.'})
 
 
 @login_required

@@ -19,4 +19,6 @@ urlpatterns = [
     path('api/threads/<int:thread_pk>/comments/', views.comment_create_api, name='comment-create-api'),
     path('comments/<int:pk>/edit/', views.comment_edit, name='comment-edit'),
     path('comments/<int:pk>/delete/', views.comment_delete, name='comment-delete'),
+    path('api/comments/<int:pk>/', views.comment_edit_api, name='comment-edit-api'),
+    path('api/comments/<int:pk>/delete/', views.comment_delete_api, name='comment-delete-api'),
 ]
