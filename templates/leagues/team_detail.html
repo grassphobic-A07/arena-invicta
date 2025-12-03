@@ -2,100 +2,194 @@
 {% block title %}{{ team.name }} — Profil Tim{% endblock %}
 
 {% block content %}
-  <div class="mx-auto max-w-7xl px-4"> 
+<section class="mx-auto max-w-7xl px-4 py-8 space-y-8">
 
-    <h1 class="text-3xl font-semibold text-primary mb-1">{{ team.name }}</h1>
-    <p class="text-surface/70 mb-4">
-      Liga: <a href="{% url 'leagues:league_dashboard' league.pk %}" class="text-primary hover:text-sea underline">Premier League</a>
-    </p>
-
-    <form method="get" action="" class="bg-white/70 backdrop-blur border border-white/40 rounded-xl shadow-sm p-3 mb-6 flex items-center gap-3">
-      <label for="season" class="text-sm font-medium text-surface/80">Musim:</label>
-      <select id="season" name="season" onchange="this.form.submit()"
-              class="h-10 rounded-lg border border-surface/20 px-3 bg-white text-base font-medium text-primary">
-        {% for s in seasons %}
-          <option value="{{ s }}" {% if s == selected_season %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-      <noscript><button type="submit" class="h-10 px-4 rounded-lg bg-primary text-white hover:bg-sea">Tampilkan</button></noscript>
-    </form>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <section class="bg-white rounded-xl border border-mist shadow-sm">
-        <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">Posisi di Klasemen ({{ selected_season }})</h2>
-        <div class="p-5">
-        {% if standing %}
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Main</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.played }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Menang</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.win }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Seri</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.draw }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Kalah</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.loss }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Gol Masuk (GM)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.gf }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Gol Kebobolan (GA)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.ga }}</span></div>
-            <div class="flex justify-between items-center border-b border-mist/70 pb-3"><span class="text-surface/80">Selisih Gol (SG)</span><span class="font-semibold text-primary text-base tabular-nums">{{ standing.gd }}</span></div>
-            <div class="flex justify-between items-center pt-3 mt-2">
-              <span class="text-base font-semibold text-primary">Poin</span>
-              <span class="font-bold text-primary text-xl tabular-nums">{{ standing.points }}</span>
-            </div>
-          </div>
-        {% else %}
-          <p class="text-surface/50 italic">Belum ada data klasemen untuk musim ini.</p>
-        {% endif %}
+    <div class="flex flex-col gap-2">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] tracking-tight">
+            {{ team.name }}
+        </h1>
+        <div class="flex items-center gap-2 text-sm text-gray-400">
+            <span>League:</span>
+            <a href="{% url 'leagues:league_dashboard' league.pk %}" class="text-secondary hover:text-white transition font-bold uppercase tracking-wider flex items-center gap-1">
+                Premier League <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
         </div>
-      </section>
-
-      <section class="bg-white rounded-xl border border-mist shadow-sm">
-        <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">Pertandingan Berikutnya</h2>
-        <div class="p-5">
-        {% if next_match %}
-          <p class="text-sm text-surface/70">{{ next_match.date|date:"d/m/Y H:i" }}</p>
-          <p class="text-lg font-medium mt-1">
-            {{ next_match.home_team.name }} vs {{ next_match.away_team.name }}
-          </p>
-        {% else %}
-          <p class="text-surface/50 italic">Tidak ada jadwal mendatang.</p>
-        {% endif %}
-        </div>
-      </section>
     </div>
 
-    <section class="bg-white rounded-xl border border-mist shadow-sm mt-6">
-      <h2 class="text-xl font-semibold text-primary px-5 py-4 border-b border-mist">
-        5 Pertandingan Terakhir (Musim {{ selected_season }})
-      </h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-mist/60 text-surface/70">
-            <tr>
-              <th class="text-left px-4 py-3 font-medium">Tanggal</th>
-              <th class="text-left px-4 py-3 font-medium">Home</th>
-              <th class="text-left px-4 py-3 font-medium">Skor</th>
-              <th class="text-left px-4 py-3 font-medium">Away</th>
-              <th class="text-left px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-mist">
-            {% for m in recent_matches %}
-              <tr class="hover:bg-mist/50">
-                <td class="px-4 py-2 text-surface/80">{{ m.date|date:"d/m/Y H:i" }}</td>
-                <td class="px-4 py-2 font-medium">{{ m.home_team.name }}</td>
-                <td class="px-4 py-2 font-bold text-primary"><strong>{{ m.home_score }}</strong> : <strong>{{ m.away_score }}</strong></td>
-                <td class="px-4 py-2 font-medium">{{ m.away_team.name }}</td>
-                <td class="px-4 py-2 text-surface/70">{{ m.status|title }}</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="5" class="px-4 py-6 text-center text-surface/50">Belum ada pertandingan pada musim ini.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+    <form method="get" action="" class="bg-[#2A1B54]/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-lg max-w-md">
+        <label for="season" class="text-xs font-bold text-secondary uppercase tracking-wider">Season:</label>
+        <div class="relative flex-grow">
+            <select id="season" name="season" onchange="this.form.submit()"
+                    class="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-4 text-white focus:border-secondary focus:ring-1 focus:ring-secondary outline-none appearance-none cursor-pointer transition font-medium">
+                {% for s in seasons %}
+                <option value="{{ s }}" {% if s == selected_season %}selected{% endif %} class="bg-[#1A103C]">{{ s }}</option>
+                {% endfor %}
+            </select>
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+        </div>
+        <noscript><button type="submit" class="h-11 px-6 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition shadow-lg">Show</button></noscript>
+    </form>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <section class="flex flex-col rounded-3xl border border-white/10 bg-[#2A1B54]/60 backdrop-blur-xl shadow-2xl overflow-hidden h-full">
+            <header class="px-6 py-5 border-b border-white/10 bg-black/20">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="h-5 w-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Performance ({{ selected_season }})
+                </h2>
+            </header>
+            
+            <div class="p-6">
+                {% if standing %}
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-gray-400 font-medium">Matches Played</span>
+                        <span class="font-mono text-lg font-bold text-white">{{ standing.played }}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 border-b border-white/5 pb-3 text-center bg-black/10 rounded-xl p-2">
+                        <div>
+                            <span class="block text-[10px] font-bold text-gray-500 uppercase">Win</span>
+                            <span class="block text-xl font-extrabold text-green-400">{{ standing.win }}</span>
+                        </div>
+                        <div class="border-x border-white/5">
+                            <span class="block text-[10px] font-bold text-gray-500 uppercase">Draw</span>
+                            <span class="block text-xl font-extrabold text-gray-300">{{ standing.draw }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] font-bold text-gray-500 uppercase">Loss</span>
+                            <span class="block text-xl font-extrabold text-red-400">{{ standing.loss }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-gray-400 font-medium">Goals (For / Against)</span>
+                        <div class="flex gap-2 font-mono text-white font-bold">
+                            <span class="text-green-400">{{ standing.gf }}</span> / <span class="text-red-400">{{ standing.ga }}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-white/5 pb-3">
+                        <span class="text-gray-400 font-medium">Goal Difference</span>
+                        <span class="font-mono text-lg font-bold {% if standing.gd >= 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                            {% if standing.gd > 0 %}+{% endif %}{{ standing.gd }}
+                        </span>
+                    </div>
+                    
+                    <div class="mt-4 pt-2 flex justify-between items-center bg-gradient-to-r from-primary/20 to-transparent rounded-xl p-4 border border-white/10">
+                        <span class="text-sm font-bold text-white uppercase tracking-wider">Total Points</span>
+                        <span class="text-4xl font-extrabold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{{ standing.points }}</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <svg class="w-12 h-12 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-gray-500 italic">No standings data available for this season.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="flex flex-col rounded-3xl border border-white/10 bg-[#2A1B54]/60 backdrop-blur-xl shadow-2xl overflow-hidden h-full">
+            <header class="px-6 py-5 border-b border-white/10 bg-black/20">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Next Match
+                </h2>
+            </header>
+            <div class="p-6 flex flex-col justify-center flex-grow min-h-[300px]">
+                {% if next_match %}
+                    <div class="text-center space-y-8">
+                        <div class="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-mono text-gray-400 shadow-sm">
+                            {{ next_match.date|date:"l, d F Y · H:i" }}
+                        </div>
+                        
+                        <div class="flex items-center justify-center gap-4 sm:gap-10">
+                            <div class="flex flex-col items-center gap-3 w-1/3 group">
+                                <div class="w-20 h-20 rounded-full bg-black/30 flex items-center justify-center border-2 border-white/10 p-3 group-hover:border-white/30 transition shadow-lg">
+                                    {% if next_match.home_team.logo_url %}
+                                        <img src="{{ next_match.home_team.logo_url }}" class="w-full h-full object-contain" alt="">
+                                    {% else %}
+                                        <span class="text-lg font-bold text-gray-500">{{ next_match.home_team.name|slice:":2" }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-lg font-bold text-white leading-tight break-words">{{ next_match.home_team.name }}</span>
+                            </div>
+
+                            <div class="text-3xl font-black text-gray-600 italic">VS</div>
+
+                            <div class="flex flex-col items-center gap-3 w-1/3 group">
+                                <div class="w-20 h-20 rounded-full bg-black/30 flex items-center justify-center border-2 border-white/10 p-3 group-hover:border-white/30 transition shadow-lg">
+                                    {% if next_match.away_team.logo_url %}
+                                        <img src="{{ next_match.away_team.logo_url }}" class="w-full h-full object-contain" alt="">
+                                    {% else %}
+                                        <span class="text-lg font-bold text-gray-500">{{ next_match.away_team.name|slice:":2" }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-lg font-bold text-white leading-tight break-words">{{ next_match.away_team.name }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <p class="text-gray-400 italic">No upcoming matches scheduled.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <section class="rounded-3xl border border-white/10 bg-[#2A1B54]/60 backdrop-blur-xl shadow-2xl overflow-hidden mt-8">
+        <header class="px-6 py-5 border-b border-white/10 bg-black/20">
+            <h2 class="text-xl font-bold text-white">Last 5 Matches</h2>
+        </header>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-black/30 text-xs font-bold uppercase text-gray-400">
+                    <tr>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4 text-right">Home</th>
+                        <th class="px-4 py-4 text-center">Score</th>
+                        <th class="px-6 py-4 text-left">Away</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for m in recent_matches %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 text-gray-400 font-mono text-xs">{{ m.date|date:"d/m/Y H:i" }}</td>
+                        <td class="px-6 py-4 font-bold text-white text-right">{{ m.home_team.name }}</td>
+                        <td class="px-4 py-4 text-center">
+                            <span class="inline-flex items-center justify-center bg-[#1A103C] border border-white/10 rounded-lg px-3 py-1 min-w-[60px] text-white font-extrabold tracking-widest shadow-inner">
+                                {{ m.home_score }} - {{ m.away_score }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-white text-left">{{ m.away_team.name }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white/10 text-gray-300 border border-white/5">{{ m.status|title }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-6 py-10 text-center text-gray-500 italic bg-black/20">No matches found for this season.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 
-    <p class="mt-6">
-      <a href="{% url 'leagues:team_list' league.pk %}" class="text-primary hover:text-sea underline">
-        ← Kembali ke Daftar Tim
-      </a>
-    </p>
+    <div class="pt-4 pb-8">
+        <a href="{% url 'leagues:team_list' league.pk %}" class="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition group">
+            <div class="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-white/10 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </div>
+            Back to Team List
+        </a>
+    </div>
 
-  </div>
+</section>
 {% endblock %}
