@@ -54,7 +54,10 @@ def get_news_data_json(request, news_id):
             'category': news.category,
             'sports': news.sports,
             'thumbnail': news.thumbnail,
-            'is_featured': news.is_featured
+            'is_featured': news.is_featured,
+            'author': news.author.username if news.author else "Admin",
+            'created_at': news.created_at.isoformat(),
+            'news_views': news.news_views,
         }
         return JsonResponse(data)
     except News.DoesNotExist:
@@ -68,7 +71,7 @@ def get_news_data_json(request, news_id):
 @csrf_exempt
 def edit_news_ajax(request, news_id):
     news = get_object_or_404(News, pk=news_id)
-    if request.user != news.author:
+    if request.user != news.author and not request.user.is_superuser:
         return JsonResponse({'ok': False, 'error': 'Permission denied.'}, status=403)
     
     form = NewsForm(request.POST or None, instance=news)
@@ -93,7 +96,7 @@ def edit_news_ajax(request, news_id):
 @csrf_exempt
 def delete_news_ajax(request, news_id):
     news = get_object_or_404(News, pk=news_id)
-    if request.user != news.author:
+    if request.user != news.author and not request.user.is_superuser:
         return JsonResponse({'ok': False, 'error': 'Permission Denied.'}, status=403)
     
     try:
