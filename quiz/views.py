@@ -411,6 +411,144 @@ def get_all_quizzes(request):
 
     return JsonResponse(data, safe=False)
 
+@csrf_exempt
+@login_required
+def create_quiz_flutter(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # 1. Create Quiz
+            quiz = Quiz.objects.create(
+                user=request.user,
+                title=data.get('title'),
+                description=data.get('description', ''),
+                category=data.get('category', 'football'),
+                is_published=data.get('is_published', False)
+            )
+
+            # 2. Create Questions
+            questions_data = data.get('questions', [])
+            for q_data in questions_data:
+                Question.objects.create(
+                    quiz=quiz,
+                    text=q_data['text'],
+                    option_a=q_data['option_a'],
+                    option_b=q_data['option_b'],
+                    option_c=q_data['option_c'],
+                    option_d=q_data['option_d'],
+                    correct_answer=q_data['correct_answer']
+                )
+
+            return JsonResponse({"status": "success", "message": "Quiz created successfully!"}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid method"}, status=401)
+
+
+@csrf_exempt
+@login_required
+def edit_quiz_flutter(request, quiz_id):
+    if request.method == 'POST':
+        try:
+            quiz = Quiz.objects.get(pk=quiz_id)
+            if quiz.user != request.user:
+                return JsonResponse({"status": "error", "message": "Permission denied"}, status=403)
+
+            data = json.loads(request.body)
+
+            # 1. Update Quiz Fields
+            quiz.title = data.get('title', quiz.title)
+            quiz.description = data.get('description', quiz.description)
+            quiz.category = data.get('category', quiz.category)
+            quiz.is_published = data.get('is_published', quiz.is_published)
+            quiz.save()
+
+            # 2. Handle Questions (Complex: Add, Edit, Delete)
+            questions_data = data.get('questions', [])
+            
+            # Logic: We replace all questions for simplicity and robustness in API
+            # ensuring the order and data matches exactly what the user sent.
+            # Alternatively, you can implement ID matching, but wiping and recreating 
+            # for a small quiz app is cleaner for sync.
+            quiz.questions.all().delete() 
+
+            for q_data in questions_data:
+                Question.objects.create(
+                    quiz=quiz,
+                    text=q_data['text'],
+                    option_a=q_data['option_a'],
+                    option_b=q_data['option_b'],
+                    option_c=q_data['option_c'],
+                    option_d=q_data['option_d'],
+                    correct_answer=q_data['correct_answer']
+                )
+
+            return JsonResponse({"status": "success", "message": "Quiz updated successfully!"}, status=200)
+
+        except Quiz.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Quiz not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid method"}, status=401)
+
+
+@csrf_exempt
+@login_required
+def delete_quiz_flutter(request, quiz_id):
+    if request.method == 'POST':
+        try:
+            quiz = Quiz.objects.get(pk=quiz_id)
+            if quiz.user != request.user:
+                return JsonResponse({"status": "error", "message": "Permission denied"}, status=403)
+            
+            quiz.delete()
+            return JsonResponse({"status": "success", "message": "Quiz deleted successfully!"}, status=200)
+        
+        except Quiz.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Quiz not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid method"}, status=401)
+
+@login_required
+def get_quiz_for_edit_flutter(request, quiz_id):
+    """
+    Returns full quiz details including questions for the Edit Form.
+    """
+    try:
+        quiz = Quiz.objects.get(pk=quiz_id)
+        if quiz.user != request.user:
+            return JsonResponse({"status": "error", "message": "Permission denied"}, status=403)
+        
+        questions = []
+        for q in quiz.questions.all():
+            questions.append({
+                "text": q.text,
+                "option_a": q.option_a,
+                "option_b": q.option_b,
+                "option_c": q.option_c,
+                "option_d": q.option_d,
+                "correct_answer": q.correct_answer
+            })
+            
+        return JsonResponse({
+            "status": "success",
+            "data": {
+                "title": quiz.title,
+                "description": quiz.description,
+                "category": quiz.category,
+                "is_published": quiz.is_published,
+                "questions": questions
+            }
+        }, status=200)
+    except Quiz.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Quiz not found"}, status=404)
+    
 def get_quiz_detail(request, quiz_id):
     quiz = Quiz.objects.get(id=quiz_id, is_published=True)
 
@@ -427,11 +565,16 @@ def get_quiz_detail(request, quiz_id):
             }
         })
 
+    # Get Leaderboard
+    leaderboard_qs = Score.objects.filter(quiz=quiz).select_related('user').order_by('-score')[:10]
+    leaderboard = [{"user": s.user.username, "score": s.score} for s in leaderboard_qs]
+
     data = {
         "id": quiz.id,
         "title": quiz.title,
         "description": quiz.description,
-        "questions": questions
+        "questions": questions,
+        "leaderboard": leaderboard, # Added this
     }
 
     return JsonResponse(data)
@@ -447,8 +590,13 @@ def submit_quiz(request, quiz_id):
 
     score, total, results = calculate_quiz_result(quiz, request.user, answers)
 
+    # Get Updated Leaderboard after score calculation
+    leaderboard_qs = Score.objects.filter(quiz=quiz).select_related('user').order_by('-score')[:10]
+    leaderboard = [{"user": s.user.username, "score": s.score} for s in leaderboard_qs]
+
     return JsonResponse({
         "score": score,
         "total": total,
         "result": results,
+        "leaderboard": leaderboard, # Added this
     })
