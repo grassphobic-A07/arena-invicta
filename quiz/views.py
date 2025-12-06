@@ -468,11 +468,6 @@ def edit_quiz_flutter(request, quiz_id):
 
             # 2. Handle Questions (Complex: Add, Edit, Delete)
             questions_data = data.get('questions', [])
-            
-            # Logic: We replace all questions for simplicity and robustness in API
-            # ensuring the order and data matches exactly what the user sent.
-            # Alternatively, you can implement ID matching, but wiping and recreating 
-            # for a small quiz app is cleaner for sync.
             quiz.questions.all().delete() 
 
             for q_data in questions_data:
@@ -574,7 +569,7 @@ def get_quiz_detail(request, quiz_id):
         "title": quiz.title,
         "description": quiz.description,
         "questions": questions,
-        "leaderboard": leaderboard, # Added this
+        "leaderboard": leaderboard, 
     }
 
     return JsonResponse(data)
@@ -598,5 +593,5 @@ def submit_quiz(request, quiz_id):
         "score": score,
         "total": total,
         "result": results,
-        "leaderboard": leaderboard, # Added this
+        "leaderboard": leaderboard, 
     })
