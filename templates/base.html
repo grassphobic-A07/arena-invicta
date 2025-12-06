@@ -66,9 +66,11 @@
 
     <body class="flex flex-col min-h-screen text-white selection:bg-secondary selection:text-white">
         
-        {% include "nav.html" %}        
+        {% include "nav.html" %}      
 
-        <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+        {% block hero %}{% endblock %}  
+
+        <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 {% block main_padding %}py-12 md:py-20{% endblock %}">
             {% if messages %}
                 <div id="dj-messages" hidden>
                     {% for message in messages %}
