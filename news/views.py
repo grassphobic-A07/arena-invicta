@@ -119,7 +119,7 @@ def delete_news_ajax(request, news_id):
 @csrf_exempt
 @require_POST
 def add_news_ajax(request):
-    if not request.user.profile.is_content_staff:
+    if not request.user.profile.is_content_staff and not request.user.is_superuser:
         return JsonResponse({'error': 'Permission Denied.'}, status=403)
     
     title = strip_tags(request.POST.get("title", "")) 
