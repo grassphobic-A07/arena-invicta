@@ -131,7 +131,7 @@ def add_news_ajax(request):
 
     if not title or not content or not category or not sports:
         return JsonResponse({'error': 'Missing required fields (Title, Content, Category, Sports)'}, status=400)
-    
+
     try:
         new_news = News(
             title=title,
@@ -203,3 +203,6 @@ def proxy_image(request):
         )
     except requests.RequestException as e:
         return HttpResponse(f'Error fetching image: {str(e)}', status=500)
+    
+        
+    # Biar bisa commit
