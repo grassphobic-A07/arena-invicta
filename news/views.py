@@ -101,7 +101,7 @@ def delete_news_ajax(request, news_id):
     
     try:
         news_title = news.title # Untuk pesan
-        news.delete()
+        news.delete() # Delete the news item
 
         success_msg = f'News "{news_title}" has been deleted.'
         redirect_url = reverse('news:show_news')
