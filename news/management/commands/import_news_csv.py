@@ -33,22 +33,20 @@ class Command(BaseCommand):
                 
                 imported_count = 0
                 for row in reader:
-                    # Bersihkan dan konversi data
                     is_featured_val = row.get('is_featured', '').lower() == 'true'
                     views_val = int(row.get('news_views', 0) or 0)
                     thumbnail_val = row.get('thumbnail', '')
-                    
+                    sports_val = row['sports'].lower() 
+
                     News.objects.create(
                         title=row['title'],
                         content=row['content'],
                         category=row['category'],
-                        sports=row['sports'],
+                        sports=sports_val,  # Gunakan variable yang sudah di-lowercase
                         is_featured=is_featured_val,
                         news_views=views_val,
-                        
-                        # Set thumbnail ke None jika string kosong
                         thumbnail=thumbnail_val if thumbnail_val else None, 
-                        author=author # Set foreign key
+                        author=author
                     )
                     imported_count += 1
             
