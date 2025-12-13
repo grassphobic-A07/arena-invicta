@@ -124,8 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categoryVal) params.append('category', categoryVal);
         if (creatorVal) params.append('created_by', creatorVal);
 
+        let apiUrl = "{% url 'quiz:get_all_quizzes' %}"
+
+        {% if authorized %}
+            apiUrl = "{% url 'quiz:get_admin_quizzes' %}"
+        {% endif %}
+
         try {
-            const response = await fetch(`{% url 'quiz:get_all_quizzes' %}?${params.toString()}`);
+            const response = await fetch(`${apiUrl}?${params.toString()}`);
             if (!response.ok) throw new Error('Failed to fetch data');
             const data = await response.json();
             renderQuizzes(data);
@@ -157,7 +163,20 @@ document.addEventListener('DOMContentLoaded', () => {
         quizzes.forEach(quiz => {
             const categoryDisplay = quiz.category.charAt(0).toUpperCase() + quiz.category.slice(1);
             const detailUrl = `/quiz/${quiz.id}/`;
-            const creatorInitial = quiz.created_by.charAt(0).toUpperCase();
+
+            let creatorHtml = ''; 
+            
+            if (quiz.created_by) {
+                const creatorInitial = quiz.created_by.charAt(0).toUpperCase();
+                creatorHtml = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-300">
+                            ${creatorInitial}
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">@${quiz.created_by}</span>
+                    </div>
+                `;
+            }
 
             // Hot Badge logic
             const hotBadge = quiz.is_quiz_hot 
@@ -193,14 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 
                 <div class="px-6 md:px-8 py-4 border-t border-white/5 bg-black/20 flex items-center justify-between relative z-20">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-300">
-                            ${creatorInitial}
-                        </div>
-                        <span class="text-xs text-gray-400 font-medium">@${quiz.created_by}</span>
-                    </div>
+
                     
-                    <a href="${detailUrl}" class="text-xs font-bold text-yellow-400 uppercase tracking-wider group-hover:underline decoration-yellow-400 underline-offset-4 cursor-pointer hover:text-yellow-300 transition-colors">
+                    ${creatorHtml} <a href="${detailUrl}" class="text-xs font-bold text-yellow-400 uppercase tracking-wider group-hover:underline decoration-yellow-400 underline-offset-4 cursor-pointer hover:text-yellow-300 transition-colors">
                         Start Quiz &rarr;
                     </a>
                 </div>
