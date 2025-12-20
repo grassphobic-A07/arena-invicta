@@ -1,8 +1,6 @@
-# leagues/views.py
-
 from django.utils import timezone
 from django.views.generic import ListView, DetailView
-from django.shortcuts import get_object_or_404, redirect, render # <-- Pastikan 'render' ada
+from django.shortcuts import get_object_or_404, redirect, render
 from .models import League, Match, Standing, Team
 from django.views.generic import TemplateView
 from django.db.models import Q
@@ -12,9 +10,14 @@ from django.urls import reverse_lazy
 from django.views.generic import UpdateView, DeleteView, CreateView
 from .forms import MatchUpdateForm, MatchCreateForm
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseRedirect # <-- TAMBAHKAN INI
+from django.http import JsonResponse, HttpResponseRedirect 
+from django.http import HttpResponse
+from django.core import serializers
+from .models import League, Team, Match, Standing
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.dateparse import parse_datetime
 
-# TAMBAHKAN HELPER INI (bisa copy dari accounts/views.py)
 def _is_ajax(request):
     """ Cek apakah request datang dari AJAX """
     return request.headers.get("x-requested-with") == "XMLHttpRequest"
@@ -406,3 +409,307 @@ class MatchCreateView(ContentStaffOnlyMixin, CreateView):
     def get_success_url(self):
         # Redirect ke detail match yang baru dibuat
         return reverse_lazy("leagues:match_detail", kwargs={"match_id": self.object.pk})
+    
+def show_leagues_json(request):
+    data = League.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def show_teams_json(request):
+    data = Team.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def show_matches_json(request):
+    league = League.objects.first()
+    if not league:
+        return HttpResponse("[]", content_type="application/json")
+    
+    data = Match.objects.filter(league=league).order_by('-date')
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def show_standings_json(request):
+    data = Standing.objects.all()
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+def show_standings_json(request):
+    league = League.objects.first()
+    data = Standing.objects.filter(league=league).order_by('-points', '-gd', '-gf')
+    return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
+@csrf_exempt
+def create_team_flutter(request):
+    # 1. Cek apakah Method POST
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    # 2. Cek apakah User sudah Login
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Anda harus login terlebih dahulu."}, status=401)
+
+    # 3. Cek apakah User adalah Admin/Staff
+    if not request.user.is_staff: # is_staff True untuk admin & staff
+        return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
+
+    # --- JIKA LOLOS PENGECEKAN DI ATAS, BARU JALANKAN LOGIKA SIMPAN ---
+    try:
+        data = json.loads(request.body)
+        
+        # Ambil Liga pertama sebagai default (Logic sementara)
+        league = League.objects.first()
+        if not league:
+            league = League.objects.create(name="Default League", country="Indonesia")
+
+        new_team = Team.objects.create(
+            league=league,
+            name=data.get("name"),
+            short_name=data.get("short_name"),
+            founded_year=int(data.get("founded_year", 2023)),
+        )
+        new_team.save()
+
+        return JsonResponse({"status": "success", "message": "Tim berhasil dibuat!"}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def create_standing_flutter(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    # Pastikan user login (bisa disesuaikan jika ingin memperbolehkan guest sementara waktu)
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Anda harus login terlebih dahulu."}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        
+        # Ambil Liga Default
+        league = League.objects.first()
+        if not league:
+            return JsonResponse({"status": "error", "message": "Data liga tidak ditemukan."}, status=404)
+
+        # Cari Team
+        team_id = int(data.get("team_id"))
+        team = Team.objects.get(pk=team_id)
+        season = data.get("season", "23/24") # Default season jika kosong
+
+        # VALIDASI: Cek apakah tim sudah ada di musim ini?
+        if Standing.objects.filter(league=league, team=team, season=season).exists():
+            return JsonResponse({"status": "error", "message": f"Tim {team.name} sudah ada di klasemen musim {season}."}, status=400)
+
+        # Ambil statistik dasar dari input
+        win = int(data.get("win", 0))
+        draw = int(data.get("draw", 0))
+        loss = int(data.get("loss", 0))
+        gf = int(data.get("gf", 0))
+        ga = int(data.get("ga", 0))
+
+        # LOGIKA OTOMATIS (Backend Calculation)
+        played = win + draw + loss
+        points = (win * 3) + (draw * 1)
+        gd = gf - ga
+
+        new_standing = Standing.objects.create(
+            league=league,
+            team=team,
+            season=season,
+            played=played,
+            win=win,
+            draw=draw,
+            loss=loss,
+            gf=gf,
+            ga=ga,
+            gd=gd,
+            points=points,
+        )
+        new_standing.save()
+
+        return JsonResponse({"status": "success", "message": "Klasemen berhasil disimpan!"}, status=200)
+
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Tim tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def edit_standing_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Login required"}, status=401)
+
+    try:
+        standing = Standing.objects.get(pk=id)
+        data = json.loads(request.body)
+
+        # Update data dasar
+        # Kita gunakan 'getattr' atau logika sederhana untuk mengambil nilai baru atau mempertahankan nilai lama
+        standing.win = int(data.get("win", standing.win))
+        standing.draw = int(data.get("draw", standing.draw))
+        standing.loss = int(data.get("loss", standing.loss))
+        standing.gf = int(data.get("gf", standing.gf))
+        standing.ga = int(data.get("ga", standing.ga))
+        
+        standing.played = standing.win + standing.draw + standing.loss
+        standing.points = (standing.win * 3) + (standing.draw * 1)
+        standing.gd = standing.gf - standing.ga
+        
+        # Season biasanya tidak diubah saat edit statistik, tapi bisa ditambahkan jika perlu
+        # standing.season = data.get("season", standing.season)
+
+        standing.save()
+
+        return JsonResponse({"status": "success", "message": "Data berhasil diperbarui!"}, status=200)
+
+    except Standing.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Data tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+@csrf_exempt
+def delete_standing_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    # Cek Admin
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
+
+    try:
+        standing = Standing.objects.get(pk=id)
+        standing.delete()
+        return JsonResponse({"status": "success", "message": "Data berhasil dihapus!"}, status=200)
+
+    except Standing.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Data tidak ditemukan."}, status=404)
+
+@csrf_exempt
+def create_match_flutter(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        league = League.objects.first()
+        
+        # Ambil Tim
+        home_team_id = int(data.get("home_team_id"))
+        away_team_id = int(data.get("away_team_id"))
+        
+        # Validasi: Tim kandang tidak boleh sama dengan tim tandang
+        if home_team_id == away_team_id:
+             return JsonResponse({"status": "error", "message": "Tim kandang dan tandang tidak boleh sama."}, status=400)
+
+        home_team = Team.objects.get(pk=home_team_id)
+        away_team = Team.objects.get(pk=away_team_id)
+        
+        # Parsing Tanggal (Format ISO 8601 dari Flutter)
+        date_str = data.get("date") # Contoh: "2023-12-31T15:30:00"
+        match_date = parse_datetime(date_str)
+        if not match_date:
+            return JsonResponse({"status": "error", "message": "Format tanggal tidak valid."}, status=400)
+
+        # Buat Match Baru
+        new_match = Match.objects.create(
+            league=league,
+            season=data.get("season", "23/24"),
+            date=match_date,
+            home_team=home_team,
+            away_team=away_team,
+            home_score=int(data.get("home_score", 0)),
+            away_score=int(data.get("away_score", 0)),
+            status="FINISHED" if data.get("is_finished") else "SCHEDULED" 
+        )
+        new_match.save()
+
+        return JsonResponse({"status": "success", "message": "Pertandingan berhasil dibuat!"}, status=200)
+
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Tim tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def edit_match_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
+
+    try:
+        match_obj = Match.objects.get(pk=id)
+        data = json.loads(request.body)
+
+        # Update Skor
+        match_obj.home_score = int(data.get("home_score", match_obj.home_score))
+        match_obj.away_score = int(data.get("away_score", match_obj.away_score))
+        
+        # Update Status (Opsional, misal user mencentang 'Selesai')
+        if "is_finished" in data:
+             match_obj.status = "FINISHED" if data["is_finished"] else "SCHEDULED"
+
+        match_obj.save()
+
+        return JsonResponse({"status": "success", "message": "Skor berhasil diperbarui!"}, status=200)
+
+    except Match.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Pertandingan tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def delete_match_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
+
+    try:
+        match_obj = Match.objects.get(pk=id)
+        match_obj.delete()
+        return JsonResponse({"status": "success", "message": "Pertandingan berhasil dihapus!"}, status=200)
+
+    except Match.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Data tidak ditemukan."}, status=404)
+    
+@csrf_exempt
+def edit_team_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    # Cek login/admin (bisa di-skip dulu sesuai permintaanmu, tapi sebaiknya ada)
+    
+    try:
+        team = Team.objects.get(pk=id)
+        data = json.loads(request.body)
+        
+        team.name = data.get("name", team.name)
+        team.short_name = data.get("short_name", team.short_name)
+        team.founded_year = int(data.get("founded_year", team.founded_year))
+        
+        team.save()
+        
+        return JsonResponse({"status": "success", "message": "Data tim berhasil diperbarui!"}, status=200)
+
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Tim tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+@csrf_exempt
+def delete_team_flutter(request, id):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    
+    try:
+        team = Team.objects.get(pk=id)
+        team.delete()
+        return JsonResponse({"status": "success", "message": "Tim berhasil dihapus!"}, status=200)
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Tim tidak ditemukan."}, status=404)
