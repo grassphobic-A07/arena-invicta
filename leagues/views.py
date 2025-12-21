@@ -3,7 +3,7 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import League, Match, Standing, Team
 from django.views.generic import TemplateView
-from django.db.models import Q
+from django.db.models import Q, F
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .permissions import is_content_staff
 from django.urls import reverse_lazy
@@ -462,7 +462,6 @@ def create_team_flutter(request):
             league=league,
             name=data.get("name"),
             short_name=data.get("short_name"),
-            founded_year=int(data.get("founded_year", 2023)),
         )
         new_team.save()
 
@@ -470,6 +469,8 @@ def create_team_flutter(request):
 
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
     
 @csrf_exempt
 def create_standing_flutter(request):
@@ -638,6 +639,7 @@ def edit_match_flutter(request, id):
     if request.method != 'POST':
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
     
+    # Pastikan user adalah admin/staff
     if not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({"status": "error", "message": "Hanya admin yang boleh melakukan ini!"}, status=403)
 
@@ -645,20 +647,39 @@ def edit_match_flutter(request, id):
         match_obj = Match.objects.get(pk=id)
         data = json.loads(request.body)
 
-        # Update Skor
+        # 1. Update Tim (Jika ada perubahan)
+        if "home_team_id" in data:
+            match_obj.home_team = Team.objects.get(pk=int(data["home_team_id"]))
+        
+        if "away_team_id" in data:
+            match_obj.away_team = Team.objects.get(pk=int(data["away_team_id"]))
+
+        # Validasi: Tim tidak boleh sama
+        if match_obj.home_team == match_obj.away_team:
+            return JsonResponse({"status": "error", "message": "Tim kandang dan tandang tidak boleh sama."}, status=400)
+
+        # 2. Update Tanggal
+        if "date" in data:
+            new_date = parse_datetime(data["date"])
+            if new_date:
+                match_obj.date = new_date
+
+        # 3. Update Skor
         match_obj.home_score = int(data.get("home_score", match_obj.home_score))
         match_obj.away_score = int(data.get("away_score", match_obj.away_score))
         
-        # Update Status (Opsional, misal user mencentang 'Selesai')
+        # 4. Update Status
         if "is_finished" in data:
              match_obj.status = "FINISHED" if data["is_finished"] else "SCHEDULED"
 
         match_obj.save()
 
-        return JsonResponse({"status": "success", "message": "Skor berhasil diperbarui!"}, status=200)
+        return JsonResponse({"status": "success", "message": "Data pertandingan berhasil diperbarui!"}, status=200)
 
     except Match.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Pertandingan tidak ditemukan."}, status=404)
+    except Team.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Tim tidak valid."}, status=400)
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
     
@@ -683,15 +704,12 @@ def edit_team_flutter(request, id):
     if request.method != 'POST':
         return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
     
-    # Cek login/admin (bisa di-skip dulu sesuai permintaanmu, tapi sebaiknya ada)
-    
     try:
         team = Team.objects.get(pk=id)
         data = json.loads(request.body)
         
         team.name = data.get("name", team.name)
         team.short_name = data.get("short_name", team.short_name)
-        team.founded_year = int(data.get("founded_year", team.founded_year))
         
         team.save()
         
@@ -713,3 +731,270 @@ def delete_team_flutter(request, id):
         return JsonResponse({"status": "success", "message": "Tim berhasil dihapus!"}, status=200)
     except Team.DoesNotExist:
         return JsonResponse({"status": "error", "message": "Tim tidak ditemukan."}, status=404)
+    
+@csrf_exempt
+def league_dashboard_flutter(request):
+    """
+    API khusus untuk menyediakan data ringkas bagi halaman League Summary di Mobile.
+    Logikanya disamakan dengan LeagueDashboardView di Web.
+    """
+    try:
+        # Ambil liga pertama (default logic)
+        league = League.objects.first()
+        if not league:
+            return JsonResponse({"status": "error", "message": "Belum ada data liga."}, status=404)
+
+        # 1. Cari Season Terbaru
+        seasons = Match.objects.filter(league=league).values_list("season", flat=True).distinct()
+        latest_season = sorted(seasons)[-1] if seasons else None
+
+        # 2. Ambil Klasemen (Hanya 5 teratas untuk preview)
+        standings_data = []
+        if latest_season:
+            top_standings = Standing.objects.filter(
+                league=league, season=latest_season
+            ).select_related("team").order_by('-points', '-gd', '-gf')[:5]
+            
+            for s in top_standings:
+                standings_data.append({
+                    "team_id": s.team.pk,  # <--- WAJIB ADA untuk navigasi ke Detail Tim
+                    "team_name": s.team.name,
+                    "played": s.played,
+                    "points": s.points,
+                    "gd": s.gd,
+                    "rank": 0 # Nanti diurus di frontend atau enumerate
+                })
+
+        # 3. Pertandingan Terakhir Selesai (5 item)
+        recent_matches = Match.objects.filter(
+            league=league, status=Match.Status.FINISHED
+        ).select_related("home_team", "away_team").order_by("-date")[:5]
+
+        recent_data = []
+        for m in recent_matches:
+            recent_data.append({
+                "id": m.pk,
+                "home_team": m.home_team.name,
+                "away_team": m.away_team.name,
+                "home_score": m.home_score,
+                "away_score": m.away_score,
+                "date": m.date.isoformat(),
+                "season": m.season,
+            })
+
+        # 4. Pertandingan Akan Datang (5 item)
+        now = timezone.now()
+        upcoming_matches = Match.objects.filter(
+            league=league, date__gt=now
+        ).select_related("home_team", "away_team").order_by("date")[:5]
+
+        upcoming_data = []
+        for m in upcoming_matches:
+            upcoming_data.append({
+                "id": m.pk,
+                "home_team": m.home_team.name,
+                "away_team": m.away_team.name,
+                "date": m.date.isoformat(),
+                "season": m.season,
+            })
+
+        return JsonResponse({
+            "status": "success",
+            "league_name": league.name,
+            "season": latest_season,
+            "standings": standings_data,
+            "recent_matches": recent_data,
+            "upcoming_matches": upcoming_data,
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def standings_flutter(request):
+    try:
+        league = League.objects.first()
+        if not league:
+            return JsonResponse({"status": "error", "message": "Belum ada data liga."}, status=404)
+
+        # 1. Ambil daftar seasons
+        seasons = list(Match.objects.filter(league=league).values_list("season", flat=True).distinct())
+        seasons.sort()
+
+        # 2. Tentukan season terpilih
+        req_season = request.GET.get("season")
+        selected_season = req_season if req_season in seasons else (seasons[-1] if seasons else None)
+
+        # 3. Ambil data Standing
+        standings_data = []
+        if selected_season:
+            qs = Standing.objects.filter(league=league, season=selected_season)\
+                .select_related("team").order_by('-points', '-gd', '-gf')
+
+            for rank, s in enumerate(qs, start=1):
+                standings_data.append({
+                    "id": s.pk,
+                    "rank": rank,
+                    "team_id": s.team.pk,        # PENTING: ID Tim untuk Admin
+                    "league_id": s.league.pk,    # PENTING: ID Liga untuk Admin
+                    "team_name": s.team.name,
+                    "played": s.played,
+                    "win": s.win,
+                    "draw": s.draw,
+                    "loss": s.loss,
+                    "gf": s.gf,
+                    "ga": s.ga,
+                    "gd": s.gd,
+                    "points": s.points,
+                })
+
+        return JsonResponse({
+            "status": "success",
+            "seasons": seasons,
+            "selected_season": selected_season,
+            "standings": standings_data,
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def matches_flutter(request):
+    """
+    API untuk halaman Jadwal/Matches (Tab 3).
+    Mendukung filter ?tab=upcoming|finished|all dan ?q=nama_tim
+    """
+    try:
+        league = League.objects.first()
+        if not league:
+            return JsonResponse({"status": "error", "message": "Belum ada data liga."}, status=404)
+
+        # 1. Base Queryset
+        qs = Match.objects.filter(league=league).select_related("home_team", "away_team").order_by("-date")
+
+        # 2. Filter Tab
+        tab = request.GET.get("tab", "all")
+        now = timezone.now()
+        
+        if tab == "upcoming":
+            # Urutkan dari yang terdekat (ascending)
+            qs = qs.filter(date__gt=now).order_by("date")
+        elif tab == "finished":
+            # Urutkan dari yang baru selesai (descending)
+            qs = qs.filter(status=Match.Status.FINISHED)
+        # else "all": default order by -date
+
+        # 3. Filter Search Query (Nama Tim)
+        query = request.GET.get("q", "")
+        if query:
+            qs = qs.filter(Q(home_team__name__icontains=query) | Q(away_team__name__icontains=query))
+
+        # 4. Serialize Data
+        matches_data = []
+        for m in qs:
+            matches_data.append({
+                "id": m.pk,
+                "home_team": m.home_team.name,
+                "home_team_id": m.home_team.pk,
+                "away_team": m.away_team.name,
+                "away_team_id": m.away_team.pk,
+                "home_score": m.home_score,
+                "away_score": m.away_score,
+                "date": m.date.isoformat(),
+                "status": m.status, # SCHEDULED / FINISHED / LIVE / POSTPONED
+                "is_finished": m.status == "FINISHED",
+                "season": m.season,
+            })
+        
+        return JsonResponse({
+            "status": "success",
+            "matches": matches_data,
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def teams_flutter(request):
+    """
+    API untuk halaman Daftar Tim (Tab 4).
+    Mendukung pencarian ?q=nama_tim
+    """
+    try:
+        league = League.objects.first()
+        if not league:
+            return JsonResponse({"status": "error", "message": "Belum ada data liga."}, status=404)
+
+        # 1. Base Queryset
+        qs = Team.objects.filter(league=league).order_by("name")
+
+        # 2. Filter Search Query
+        query = request.GET.get("q", "")
+        if query:
+            qs = qs.filter(name__icontains=query)
+
+        # 3. Serialize Data
+        teams_data = []
+        for t in qs:
+            teams_data.append({
+                "id": t.pk,
+                "name": t.name,
+                "short_name": t.short_name,
+                "founded_year": t.founded_year if t.founded_year else "-",
+            })
+
+        return JsonResponse({
+            "status": "success",
+            "teams": teams_data,
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+@csrf_exempt
+def match_detail_flutter(request, id):
+    """
+    API untuk detail satu pertandingan (Stats lengkap).
+    Digunakan saat kartu pertandingan diklik di mobile.
+    """
+    try:
+        m = Match.objects.get(pk=id)
+        data = {
+            "id": m.pk,
+            "home_team": m.home_team.name,
+            "away_team": m.away_team.name,
+            "home_score": m.home_score,
+            "away_score": m.away_score,
+            "date": m.date.isoformat(),
+            "status": m.status,
+            "season": m.season,
+            "is_finished": m.status == "FINISHED",
+            
+            # --- Statistik Home ---
+            "home_shots": m.home_shots,
+            "home_shots_on_target": m.home_shots_on_target,
+            "home_possession": m.home_possession,
+            "home_passes": m.home_passes,
+            "home_corners": m.home_corners,
+            "home_offsides": m.home_offsides,
+            "home_fouls": m.home_fouls_conceded,
+            "home_yellow_cards": m.home_yellow_cards,
+            "home_red_cards": m.home_red_cards,
+
+            # --- Statistik Away ---
+            "away_shots": m.away_shots,
+            "away_shots_on_target": m.away_shots_on_target,
+            "away_possession": m.away_possession,
+            "away_passes": m.away_passes,
+            "away_corners": m.away_corners,
+            "away_offsides": m.away_offsides,
+            "away_fouls": m.away_fouls_conceded,
+            "away_yellow_cards": m.away_yellow_cards,
+            "away_red_cards": m.away_red_cards,
+        }
+        return JsonResponse(data, status=200)
+
+    except Match.DoesNotExist:
+        return JsonResponse({"status": "error", "message": "Pertandingan tidak ditemukan."}, status=404)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
